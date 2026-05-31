@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   Play, 
   Pause, 
@@ -80,6 +80,52 @@ const trendingCreators: TrendingCreator[] = [
   { rank: 2, username: "@MetroVibes", avatarLetter: "M", genreTag: "Hip Hop", plays: "11.5k" },
   { rank: 3, username: "@LogicKing", avatarLetter: "L", genreTag: "R&B", plays: "9.1k" }
 ];
+
+// --- IndexedDB Audio File Storage ---
+const IDB_NAME = 'ProducerSaabAudio';
+const IDB_STORE = 'audioFiles';
+const IDB_VERSION = 1;
+
+function openAudioDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+    req.onupgradeneeded = () => {
+      req.result.createObjectStore(IDB_STORE);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveAudioToIDB(trackId: string, file: File): Promise<void> {
+  const db = await openAudioDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(file, trackId);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function loadAudioFromIDB(trackId: string): Promise<File | null> {
+  const db = await openAudioDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).get(trackId);
+    req.onsuccess = () => resolve(req.result ?? null);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function deleteAudioFromIDB(trackId: string): Promise<void> {
+  const db = await openAudioDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).delete(trackId);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
 
 // --- Local Profiles Database Interfaces ---
 interface SavedProfile {
@@ -676,6 +722,13 @@ export function AudioDashboard() {
 
     setTracks(prev => [newTrack, ...prev]);
 
+    // Persist audio file to IndexedDB for cross-session playback
+    if (audioFile) {
+      saveAudioToIDB(newTrack.id, audioFile).catch(err =>
+        console.error('Failed to save audio to IndexedDB:', err)
+      );
+    }
+
     // Persist to localStorage active profile (read current localStorage state first to prevent overwriting)
     if (selectedProfileId && typeof window !== 'undefined') {
       const stored = localStorage.getItem('gravity_saved_profiles');
@@ -781,7 +834,36 @@ export function AudioDashboard() {
     }
   };
 
-  // Load local profiles on mount
+  // Load local profiles on mount, then hydrate audio blob URLs from IndexedDB
+  const hydrateAudioUrls = useCallback(async (profiles: SavedProfile[]) => {
+    const hydrated = await Promise.all(
+      profiles.map(async (profile) => ({
+        ...profile,
+        tracks: await Promise.all(
+          (profile.tracks || []).map(async (track) => {
+            // Try to restore a fresh blob URL from IndexedDB
+            try {
+              const file = await loadAudioFromIDB(String(track.id));
+              if (file) {
+                const freshUrl = URL.createObjectURL(file);
+                return { ...track, url: freshUrl, audioUrl: freshUrl };
+              }
+            } catch {
+              // IndexedDB unavailable or entry missing — fall through
+            }
+            // No file stored — strip stale blob URLs gracefully
+            return {
+              ...track,
+              url: track.url?.startsWith('blob:') ? '' : (track.url ?? ''),
+              audioUrl: track.audioUrl?.startsWith('blob:') ? '' : (track.audioUrl ?? '')
+            };
+          })
+        )
+      }))
+    );
+    return hydrated;
+  }, []);
+
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect */
     if (typeof window !== 'undefined') {
@@ -789,36 +871,23 @@ export function AudioDashboard() {
       if (stored) {
         try {
           const parsed: SavedProfile[] = JSON.parse(stored);
-          
-          // Sanitize stale blob URLs from previous session
-          const sanitizedProfiles = parsed.map(profile => ({
-            ...profile,
-            tracks: (profile.tracks || []).map(track => ({
-              ...track,
-              url: track.url && track.url.startsWith('blob:') ? '' : track.url,
-              audioUrl: track.audioUrl && track.audioUrl.startsWith('blob:') ? '' : track.audioUrl
-            }))
-          }));
-          
-          setLocalProfiles(sanitizedProfiles);
-          
-          // Hydrate feed with all sanitized tracks from local profiles
-          const allTracks: SampleTrack[] = [];
-          sanitizedProfiles.forEach(profile => {
-            if (profile.tracks) {
-              profile.tracks.forEach(track => {
-                allTracks.push(track);
-              });
-            }
+          hydrateAudioUrls(parsed).then((hydratedProfiles) => {
+            setLocalProfiles(hydratedProfiles);
+            const allTracks: SampleTrack[] = [];
+            hydratedProfiles.forEach(profile => {
+              if (profile.tracks) {
+                profile.tracks.forEach(track => allTracks.push(track));
+              }
+            });
+            setTracks(allTracks);
           });
-          setTracks(allTracks);
         } catch (e) {
           console.error("Failed to parse saved profiles:", e);
         }
       }
     }
     /* eslint-enable react-hooks/set-state-in-effect */
-  }, []);
+  }, [hydrateAudioUrls]);
 
 
   // Control audio playback on the conditionally-mounted element

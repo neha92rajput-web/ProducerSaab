@@ -1,47 +1,97 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-primary: #00e5ff;
-  --color-brand-accent: #ff007f;
-  --color-bg-darker: #06060a;
-  --color-bg-dark: #0b0b12;
-  --color-bg-panel: #11111e;
-  --color-border-card: #1f1f33;
+  --color-cream: #FAF6F0;
+  --color-cream-dark: #F0EBE3;
+  --color-gold: #C8956C;
+  --color-gold-light: #D4A574;
+  --color-gold-dark: #B07D56;
+  --color-charcoal: #1A1A1A;
+  --color-charcoal-light: #2D2D2D;
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #6B6B6B;
+  --color-text-muted: #999999;
+  --color-border-soft: #E8E2D9;
+  --color-bg-card: #FFFFFF;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 :root {
-  --background: #06060a;
-  --foreground: #f1f5f9;
+  --background: #FAF6F0;
+  --foreground: #1A1A1A;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom Scrollbar for Sleek Dark Theme */
+/* Elegant Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0b0b12;
+  background: #F0EBE3;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #25253d;
+  background: #C8956C;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #00e5ff;
-  box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+  background: #B07D56;
 }
 
-/* Custom Input Styles */
-input[type="range"]::-webkit-slider-thumb {
-  box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+/* Smooth Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.6s ease-out forwards;
+}
+
+/* Stagger animation delays */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }

@@ -1,20 +1,16 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
-  title: "Producer Saab | Premium Loop Browser",
-  description: "A dark, sleek producer dashboard for browsing, filtering, and previewing high-quality audio loops in real-time.",
+  title: "Producer Saab | The Home for Music Producers",
+  description: "Join a community of producers sharing loops, melodies, samples, and ideas. Upload your sounds. Get discovered. Build your audience.",
 };
 
 export default function RootLayout({
@@ -23,8 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased dark">
-      <body className={`${geistSans.variable} ${geistMono.variable} min-h-full flex flex-col bg-bg-darker text-slate-100 font-sans`}>
+    <html lang="en" className="h-full antialiased scroll-smooth">
+      <body className={`${inter.variable} min-h-full flex flex-col font-sans`}>
         {children}
       </body>
     </html>
