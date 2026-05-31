@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: #00e5ff;
+  --color-brand-accent: #ff007f;
+  --color-bg-darker: #06060a;
+  --color-bg-dark: #0b0b12;
+  --color-bg-panel: #11111e;
+  --color-border-card: #1f1f33;
+}
+
+:root {
+  --background: #06060a;
+  --foreground: #f1f5f9;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar for Sleek Dark Theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0b0b12;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #25253d;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00e5ff;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+}
+
+/* Custom Input Styles */
+input[type="range"]::-webkit-slider-thumb {
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+}
