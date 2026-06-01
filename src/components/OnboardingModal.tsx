@@ -269,7 +269,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
             {!isLoginMode && <StepIndicator current={step} />}
 
             {/* ════ STEP 1: Account Credentials ════ */}
-            {step === 1 && !isLoginMode && (
+           {step === 1 && (
               <form onSubmit={handleStep1Submit} noValidate className="space-y-3">
                 {/* Name */}
                 <div>
