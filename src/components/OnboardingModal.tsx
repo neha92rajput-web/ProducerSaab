@@ -51,6 +51,13 @@ const DAW_OPTIONS = [
   'Other',
 ];
 
+const PRODUCER_TYPES = [
+  { id: 'beatmaker', label: 'Beatmaker', emoji: '🎹', desc: 'Trap, drill, hip-hop instrumentals' },
+  { id: 'mixing', label: 'Mixing / Mastering', emoji: '🎚️', desc: 'Audio engineering & finishing' },
+  { id: 'sounddesigner', label: 'Sound Designer', emoji: '🔊', desc: 'Samples, loops & sound packs' },
+  { id: 'fullsong', label: 'Full Song Producer', emoji: '🎵', desc: 'Arrangements, composition & more' },
+];
+
 const GENRE_OPTIONS = [
   { id: 'hiphop', label: 'Hip Hop / Trap', emoji: '🔥' },
   { id: 'rnb', label: 'R&B', emoji: '🎷' },
@@ -125,6 +132,8 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
   // Step 2 fields
   const [portfolioUrl, setPortfolioUrl] = useState('');
   const [daw, setDaw] = useState('');
+  const [producerType, setProducerType] = useState('');
+  const [socialHandle, setSocialHandle] = useState('');
   const [selectedGenres, setSelectedGenres] = useState<Set<string>>(new Set());
   const [antiPiracy, setAntiPiracy] = useState(false);
   const [step2Errors, setStep2Errors] = useState<Record<string, string>>({});
@@ -148,6 +157,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
       errs.portfolio = 'Enter a valid SoundCloud, Spotify, or Beatstars link';
     }
     if (!daw) errs.daw = 'Please select your primary DAW';
+    if (!producerType) errs.producerType = 'Select your producer type';
     if (selectedGenres.size === 0) errs.genres = 'Select at least one genre';
     if (!antiPiracy) errs.antiPiracy = 'You must agree to the anti-piracy terms';
     setStep2Errors(errs);
@@ -177,7 +187,8 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
   function handleClose() {
     setStep(1);
     setName(''); setEmail(''); setPassword('');
-    setPortfolioUrl(''); setDaw(''); setSelectedGenres(new Set()); setAntiPiracy(false);
+    setPortfolioUrl(''); setDaw(''); setProducerType(''); setSocialHandle('');
+    setSelectedGenres(new Set()); setAntiPiracy(false);
     setStep1Errors({}); setStep2Errors({}); setSubmitted(false);
     onClose();
   }
@@ -369,6 +380,63 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
                     {DAW_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
                   {step2Errors.daw && <p className="text-red-500 text-[10px] mt-1 ml-1">{step2Errors.daw}</p>}
+                </div>
+
+                {/* Producer Type */}
+                <div>
+                  <label className="block text-[11px] font-bold text-[#555555] uppercase tracking-wider mb-2">
+                    Producer Type <span className="text-red-400">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {PRODUCER_TYPES.map(pt => {
+                      const selected = producerType === pt.id;
+                      return (
+                        <button
+                          key={pt.id}
+                          type="button"
+                          onClick={() => { setProducerType(pt.id); setStep2Errors(prev => ({ ...prev, producerType: '' })); }}
+                          className={`relative flex flex-col items-start gap-0.5 px-3 py-2.5 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
+                            selected
+                              ? 'bg-[#C5A880]/10 border-[#C5A880]'
+                              : 'bg-[#FAF8F5] border-[#E8E2D9] hover:border-[#C5A880]/50'
+                          }`}
+                        >
+                          {/* Selected indicator */}
+                          {selected && (
+                            <span className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[#C5A880] flex items-center justify-center">
+                              <CheckIcon className="w-2.5 h-2.5 text-white" />
+                            </span>
+                          )}
+                          <span className="text-base leading-none mb-0.5">{pt.emoji}</span>
+                          <span className={`text-xs font-bold leading-tight ${selected ? 'text-[#C5A880]' : 'text-[#111111]'}`}>
+                            {pt.label}
+                          </span>
+                          <span className="text-[10px] text-[#AAAAAA] leading-tight">{pt.desc}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {step2Errors.producerType && <p className="text-red-500 text-[10px] mt-1.5 ml-1">{step2Errors.producerType}</p>}
+                </div>
+
+                {/* Instagram / TikTok Handle */}
+                <div>
+                  <label className="block text-[11px] font-bold text-[#555555] uppercase tracking-wider mb-1.5">
+                    Instagram / TikTok Handle
+                    <span className="ml-2 text-[#AAAAAA] normal-case font-medium tracking-normal">(optional)</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#AAAAAA] text-sm font-semibold select-none">@</span>
+                    <input
+                      type="text"
+                      placeholder="yourhandle"
+                      value={socialHandle}
+                      onChange={e => setSocialHandle(e.target.value.replace(/^@/, '').replace(/\s/g, ''))}
+                      className={`${inputClass(false)} pl-8`}
+                      autoComplete="off"
+                    />
+                  </div>
+                  <p className="text-[#AAAAAA] text-[10px] mt-1 ml-1">Helps producers showcase their studio setups &amp; cookup videos.</p>
                 </div>
 
                 {/* Primary Genres */}
