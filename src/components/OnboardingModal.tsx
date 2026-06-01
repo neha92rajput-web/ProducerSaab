@@ -122,6 +122,16 @@ function StepIndicator({ current }: { current: 1 | 2 }) {
 export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
   const [step, setStep] = useState<1 | 2>(1);
   const [isLoginMode, setIsLoginMode] = useState(false);
+  React.useEffect(() => {
+    if (isOpen) {
+      const activeElement = document.activeElement as HTMLElement;
+      if (activeElement && activeElement.textContent?.toLowerCase().includes('log in')) {
+        setIsLoginMode(true);
+      } else {
+        setIsLoginMode(false);
+      }
+    }
+  }, [isOpen]);
 
   // Step 1 fields
   const [name, setName] = useState('');
