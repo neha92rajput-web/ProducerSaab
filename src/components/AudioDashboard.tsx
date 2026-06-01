@@ -209,26 +209,26 @@ function ArtistProfile({
       {/* Back Button */}
       <button
         onClick={onBack}
-        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#121824] hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-300 hover:text-white transition duration-200 cursor-pointer self-start"
+        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#F5F0E8] hover:bg-[#F0EBE3] border border-[#E8E2D9] text-xs font-bold text-slate-300 hover:text-white transition duration-200 cursor-pointer self-start"
       >
         ⬅️ Back to Global Feed
       </button>
 
       {/* Profile Header Card */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-b from-[#162133] via-[#121824] to-[#121824] p-8 shadow-xl">
+      <div className="relative overflow-hidden rounded-2xl border border-[#E8E2D9] bg-gradient-to-b from-[#162133] via-[#121824] to-[#121824] p-8 shadow-xl">
         <div className="absolute top-0 right-0 w-[300px] h-[300px] rounded-full bg-blue-600/10 blur-[80px] pointer-events-none" />
 
         <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 relative z-10">
           <div className="flex flex-col md:flex-row items-center gap-5 text-center md:text-left">
             {/* Large avatar icon placeholder */}
             <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 p-0.5 shadow-lg shrink-0">
-              <div className="w-full h-full rounded-full bg-[#121824] flex items-center justify-center text-blue-400">
+              <div className="w-full h-full rounded-full bg-[#F5F0E8] flex items-center justify-center text-blue-400">
                 <User className="w-9 h-9" />
               </div>
             </div>
             
             <div className="space-y-2.5">
-              <h2 className="text-2xl font-black text-white tracking-tight">{artistName}</h2>
+              <h2 className="text-2xl font-black text-[#111111] tracking-tight">{artistName}</h2>
               <p className="text-xs text-slate-400 max-w-md font-medium leading-relaxed">
                 {bioToDisplay}
               </p>
@@ -239,16 +239,16 @@ function ArtistProfile({
                   href={instagramToDisplay ? `https://instagram.com/${instagramToDisplay}` : "#instagram"} 
                   target={instagramToDisplay ? "_blank" : undefined}
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0b0e14] hover:bg-slate-800 border border-slate-800/80 text-[10px] font-bold text-slate-300 hover:text-white transition cursor-pointer"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white hover:bg-[#F0EBE3] border border-[#E8E2D9] text-[10px] font-bold text-slate-300 hover:text-white transition cursor-pointer"
                 >
                   <InstagramIcon className="w-3 h-3 text-pink-400 shrink-0" />
                   <span>Instagram</span>
                 </a>
-                <a href="#youtube" className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0b0e14] hover:bg-slate-800 border border-slate-800/80 text-[10px] font-bold text-slate-300 hover:text-white transition cursor-pointer">
+                <a href="#youtube" className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white hover:bg-[#F0EBE3] border border-[#E8E2D9] text-[10px] font-bold text-slate-300 hover:text-white transition cursor-pointer">
                   <YoutubeIcon className="w-3 h-3 text-red-400 shrink-0" />
                   <span>YouTube</span>
                 </a>
-                <a href="#twitter" className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0b0e14] hover:bg-slate-800 border border-slate-800/80 text-[10px] font-bold text-slate-300 hover:text-white transition cursor-pointer">
+                <a href="#twitter" className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white hover:bg-[#F0EBE3] border border-[#E8E2D9] text-[10px] font-bold text-slate-300 hover:text-white transition cursor-pointer">
                   <span className="text-[10px] text-blue-400 font-bold leading-none shrink-0">𝕏</span>
                   <span>Twitter</span>
                 </a>
@@ -261,7 +261,7 @@ function ArtistProfile({
             onClick={() => setIsFollowing(!isFollowing)}
             className={`px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-305 shadow-lg active:scale-95 cursor-pointer shrink-0 border
               ${isFollowing 
-                ? 'bg-transparent text-slate-300 border-slate-800 hover:bg-slate-800/40 hover:text-white' 
+                ? 'bg-transparent text-slate-300 border-[#E8E2D9] hover:bg-[#F0EBE3]/40 hover:text-white' 
                 : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white border-transparent shadow-blue-500/20'}`}
           >
             {isFollowing ? '✓ Following' : 'Follow'}
@@ -284,8 +284,8 @@ function ArtistProfile({
               return (
                 <div 
                   key={track.id}
-                  className={`p-4 rounded-xl bg-[#121824]/60 border border-slate-800/80 hover:border-slate-700/80 transition-all duration-300 flex items-start gap-4 group relative
-                    ${isActive ? 'bg-[#162133]/80 border-blue-500/30' : ''}`}
+                  className={`p-4 rounded-xl bg-white/60 border border-[#E8E2D9] hover:border-[#D4CFC6]/80 transition-all duration-300 flex items-start gap-4 group relative
+                    ${isActive ? 'bg-[#F5F0E8]/80 border-blue-500/30' : ''}`}
                 >
                   {/* Artwork */}
                   <div className={`w-12 h-12 rounded-lg bg-gradient-to-tr ${track.artworkColor} flex items-center justify-center shrink-0 shadow-lg relative`}>
@@ -301,7 +301,7 @@ function ArtistProfile({
                           className={`w-8.5 h-8.5 rounded-full flex items-center justify-center transition duration-200 border shrink-0 cursor-pointer shadow-md
                             ${isPlayingThis 
                               ? 'text-emerald-400 border-emerald-500 bg-emerald-500/10 shadow-[0_0_8px_rgba(16,185,129,0.2)] hover:scale-105' 
-                              : 'bg-[#1b2333] text-slate-300 border-slate-700 hover:text-white hover:border-blue-500'}`}
+                              : 'bg-[#F5F0E8] text-slate-300 border-[#D4CFC6] hover:text-white hover:border-blue-500'}`}
                         >
                           {isPlayingThis ? (
                             <Pause className="w-3.5 h-3.5 fill-current stroke-[2.5]" />
@@ -310,14 +310,14 @@ function ArtistProfile({
                           )}
                         </button>
                       ) : (
-                        <div className="w-8.5 h-8.5 rounded-full bg-slate-800/40 border border-slate-800/60 flex items-center justify-center text-slate-500 cursor-not-allowed shrink-0" title="Preview unavailable (Refreshed session)">
+                        <div className="w-8.5 h-8.5 rounded-full bg-slate-800/40 border border-[#E8E2D9] flex items-center justify-center text-slate-500 cursor-not-allowed shrink-0" title="Preview unavailable (Refreshed session)">
                           <Play className="w-3.5 h-3.5 fill-current opacity-40 ml-0.5 stroke-[2.5]" />
                         </div>
                       )}
 
                       <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center justify-between gap-1 pr-1">
                         <div className="flex flex-col min-w-0">
-                          <span className="text-sm font-semibold text-white truncate">
+                          <span className="text-sm font-semibold text-[#111111] truncate">
                             {track.filename}
                           </span>
                           <span className="text-[10px] text-slate-500 font-mono tracking-wider uppercase mt-1">
@@ -334,7 +334,7 @@ function ArtistProfile({
                             <span>{track.duration}</span>
                           </div>
                           
-                          <div className="flex items-center gap-1.5 bg-[#151c2a] border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] font-bold text-emerald-400 tracking-wide shrink-0">
+                          <div className="flex items-center gap-1.5 bg-[#F5F0E8] border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] font-bold text-emerald-400 tracking-wide shrink-0">
                             <Lock className="w-2.5 h-2.5 text-blue-400 shrink-0" />
                             <span>⚖️ Royalty-Free License Included</span>
                           </div>
@@ -345,7 +345,7 @@ function ArtistProfile({
                                 e.stopPropagation();
                                 setPendingDownloadTrack(track);
                               }}
-                              className="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase border border-slate-800 rounded bg-[#151c2a] text-slate-300 hover:text-white hover:border-blue-500 hover:bg-blue-600/20 active:scale-95 transition flex items-center gap-1 cursor-pointer"
+                              className="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase border border-[#E8E2D9] rounded bg-[#F5F0E8] text-slate-300 hover:text-white hover:border-blue-500 hover:bg-blue-600/20 active:scale-95 transition flex items-center gap-1 cursor-pointer"
                             >
                               <Download className="w-3.5 h-3.5" />
                               <span>DOWNLOAD</span>
@@ -356,7 +356,7 @@ function ArtistProfile({
                     </div>
 
                     {/* Waveform */}
-                    <div className="relative w-full h-9 bg-[#090d16]/80 rounded-lg overflow-hidden flex items-center px-3 border border-slate-900/60">
+                    <div className="relative w-full h-9 bg-[#F0EBE3] rounded-lg overflow-hidden flex items-center px-3 border border-[#E8E2D9]">
                       <div className="w-full h-4 flex items-center gap-[2.5px] pointer-events-none">
                         {barHeights.map((height, idx) => {
                           const isBarActive = isActive && (progress >= (idx / barHeights.length) * 100);
@@ -382,7 +382,7 @@ function ArtistProfile({
               );
             })
           ) : (
-            <div className="p-12 rounded-xl border border-dashed border-slate-800 bg-[#121824]/20 text-center text-slate-500 text-xs">
+            <div className="p-12 rounded-xl border border-dashed border-[#E8E2D9] bg-white/20 text-center text-slate-500 text-xs">
               <p>No sounds uploaded by this creator yet. Upload some custom Logic bounces in the Creator Dashboard!</p>
             </div>
           )}
@@ -924,19 +924,19 @@ export function AudioDashboard() {
   }, [isAudioActive, audioElement]);
 
   return (
-    <div className="min-h-screen bg-[#0b0e14] text-white font-sans flex flex-col select-none relative overflow-hidden">
+    <div className="min-h-screen bg-[#FAF8F5] text-[#111111] font-sans flex flex-col select-none relative overflow-hidden">
       
       {/* Decorative Radial Gradients in background */}
-      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-blue-500/5 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/5 blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[#C5A880]/5 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-[#C5A880]/5 blur-[120px] pointer-events-none" />
 
       {/* 1. TOP BLUE PROMO BANNER */}
-      <div className="w-full bg-[#1e50ff] py-3.5 px-4 text-center border-b border-blue-500/20 relative z-30 shadow-md">
+      <div className="w-full bg-[#C5A880] py-3.5 px-4 text-center border-b border-[#B8986E]/20 relative z-30 shadow-md">
         <p className="text-xs md:text-sm font-semibold tracking-wide text-white flex items-center justify-center gap-2 flex-wrap">
           <span>Unlock 100 royalty-free credits a month. Download clear, placement-ready sounds from top producers.</span>
           <a 
             href="#subscribe" 
-            className="underline hover:text-blue-100 font-bold inline-flex items-center gap-0.5 group transition duration-200"
+            className="underline hover:text-[#FAF8F5] font-bold inline-flex items-center gap-0.5 group transition duration-200"
           >
             Subscribe now
             <span className="no-underline ml-0.5">›</span>
@@ -967,7 +967,7 @@ export function AudioDashboard() {
         ) : (
           <div className="w-full flex flex-col justify-start">
             {/* Navigation Tabs Center aligned */}
-            <div className="max-w-md w-full mx-auto bg-[#121824] border border-slate-800 p-1.5 rounded-full flex justify-between items-center mb-10 relative z-20 shadow-2xl">
+            <div className="max-w-md w-full mx-auto bg-[#F5F0E8] border border-[#E8E2D9] p-1.5 rounded-full flex justify-between items-center mb-10 relative z-20 shadow-2xl">
               <button
                 onClick={() => setActiveTab('feed')}
                 className={`flex-1 py-2.5 px-4 rounded-full text-xs font-bold uppercase tracking-wider text-center cursor-pointer transition-all duration-200 flex items-center justify-center gap-2
@@ -996,12 +996,12 @@ export function AudioDashboard() {
           <div className="space-y-8 animate-fadeIn relative">
             
             {/* Horizontal Header & Genre Buttons Row */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-800/80 pb-6 mb-8 relative z-20">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#E8E2D9] pb-6 mb-8 relative z-20">
               <div>
                 <span className="text-yellow-400 font-bold text-xs tracking-widest uppercase block mb-1">
                   MY STUDIO
                 </span>
-                <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">
+                <h1 className="text-3xl md:text-4xl font-black text-[#111111] tracking-tight">
                   Sample Library
                 </h1>
               </div>
@@ -1017,7 +1017,7 @@ export function AudioDashboard() {
                       className={`px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer border
                         ${isActive 
                           ? 'bg-blue-600/25 text-blue-400 border-blue-500 shadow-md shadow-blue-500/10 scale-105' 
-                          : 'bg-[#151c2a] text-slate-400 border-slate-800 hover:text-white hover:border-slate-700 hover:scale-105'}`}
+                          : 'bg-[#F5F0E8] text-slate-400 border-[#E8E2D9] hover:text-white hover:border-[#D4CFC6] hover:scale-105'}`}
                     >
                       {pill}
                     </button>
@@ -1030,7 +1030,7 @@ export function AudioDashboard() {
                   className={`px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer border flex items-center gap-1
                     ${isGenreModalOpen 
                       ? 'bg-blue-600 text-white border-blue-500 scale-105 shadow-md shadow-blue-500/10' 
-                      : 'bg-[#222a3a] text-slate-400 border-slate-800 hover:text-white hover:border-slate-700'}`}
+                      : 'bg-[#F5F0E8] text-slate-400 border-[#E8E2D9] hover:text-white hover:border-[#D4CFC6]'}`}
                 >
                   more
                 </button>
@@ -1039,14 +1039,14 @@ export function AudioDashboard() {
 
             {/* Extended Genre Dropdown Panel */}
             {isGenreModalOpen && (
-              <div className="absolute top-[80px] right-0 w-full md:w-[480px] bg-[#121824]/95 backdrop-blur-md border border-slate-800 p-5 rounded-xl shadow-2xl z-30 animate-slideDown">
-                <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5 mb-4">
+              <div className="absolute top-[80px] right-0 w-full md:w-[480px] bg-white/95 backdrop-blur-md border border-[#E8E2D9] p-5 rounded-xl shadow-2xl z-30 animate-slideDown">
+                <div className="flex items-center justify-between border-b border-[#E8E2D9] pb-2.5 mb-4">
                   <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400">
                     Extended Genre Directory
                   </h3>
                   <button 
                     onClick={() => setIsGenreModalOpen(false)}
-                    className="p-1 rounded-md text-slate-500 hover:text-white hover:bg-[#1a2333] transition"
+                    className="p-1 rounded-md text-slate-500 hover:text-white hover:bg-[#F0EBE3] transition"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -1062,7 +1062,7 @@ export function AudioDashboard() {
                         className={`px-3 py-2 rounded-lg text-left text-xs font-semibold tracking-wide transition duration-150 border cursor-pointer
                           ${isSelected 
                             ? 'bg-blue-600/15 text-blue-400 border-blue-500/50 font-bold' 
-                            : 'bg-[#1b2333]/60 text-slate-400 border-slate-800 hover:text-white hover:bg-[#202b40]/80 hover:border-slate-700'}`}
+                            : 'bg-[#F5F0E8]/60 text-slate-400 border-[#E8E2D9] hover:text-white hover:bg-[#F0EBE3]/80 hover:border-[#D4CFC6]'}`}
                       >
                         {subGenre}
                       </button>
@@ -1085,8 +1085,8 @@ export function AudioDashboard() {
                     return (
                       <div 
                         key={track.id}
-                        className={`p-4 rounded-xl bg-[#121824]/60 border border-slate-800/80 hover:border-slate-700/80 transition-all duration-300 flex items-start gap-4 group relative
-                          ${isActive ? 'bg-[#162133]/80 border-blue-500/30' : ''}`}
+                        className={`p-4 rounded-xl bg-white/60 border border-[#E8E2D9] hover:border-[#D4CFC6]/80 transition-all duration-300 flex items-start gap-4 group relative
+                          ${isActive ? 'bg-[#F5F0E8]/80 border-blue-500/30' : ''}`}
                       >
                         
                         {/* Square artwork cover */}
@@ -1107,7 +1107,7 @@ export function AudioDashboard() {
                                  className={`w-8.5 h-8.5 rounded-full flex items-center justify-center transition duration-200 border shrink-0 cursor-pointer shadow-md
                                    ${isPlayingThis 
                                      ? 'text-emerald-400 border-emerald-500 bg-emerald-500/10 shadow-[0_0_8px_rgba(16,185,129,0.2)] hover:scale-105' 
-                                     : 'bg-[#1b2333] text-slate-300 border-slate-700 hover:text-white hover:border-blue-500 hover:scale-105'}`}
+                                     : 'bg-[#F5F0E8] text-slate-300 border-[#D4CFC6] hover:text-white hover:border-blue-500 hover:scale-105'}`}
                                >
                                  {isPlayingThis ? (
                                    <Pause className="w-3.5 h-3.5 fill-current stroke-[2.5]" />
@@ -1116,7 +1116,7 @@ export function AudioDashboard() {
                                  )}
                                </button>
                              ) : (
-                               <div className="w-8.5 h-8.5 rounded-full bg-slate-800/40 border border-slate-800/60 flex items-center justify-center text-slate-500 cursor-not-allowed shrink-0" title="Preview unavailable (Refreshed session)">
+                               <div className="w-8.5 h-8.5 rounded-full bg-slate-800/40 border border-[#E8E2D9] flex items-center justify-center text-slate-500 cursor-not-allowed shrink-0" title="Preview unavailable (Refreshed session)">
                                  <Play className="w-3.5 h-3.5 fill-current opacity-40 ml-0.5 stroke-[2.5]" />
                                </div>
                              )}
@@ -1124,7 +1124,7 @@ export function AudioDashboard() {
                             {/* Title and metadata details */}
                             <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center justify-between gap-1 pr-1">
                               <div className="flex flex-col min-w-0">
-                                <span className="text-sm font-semibold text-white truncate group-hover:text-blue-400 transition duration-200">
+                                <span className="text-sm font-semibold text-[#111111] truncate group-hover:text-[#C5A880] transition duration-200">
                                   {track.filename}
                                 </span>
                                 <span className="text-xs text-slate-400 mt-1 font-medium select-none flex items-center gap-1.5">
@@ -1151,7 +1151,7 @@ export function AudioDashboard() {
                                   <span>{track.duration}</span>
                                 </div>
                                 
-                                <div className="flex items-center gap-1.5 bg-[#151c2a] border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] font-bold text-emerald-400 tracking-wide shrink-0">
+                                <div className="flex items-center gap-1.5 bg-[#F5F0E8] border border-emerald-500/20 px-2 py-0.5 rounded text-[9px] font-bold text-emerald-400 tracking-wide shrink-0">
                                   <Lock className="w-2.5 h-2.5 text-blue-400 shrink-0" />
                                   <span>⚖️ Royalty-Free License Included</span>
                                 </div>
@@ -1161,7 +1161,7 @@ export function AudioDashboard() {
                                       e.stopPropagation();
                                       setPendingDownloadTrack(track);
                                     }}
-                                    className="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase border border-slate-800 rounded bg-[#151c2a] text-slate-300 hover:text-white hover:border-blue-500 hover:bg-blue-600/20 active:scale-95 transition flex items-center gap-1 cursor-pointer"
+                                    className="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase border border-[#E8E2D9] rounded bg-[#F5F0E8] text-slate-300 hover:text-white hover:border-blue-500 hover:bg-blue-600/20 active:scale-95 transition flex items-center gap-1 cursor-pointer"
                                   >
                                     <Download className="w-3.5 h-3.5" />
                                     <span>DOWNLOAD</span>
@@ -1172,7 +1172,7 @@ export function AudioDashboard() {
                           </div>
 
                           {/* Wide Minimal Waveform below title */}
-                          <div className="relative w-full h-9 bg-[#090d16]/80 rounded-lg overflow-hidden flex items-center px-3 border border-slate-900/60">
+                          <div className="relative w-full h-9 bg-[#F0EBE3] rounded-lg overflow-hidden flex items-center px-3 border border-[#E8E2D9]">
                             <div className="w-full h-4 flex items-center gap-[2.5px] pointer-events-none">
                               {barHeights.map((height, idx) => {
                                 const isBarActive = isActive && (progress >= (idx / barHeights.length) * 100);
@@ -1204,7 +1204,7 @@ export function AudioDashboard() {
                     );
                   })
                 ) : (
-                  <div className="p-12 rounded-xl border border-dashed border-slate-800 bg-[#121824]/20 text-center text-slate-500 text-xs">
+                  <div className="p-12 rounded-xl border border-dashed border-[#E8E2D9] bg-white/20 text-center text-slate-500 text-xs">
                     <p>No sounds uploaded in this category yet. Head to the Creator Dashboard to upload your custom loops!</p>
                   </div>
                 )}
@@ -1212,9 +1212,9 @@ export function AudioDashboard() {
 
               {/* Right Column (25%): Trending Creators Leaderboard */}
               <div className="lg:col-span-1">
-                <div className="bg-[#121824]/60 border border-slate-800/80 p-5 rounded-xl shadow-xl space-y-4 backdrop-blur-sm">
+                <div className="bg-white/60 border border-[#E8E2D9] p-5 rounded-xl shadow-xl space-y-4 backdrop-blur-sm">
                   <div>
-                    <h3 className="text-xs font-bold text-white uppercase tracking-widest flex items-center gap-1.5">
+                    <h3 className="text-xs font-bold text-[#111111] uppercase tracking-widest flex items-center gap-1.5">
                       <span>🔥 Trending This Week</span>
                     </h3>
                     <p className="text-[10px] text-slate-500 font-medium mt-0.5">Top creators gaining traction in the community.</p>
@@ -1222,7 +1222,7 @@ export function AudioDashboard() {
 
                   <div className="space-y-3.5">
                     {trendingCreators.map((creator) => (
-                      <div key={creator.rank} className="flex items-center justify-between gap-2 pb-3 border-b border-slate-800/50 last:border-b-0 last:pb-0">
+                      <div key={creator.rank} className="flex items-center justify-between gap-2 pb-3 border-b border-[#E8E2D9] last:border-b-0 last:pb-0">
                         <div className="flex items-center gap-2.5 min-w-0">
                           {/* Rank Badge */}
                           <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono font-bold shrink-0
@@ -1242,7 +1242,7 @@ export function AudioDashboard() {
                           <div className="min-w-0 flex flex-col">
                             <button
                               onClick={() => setViewingArtistProfile(creator.username)}
-                              className="text-xs font-semibold text-white truncate hover:underline hover:text-blue-400 text-left cursor-pointer bg-transparent border-none p-0"
+                              className="text-xs font-semibold text-[#111111] truncate hover:underline hover:text-[#C5A880] text-left cursor-pointer bg-transparent border-none p-0"
                             >
                               {creator.username}
                             </button>
@@ -1255,7 +1255,7 @@ export function AudioDashboard() {
                         {/* Mini follow button */}
                         <button
                           onClick={() => alert(`You followed ${creator.username}!`)}
-                          className="px-2.5 py-1 rounded bg-[#0b0e14] hover:bg-slate-800 border border-slate-800 text-[9px] font-bold text-slate-300 hover:text-white transition duration-200 cursor-pointer shrink-0"
+                          className="px-2.5 py-1 rounded bg-white hover:bg-[#F0EBE3] border border-[#E8E2D9] text-[9px] font-bold text-slate-300 hover:text-white transition duration-200 cursor-pointer shrink-0"
                         >
                           Follow
                         </button>
@@ -1278,12 +1278,12 @@ export function AudioDashboard() {
                 {entryPath === 'existing' && !selectedProfileId && (
                   <div className="max-w-3xl mx-auto w-full animate-fadeIn py-8 space-y-6">
                     <div className="text-center space-y-2">
-                      <h3 className="text-2xl font-black text-white tracking-tight">Select an Existing Artist Account</h3>
+                      <h3 className="text-2xl font-black text-[#111111] tracking-tight">Select an Existing Artist Account</h3>
                       <p className="text-xs text-slate-400 font-medium">Choose an artist profile to load their existing Logic Pro Studio workspace.</p>
                     </div>
 
                     {localProfiles.length === 0 ? (
-                      <div className="bg-[#0e131f] border border-slate-800/80 p-8 rounded-xl text-center space-y-5 max-w-md mx-auto w-full">
+                      <div className="bg-white border border-[#E8E2D9] p-8 rounded-xl text-center space-y-5 max-w-md mx-auto w-full">
                         <p className="text-sm text-slate-300 font-medium leading-relaxed">
                           No local profiles found on this device yet. Please head back and click &quot;Create Brand New Profile&quot; to set up your first authentic workspace.
                         </p>
@@ -1304,19 +1304,19 @@ export function AudioDashboard() {
                           <button
                             key={producer.id}
                             onClick={() => selectProducerProfile(producer)}
-                            className="text-left bg-[#0e131f] border border-slate-800/80 hover:border-blue-500/50 p-6 rounded-xl transition duration-200 cursor-pointer hover:scale-105 flex flex-col justify-between h-48 shadow-lg hover:shadow-blue-500/5 hover:bg-[#121927] w-full"
+                            className="text-left bg-white border border-[#E8E2D9] hover:border-blue-500/50 p-6 rounded-xl transition duration-200 cursor-pointer hover:scale-105 flex flex-col justify-between h-48 shadow-lg hover:shadow-blue-500/5 hover:bg-[#F5F0E8] w-full"
                           >
                             <div className="space-y-2.5">
                               <div className="w-10 h-10 rounded-full bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-sm font-black uppercase">
                                 {producer.name.substring(0, 1)}
                               </div>
                               <div>
-                                <h4 className="text-sm font-bold text-white tracking-wide truncate">{producer.name}</h4>
+                                <h4 className="text-sm font-bold text-[#111111] tracking-wide truncate">{producer.name}</h4>
                                 <p className="text-xs text-slate-400 font-medium">{producer.handle}</p>
                               </div>
                             </div>
 
-                            <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-800/60 w-full">
+                            <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#E8E2D9] w-full">
                               <span className="text-[10px] font-bold text-slate-500 tracking-wider uppercase">Tracks</span>
                               <span className="px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-[10px] font-extrabold text-blue-400">
                                 {producer.soundsUploaded} Loops
@@ -1343,9 +1343,9 @@ export function AudioDashboard() {
                 {/* Onboarding Welcome / Edit Profile Setup Card */}
                 {!(entryPath === 'existing' && !selectedProfileId) && (
                   <div className="max-w-xl mx-auto w-full animate-fadeIn py-8">
-                    <div className="bg-[#0e131f] border border-slate-800/80 p-8 rounded-xl shadow-2xl space-y-6">
+                    <div className="bg-white border border-[#E8E2D9] p-8 rounded-xl shadow-2xl space-y-6">
                       <div className="text-center space-y-2">
-                        <h3 className="text-xl font-bold text-white tracking-wide">
+                        <h3 className="text-xl font-bold text-[#111111] tracking-wide">
                           {isEditingProfile ? "✏️ Edit Your Artist Identity" : (
                             <>
                               {!hasChosenEntryMode && "👋 Welcome to Creator Studio"}
@@ -1378,7 +1378,7 @@ export function AudioDashboard() {
                                 setIsEmailVerified(true);
                                 setHasChosenEntryMode(true);
                               }}
-                              className="w-full py-3.5 px-4 rounded-xl border border-slate-700 bg-[#121824] hover:bg-slate-800 text-slate-200 hover:text-white transition duration-205 text-xs font-extrabold uppercase tracking-widest cursor-pointer shadow-md flex items-center justify-center gap-2"
+                              className="w-full py-3.5 px-4 rounded-xl border border-[#D4CFC6] bg-[#F5F0E8] hover:bg-[#F0EBE3] text-[#555555] hover:text-[#111111] transition duration-205 text-xs font-extrabold uppercase tracking-widest cursor-pointer shadow-md flex items-center justify-center gap-2"
                             >
                               📂 Enter Existing Studio
                             </button>
@@ -1405,7 +1405,7 @@ export function AudioDashboard() {
                             value={userEmail}
                             onChange={(e) => setUserEmail(e.target.value)}
                             placeholder="enter your email address"
-                            className="w-full bg-[#0b0e14] border border-slate-800 rounded-lg px-3.5 py-2 text-sm font-semibold text-white focus:outline-none focus:border-blue-500 transition duration-200"
+                            className="w-full bg-white border border-[#E8E2D9] rounded-lg px-3.5 py-2 text-sm font-semibold text-[#111111] focus:outline-none focus:border-[#C5A880] transition duration-200"
                           />
                         </div>
                         <button 
@@ -1433,7 +1433,7 @@ export function AudioDashboard() {
                             type="email" 
                             value={userEmail}
                             disabled
-                            className="w-full bg-[#0b0e14]/55 border border-slate-900 rounded-lg px-3.5 py-2 text-sm font-semibold text-slate-500 cursor-not-allowed"
+                            className="w-full bg-white/55 border border-[#E8E2D9] rounded-lg px-3.5 py-2 text-sm font-semibold text-slate-500 cursor-not-allowed"
                           />
                         </div>
                         <div>
@@ -1444,7 +1444,7 @@ export function AudioDashboard() {
                             value={otpCode}
                             onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                             placeholder="Enter 4-Digit OTP Code"
-                            className="w-full bg-[#0b0e14] border border-slate-800 rounded-lg px-3.5 py-2 text-sm font-semibold text-white focus:outline-none focus:border-blue-500 transition duration-200 text-center tracking-widest text-lg font-mono"
+                            className="w-full bg-white border border-[#E8E2D9] rounded-lg px-3.5 py-2 text-sm font-semibold text-[#111111] focus:outline-none focus:border-[#C5A880] transition duration-200 text-center tracking-widest text-lg font-mono"
                           />
                         </div>
                         <button 
@@ -1474,7 +1474,7 @@ export function AudioDashboard() {
                             value={artistDisplayName}
                             onChange={(e) => setArtistDisplayName(e.target.value)}
                             placeholder="e.g. ProdByAlex"
-                            className="w-full bg-[#0b0e14] border border-slate-800 rounded-lg px-3.5 py-2 text-sm font-semibold text-white focus:outline-none focus:border-blue-500 transition duration-200"
+                            className="w-full bg-white border border-[#E8E2D9] rounded-lg px-3.5 py-2 text-sm font-semibold text-[#111111] focus:outline-none focus:border-[#C5A880] transition duration-200"
                           />
                         </div>
                         
@@ -1485,7 +1485,7 @@ export function AudioDashboard() {
                             onChange={(e) => setArtistBio(e.target.value)}
                             placeholder="Describe your production style... (min 10 characters)"
                             rows={3}
-                            className="w-full bg-[#0b0e14] border border-slate-800 rounded-lg px-3.5 py-2 text-sm font-semibold text-white focus:outline-none focus:border-blue-500 transition duration-200 resize-none"
+                            className="w-full bg-white border border-[#E8E2D9] rounded-lg px-3.5 py-2 text-sm font-semibold text-[#111111] focus:outline-none focus:border-[#C5A880] transition duration-200 resize-none"
                           />
                           <p className="text-[10px] text-slate-500 mt-1">Must be at least 10 characters detailing your production style.</p>
                         </div>
@@ -1495,7 +1495,7 @@ export function AudioDashboard() {
                           <select
                             value={primaryDaw}
                             onChange={(e) => setPrimaryDaw(e.target.value)}
-                            className="w-full bg-[#0b0e14] border border-slate-800 rounded-lg px-3.5 py-2 text-sm font-semibold text-white focus:outline-none focus:border-blue-500 transition duration-200 cursor-pointer"
+                            className="w-full bg-white border border-[#E8E2D9] rounded-lg px-3.5 py-2 text-sm font-semibold text-[#111111] focus:outline-none focus:border-[#C5A880] transition duration-200 cursor-pointer"
                           >
                             <option value="FL Studio">FL Studio</option>
                             <option value="Logic Pro">Logic Pro</option>
@@ -1517,7 +1517,7 @@ export function AudioDashboard() {
                               value={customDaw}
                               onChange={(e) => setCustomDaw(e.target.value)}
                               placeholder="e.g. Reaper, Bitwig, Akai MPC"
-                              className="w-full bg-[#0b0e14] border border-slate-800 rounded-lg px-3.5 py-2 text-sm font-semibold text-white focus:outline-none focus:border-blue-500 transition duration-200"
+                              className="w-full bg-white border border-[#E8E2D9] rounded-lg px-3.5 py-2 text-sm font-semibold text-[#111111] focus:outline-none focus:border-[#C5A880] transition duration-200"
                             />
                           </div>
                         )}
@@ -1529,7 +1529,7 @@ export function AudioDashboard() {
                             value={instagramHandle}
                             onChange={(e) => setInstagramHandle(e.target.value)}
                             placeholder="e.g. prodbyalex"
-                            className="w-full bg-[#0b0e14] border border-slate-800 rounded-lg px-3.5 py-2 text-sm font-semibold text-white focus:outline-none focus:border-blue-500 transition duration-200"
+                            className="w-full bg-white border border-[#E8E2D9] rounded-lg px-3.5 py-2 text-sm font-semibold text-[#111111] focus:outline-none focus:border-[#C5A880] transition duration-200"
                           />
                         </div>
                         
@@ -1615,7 +1615,7 @@ export function AudioDashboard() {
                           }}
                           className={`w-full py-3 transition duration-200 text-xs font-bold uppercase tracking-wider rounded-lg text-white shadow-lg
                             ${(!artistDisplayName.trim() || !artistBio.trim() || artistBio.trim().length < 10 || !instagramHandle.trim() || !primaryDaw || (primaryDaw === 'Others' && !customDaw.trim())) 
-                              ? 'bg-slate-800 border border-slate-700/80 text-slate-500 cursor-not-allowed pointer-events-none' 
+                              ? 'bg-slate-800 border border-[#D4CFC6]/80 text-slate-500 cursor-not-allowed pointer-events-none' 
                               : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 cursor-pointer shadow-blue-500/20'}`}
                         >
                           {isEditingProfile ? "💾 SAVE CHANGES" : "🚀 Create Profile & Enter Studio"}
@@ -1630,12 +1630,12 @@ export function AudioDashboard() {
             ) : (
               <>
                 {/* Header: Personalized welcome card */}
-                <div className="p-6 rounded-xl bg-gradient-to-r from-blue-900/20 via-[#121824] to-[#121824] border border-slate-800/80 shadow-xl flex items-center justify-between">
+                <div className="p-6 rounded-xl bg-gradient-to-r from-[#C5A880]/5 via-white to-white border border-[#E8E2D9] shadow-xl flex items-center justify-between">
                   <div>
                     <span className="text-yellow-400 font-bold text-[10px] tracking-widest uppercase block mb-1">
                       WORK WORKSPACE ACTIVE
                     </span>
-                    <h2 className="text-2xl font-black tracking-tight text-white">
+                    <h2 className="text-2xl font-black tracking-tight text-[#111111]">
                       Welcome Back, Creator Studio
                     </h2>
                     <p className="text-xs text-slate-400 mt-0.5 font-medium">Manage your portfolio, publish audio bounces, and trace metrics.</p>
@@ -1647,33 +1647,33 @@ export function AudioDashboard() {
 
                 {/* Stats Row */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="p-5 rounded-xl bg-[#121824]/60 border border-slate-800/80 flex items-center gap-4 hover:border-slate-700 transition duration-300 shadow-md">
+                  <div className="p-5 rounded-xl bg-white/60 border border-[#E8E2D9] flex items-center gap-4 hover:border-[#D4CFC6] transition duration-300 shadow-md">
                     <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
                       <Upload className="w-5 h-5" />
                     </div>
                     <div>
                       <span className="text-[10px] font-bold text-slate-400 tracking-wider block uppercase">Sounds Uploaded</span>
-                      <span className="text-2xl font-black text-white mt-0.5 block">{totalSoundsUploaded}</span>
+                      <span className="text-2xl font-black text-[#111111] mt-0.5 block">{totalSoundsUploaded}</span>
                     </div>
                   </div>
 
-                  <div className="p-5 rounded-xl bg-[#121824]/60 border border-slate-800/80 flex items-center gap-4 hover:border-slate-700 transition duration-300 shadow-md">
+                  <div className="p-5 rounded-xl bg-white/60 border border-[#E8E2D9] flex items-center gap-4 hover:border-[#D4CFC6] transition duration-300 shadow-md">
                     <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
                       <Activity className="w-5 h-5" />
                     </div>
                     <div>
                       <span className="text-[10px] font-bold text-slate-400 tracking-wider block uppercase">Monthly Audio Plays</span>
-                      <span className="text-2xl font-black text-white mt-0.5 block">{mockAudioPlays}</span>
+                      <span className="text-2xl font-black text-[#111111] mt-0.5 block">{mockAudioPlays}</span>
                     </div>
                   </div>
 
-                  <div className="p-5 rounded-xl bg-[#121824]/60 border border-slate-800/80 flex items-center gap-4 hover:border-slate-700 transition duration-300 shadow-md">
+                  <div className="p-5 rounded-xl bg-white/60 border border-[#E8E2D9] flex items-center gap-4 hover:border-[#D4CFC6] transition duration-300 shadow-md">
                     <div className="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
                       <TrendingUp className="w-5 h-5" />
                     </div>
                     <div>
                       <span className="text-[10px] font-bold text-slate-400 tracking-wider block uppercase">Marketplace Downloads</span>
-                      <span className="text-2xl font-black text-white mt-0.5 block">{mockMarketplaceDownloads}</span>
+                      <span className="text-2xl font-black text-[#111111] mt-0.5 block">{mockMarketplaceDownloads}</span>
                     </div>
                   </div>
                 </div>
@@ -1683,9 +1683,9 @@ export function AudioDashboard() {
                   
                   {/* Left Column (60% Width / 3 Cols): THE UPLOAD STATION */}
                   {isUploadFormVisible && isProfileExpanded && (
-                    <div className="md:col-span-3 bg-[#0e131f] border border-slate-800/80 p-6 rounded-xl shadow-xl space-y-6">
+                    <div className="md:col-span-3 bg-white border border-[#E8E2D9] p-6 rounded-xl shadow-xl space-y-6">
                     <div>
-                      <h3 className="text-lg font-bold text-white tracking-wide">
+                      <h3 className="text-lg font-bold text-[#111111] tracking-wide">
                         {editingTrackId ? "Edit Sound Bounce Details" : "Publish Sound Bounce"}
                       </h3>
                       <p className="text-xs text-slate-400 mt-0.5 font-medium">
@@ -1702,7 +1702,7 @@ export function AudioDashboard() {
                           placeholder="e.g. LogicPro_Drums_Loop"
                           value={trackTitle}
                           onChange={(e) => setTrackTitle(e.target.value)}
-                          className="w-full bg-[#0b0e14] border border-slate-800 rounded-lg px-3.5 py-2 text-sm font-semibold text-white focus:outline-none focus:border-blue-500 transition duration-200"
+                          className="w-full bg-white border border-[#E8E2D9] rounded-lg px-3.5 py-2 text-sm font-semibold text-[#111111] focus:outline-none focus:border-[#C5A880] transition duration-200"
                         />
                       </div>
 
@@ -1714,7 +1714,7 @@ export function AudioDashboard() {
                             <select
                               value={genre}
                               onChange={(e) => setGenre(e.target.value)}
-                              className="w-full bg-[#0b0e14] border border-slate-800 rounded-lg px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:border-blue-500 transition duration-200 cursor-pointer"
+                              className="w-full bg-white border border-[#E8E2D9] rounded-lg px-3 py-2 text-xs font-semibold text-[#111111] focus:outline-none focus:border-[#C5A880] transition duration-200 cursor-pointer"
                             >
                               <option value="Hip Hop">Hip Hop</option>
                               <option value="Trap">Trap</option>
@@ -1737,7 +1737,7 @@ export function AudioDashboard() {
                                 placeholder="e.g., Synthwave, Phonk, Hyperpop"
                                 value={customGenre}
                                 onChange={(e) => setCustomGenre(e.target.value)}
-                                className="w-full bg-[#0b0e14] border border-slate-800 rounded-lg px-3.5 py-2 text-sm font-semibold text-white focus:outline-none focus:border-blue-500 transition duration-200"
+                                className="w-full bg-white border border-[#E8E2D9] rounded-lg px-3.5 py-2 text-sm font-semibold text-[#111111] focus:outline-none focus:border-[#C5A880] transition duration-200"
                               />
                             </div>
                           )}
@@ -1750,7 +1750,7 @@ export function AudioDashboard() {
                             <select
                               value={keySignature}
                               onChange={(e) => setKeySignature(e.target.value)}
-                              className="w-full bg-[#0b0e14] border border-slate-800 rounded-lg px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:border-blue-500 transition duration-200 cursor-pointer"
+                              className="w-full bg-white border border-[#E8E2D9] rounded-lg px-3 py-2 text-xs font-semibold text-[#111111] focus:outline-none focus:border-[#C5A880] transition duration-200 cursor-pointer"
                             >
                               <option value="C Maj">C Maj</option>
                               <option value="C Min">C Min</option>
@@ -1787,7 +1787,7 @@ export function AudioDashboard() {
                                 placeholder="e.g., A Harmonic Minor, D Dorian, Pentatonic"
                                 value={customKeySignature}
                                 onChange={(e) => setCustomKeySignature(e.target.value)}
-                                className="w-full bg-[#0b0e14] border border-slate-800 rounded-lg px-3.5 py-2 text-sm font-semibold text-white focus:outline-none focus:border-blue-500 transition duration-200"
+                                className="w-full bg-white border border-[#E8E2D9] rounded-lg px-3.5 py-2 text-sm font-semibold text-[#111111] focus:outline-none focus:border-[#C5A880] transition duration-200"
                               />
                             </div>
                           )}
@@ -1809,7 +1809,7 @@ export function AudioDashboard() {
                               setTempo(parseInt(val) || "");
                             }
                           }}
-                          className="w-full bg-[#0b0e14] border border-slate-800 rounded-lg px-3.5 py-2 text-sm font-semibold text-white focus:outline-none focus:border-blue-500 transition duration-200"
+                          className="w-full bg-white border border-[#E8E2D9] rounded-lg px-3.5 py-2 text-sm font-semibold text-[#111111] focus:outline-none focus:border-[#C5A880] transition duration-200"
                         />
                       </div>
 
@@ -1824,7 +1824,7 @@ export function AudioDashboard() {
                           className={`p-6 rounded-lg border border-dashed text-center transition-all duration-300 cursor-pointer flex flex-col items-center justify-center gap-1.5 select-none
                             ${isDragging 
                               ? 'border-blue-500 bg-blue-500/5 text-blue-400 shadow-md shadow-blue-500/5' 
-                              : 'border-slate-800 bg-[#0b0e14]/40 text-slate-400 hover:border-slate-700 hover:bg-[#0b0e14]/60'}`}
+                              : 'border-[#E8E2D9] bg-white/40 text-slate-400 hover:border-[#D4CFC6] hover:bg-white/60'}`}
                         >
                           <input 
                             type="file" 
@@ -1835,7 +1835,7 @@ export function AudioDashboard() {
                           />
                           <Upload className="w-5 h-5 text-slate-500 transition" />
                           {audioFile ? (
-                            <div className="text-xs text-white max-w-[240px] truncate">
+                            <div className="text-xs text-[#111111] max-w-[240px] truncate">
                               <p className="font-semibold">{audioFile.name}</p>
                               <p className="text-[10px] text-emerald-400 font-bold tracking-wider mt-0.5 uppercase">File Loaded</p>
                             </div>
@@ -1855,7 +1855,7 @@ export function AudioDashboard() {
                           id="complianceCheck"
                           checked={isComplianceChecked}
                           onChange={(e) => setIsComplianceChecked(e.target.checked)}
-                          className="mt-0.5 w-3.5 h-3.5 accent-blue-500 rounded border-slate-800 bg-[#0b0e14] cursor-pointer"
+                          className="mt-0.5 w-3.5 h-3.5 accent-blue-500 rounded border-[#E8E2D9] bg-white cursor-pointer"
                         />
                         <label htmlFor="complianceCheck" className="text-[10px] font-medium text-slate-400 leading-normal cursor-pointer">
                           I certify that this audio bounce is my original work, royalty-free, and cleared for commercial distribution. <span className="text-red-500">*</span>
@@ -1875,7 +1875,7 @@ export function AudioDashboard() {
                               disabled={!isUploadValid}
                               className={`w-full py-3 transition-all duration-300 text-xs font-bold uppercase tracking-widest rounded-lg shadow-lg mt-2
                                 ${!isUploadValid 
-                                  ? 'bg-slate-800 border border-slate-700/80 text-slate-500 cursor-not-allowed pointer-events-none' 
+                                  ? 'bg-slate-800 border border-[#D4CFC6]/80 text-slate-500 cursor-not-allowed pointer-events-none' 
                                   : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 cursor-pointer shadow-blue-500/20 active:scale-95'}`}
                             >
                               {editingTrackId ? "💾 SAVE TRACK CHANGES" : "PUBLISH TO PUBLIC FEED"}
@@ -1895,7 +1895,7 @@ export function AudioDashboard() {
                                   setIsComplianceChecked(false);
                                   setIsUploadFormVisible(false);
                                 }}
-                                className="w-full py-2.5 bg-transparent hover:bg-slate-800/40 border border-slate-800 hover:border-slate-700 transition-all duration-200 text-xs font-bold uppercase tracking-widest rounded-lg cursor-pointer text-slate-400 hover:text-white"
+                                className="w-full py-2.5 bg-transparent hover:bg-[#F0EBE3]/40 border border-[#E8E2D9] hover:border-[#D4CFC6] transition-all duration-200 text-xs font-bold uppercase tracking-widest rounded-lg cursor-pointer text-slate-400 hover:text-white"
                               >
                                 Cancel Editing
                               </button>
@@ -1913,7 +1913,7 @@ export function AudioDashboard() {
                                   setIsComplianceChecked(false);
                                   setIsUploadFormVisible(false);
                                 }}
-                                className="w-full py-2.5 bg-transparent hover:bg-slate-800/40 border border-slate-800 hover:border-slate-700 transition-all duration-200 text-xs font-bold uppercase tracking-widest rounded-lg cursor-pointer text-slate-400 hover:text-white"
+                                className="w-full py-2.5 bg-transparent hover:bg-[#F0EBE3]/40 border border-[#E8E2D9] hover:border-[#D4CFC6] transition-all duration-200 text-xs font-bold uppercase tracking-widest rounded-lg cursor-pointer text-slate-400 hover:text-white"
                               >
                                 Cancel Upload
                               </button>
@@ -1933,7 +1933,7 @@ export function AudioDashboard() {
                     <div className="flex justify-start">
                       <button
                         onClick={() => setActiveTab('feed')}
-                        className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest bg-[#121824]/60 hover:bg-[#161f30] text-slate-300 hover:text-white border border-slate-800/80 hover:border-slate-700/80 transition duration-200 rounded-lg cursor-pointer flex items-center gap-2 shadow-md"
+                        className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest bg-white/60 hover:bg-[#F0EBE3] text-slate-300 hover:text-white border border-[#E8E2D9] hover:border-[#D4CFC6]/80 transition duration-200 rounded-lg cursor-pointer flex items-center gap-2 shadow-md"
                       >
                         <span>←</span> BACK TO FEED
                       </button>
@@ -1942,14 +1942,14 @@ export function AudioDashboard() {
                     {/* 👤 Setup Your Artist Profile Card - SLEEK DISPLAY SUMMARY BADGE */}
                     <div 
                       onClick={() => setIsProfileExpanded(prev => !prev)}
-                      className="bg-[#0e131f] border border-slate-800/80 p-6 rounded-xl shadow-xl space-y-4 cursor-pointer hover:border-slate-700/80 hover:shadow-2xl transition-all duration-300 relative group"
+                      className="bg-white border border-[#E8E2D9] p-6 rounded-xl shadow-xl space-y-4 cursor-pointer hover:border-[#D4CFC6]/80 hover:shadow-2xl transition-all duration-300 relative group"
                     >
                       <div className="flex items-center justify-between">
                         <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">👤 Artist Profile</h3>
                         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => setIsProfileExpanded(prev => !prev)}
-                            className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border border-blue-500/30 rounded bg-blue-600/10 text-blue-400 hover:text-white hover:border-blue-500 hover:bg-blue-600 transition cursor-pointer"
+                            className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border border-[#C5A880]/30 rounded bg-[#C5A880]/10 text-[#C5A880] hover:text-white hover:border-[#C5A880] hover:bg-[#C5A880] transition cursor-pointer"
                           >
                             {isProfileExpanded ? "📁 Hide Catalog" : "📂 Open Catalog"}
                           </button>
@@ -1958,7 +1958,7 @@ export function AudioDashboard() {
                               setIsProfileCreated(false);
                               setIsEditingProfile(true);
                             }}
-                            className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border border-slate-800 rounded bg-[#151c2a] text-slate-300 hover:text-white hover:border-blue-500 transition cursor-pointer"
+                            className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border border-[#E8E2D9] rounded bg-[#F5F0E8] text-slate-300 hover:text-white hover:border-blue-500 transition cursor-pointer"
                           >
                             Edit
                           </button>
@@ -1972,32 +1972,32 @@ export function AudioDashboard() {
                           </div>
                           <div className="min-w-0">
                             <p className="text-xs font-bold text-slate-400">Active Profile</p>
-                            <p className="text-sm font-black text-white truncate">
+                            <p className="text-sm font-black text-[#111111] truncate">
                               {artistDisplayName.startsWith('@') ? artistDisplayName : `@${artistDisplayName}`}
                             </p>
                           </div>
                         </div>
                         
-                        <p className="text-xs text-slate-300 font-medium leading-relaxed bg-[#0b0e14] p-3 rounded-lg border border-slate-900/60">
+                        <p className="text-xs text-slate-300 font-medium leading-relaxed bg-white p-3 rounded-lg border border-[#E8E2D9]">
                           {artistBio || "No bio set."}
                         </p>
                         
                         <div className="flex flex-wrap gap-2">
                           {instagramHandle && (
-                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#0b0e14] border border-slate-900/60 text-[10px] font-bold text-slate-400">
+                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-white border border-[#E8E2D9] text-[10px] font-bold text-slate-400">
                               <InstagramIcon className="w-3.5 h-3.5 text-pink-400 shrink-0" />
                               <span className="truncate">@{instagramHandle.replace('@', '')}</span>
                             </div>
                           )}
 
-                          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#0b0e14] border border-slate-900/60 text-[10px] font-bold text-slate-400">
+                          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-white border border-[#E8E2D9] text-[10px] font-bold text-slate-400">
                             <Sliders className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                             <span>DAW: {activeProducer?.primaryDaw || "Logic Pro"}</span>
                           </div>
                         </div>
 
                         {/* Click feedback / chevron cue */}
-                        <div className="pt-3 border-t border-slate-800/60 flex items-center justify-between text-[9px] font-bold text-slate-500 group-hover:text-slate-400 transition-colors uppercase tracking-widest">
+                        <div className="pt-3 border-t border-[#E8E2D9] flex items-center justify-between text-[9px] font-bold text-slate-500 group-hover:text-slate-400 transition-colors uppercase tracking-widest">
                           <span>Click card to {isProfileExpanded ? "collapse" : "expand"} catalog</span>
                           <span className="text-xs transition-transform duration-300">
                             {isProfileExpanded ? "▲" : "▼"}
@@ -2008,10 +2008,10 @@ export function AudioDashboard() {
 
                     {/* My Uploaded Catalog Card */}
                     {isProfileExpanded && (
-                      <div className="bg-[#0e131f] border border-slate-800/80 p-6 rounded-xl shadow-xl space-y-4">
+                      <div className="bg-white border border-[#E8E2D9] p-6 rounded-xl shadow-xl space-y-4">
                       <div className="flex items-center justify-between gap-4">
                         <div>
-                          <h3 className="text-lg font-bold text-white tracking-wide">My Uploaded Catalog</h3>
+                          <h3 className="text-lg font-bold text-[#111111] tracking-wide">My Uploaded Catalog</h3>
                           <p className="text-xs text-slate-400 mt-0.5 font-medium">Verify your uploaded community bounces here.</p>
                         </div>
                         {!isUploadFormVisible && (
@@ -2044,8 +2044,8 @@ export function AudioDashboard() {
                             return (
                               <div 
                                 key={track.id}
-                                className={`p-4 rounded-xl bg-[#121824]/60 border border-slate-800/80 hover:border-slate-700/80 transition-all duration-300 flex flex-col gap-3 group relative
-                                  ${isActive ? 'bg-[#162133]/80 border-blue-500/30' : ''}`}
+                                className={`p-4 rounded-xl bg-white/60 border border-[#E8E2D9] hover:border-[#D4CFC6]/80 transition-all duration-300 flex flex-col gap-3 group relative
+                                  ${isActive ? 'bg-[#F5F0E8]/80 border-blue-500/30' : ''}`}
                               >
                                 <div className="flex items-start gap-4">
                                   {/* Artwork */}
@@ -2064,18 +2064,18 @@ export function AudioDashboard() {
                                             className={`w-7.5 h-7.5 rounded-full flex items-center justify-center transition duration-200 border shrink-0 cursor-pointer shadow-md
                                               ${isPlayingThis 
                                                 ? 'text-emerald-400 border-emerald-500 bg-emerald-500/10 shadow-[0_0_8px_rgba(16,185,129,0.2)] hover:scale-105' 
-                                                : 'bg-[#1b2333] text-slate-300 border-slate-700 hover:text-white hover:border-blue-500'}`}
+                                                : 'bg-[#F5F0E8] text-slate-300 border-[#D4CFC6] hover:text-white hover:border-blue-500'}`}
                                           >
                                             {isPlayingThis ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current ml-0.5" />}
                                           </button>
                                         ) : (
-                                          <div className="w-7.5 h-7.5 rounded-full bg-slate-800/40 border border-slate-800/60 flex items-center justify-center text-slate-500 cursor-not-allowed shrink-0" title="Preview unavailable (Refreshed session)">
+                                          <div className="w-7.5 h-7.5 rounded-full bg-slate-800/40 border border-[#E8E2D9] flex items-center justify-center text-slate-500 cursor-not-allowed shrink-0" title="Preview unavailable (Refreshed session)">
                                             <Play className="w-3 h-3 fill-current opacity-40 ml-0.5" />
                                           </div>
                                         )}
 
                                         <div className="flex-1 min-w-0 flex flex-col justify-between">
-                                          <span className="text-xs font-semibold text-white truncate">
+                                          <span className="text-xs font-semibold text-[#111111] truncate">
                                             {track.filename}
                                           </span>
                                           <div className="flex flex-wrap items-center gap-2 mt-0.5">
@@ -2144,7 +2144,7 @@ export function AudioDashboard() {
                                             
                                             setIsComplianceChecked(true);
                                           }}
-                                          className="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase border border-slate-800 rounded bg-[#1b2333] text-slate-300 hover:text-white hover:border-blue-500 hover:bg-blue-600/20 active:scale-95 transition flex items-center gap-1 cursor-pointer"
+                                          className="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase border border-[#E8E2D9] rounded bg-[#F5F0E8] text-slate-300 hover:text-white hover:border-blue-500 hover:bg-blue-600/20 active:scale-95 transition flex items-center gap-1 cursor-pointer"
                                         >
                                           <span>✏️ Edit Track</span>
                                         </button>
@@ -2154,7 +2154,7 @@ export function AudioDashboard() {
                                               e.stopPropagation();
                                               setPendingDownloadTrack(track);
                                             }}
-                                            className="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase border border-slate-800 rounded bg-[#1b2333] text-slate-300 hover:text-white hover:border-blue-500 hover:bg-blue-600/20 active:scale-95 transition flex items-center gap-1 cursor-pointer"
+                                            className="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase border border-[#E8E2D9] rounded bg-[#F5F0E8] text-slate-300 hover:text-white hover:border-blue-500 hover:bg-blue-600/20 active:scale-95 transition flex items-center gap-1 cursor-pointer"
                                           >
                                             <Download className="w-3.5 h-3.5" />
                                             <span>DOWNLOAD</span>
@@ -2163,7 +2163,7 @@ export function AudioDashboard() {
                                       </div>
                                     </div>
 
-                                    <div className="flex items-center gap-1.5 bg-[#0b0e14] border border-emerald-500/20 px-2 py-0.5 rounded text-[8px] font-bold text-emerald-400 tracking-wide shrink-0 self-start">
+                                    <div className="flex items-center gap-1.5 bg-white border border-emerald-500/20 px-2 py-0.5 rounded text-[8px] font-bold text-emerald-400 tracking-wide shrink-0 self-start">
                                       <Lock className="w-2.5 h-2.5 text-blue-400 shrink-0" />
                                       <span>⚖️ Royalty-Free License Included</span>
                                     </div>
@@ -2171,7 +2171,7 @@ export function AudioDashboard() {
                                 </div>
 
                                 {/* Small waveform track */}
-                                <div className="relative w-full h-6 bg-[#090d16]/80 rounded-md overflow-hidden flex items-center px-2.5 border border-slate-900/60">
+                                <div className="relative w-full h-6 bg-[#F0EBE3] rounded-md overflow-hidden flex items-center px-2.5 border border-[#E8E2D9]">
                                   <div className="w-full h-3 flex items-center gap-[2px] pointer-events-none">
                                     {barHeights.slice(0, 32).map((height, idx) => {
                                       const isBarActive = isActive && (progress >= (idx / 32) * 100);
@@ -2198,7 +2198,7 @@ export function AudioDashboard() {
                             );
                           })
                         ) : (
-                          <div className="p-8 rounded-xl border border-dashed border-slate-800 bg-[#121824]/20 text-center text-slate-500 text-xs">
+                          <div className="p-8 rounded-xl border border-dashed border-[#E8E2D9] bg-white/20 text-center text-slate-500 text-xs">
                             <p>You haven&apos;t uploaded any loops yet.</p>
                             <p className="text-[10px] text-slate-600 mt-1 font-medium">Your published Logic bounces will show up here.</p>
                           </div>
@@ -2219,7 +2219,7 @@ export function AudioDashboard() {
       </main>
 
       {/* Audio Engine Status Bar in bottom center */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#121824]/95 backdrop-blur-md border border-slate-800/80 px-5 py-3 rounded-full shadow-2xl flex items-center gap-4 z-40">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md border border-[#E8E2D9] px-5 py-3 rounded-full shadow-2xl flex items-center gap-4 z-40">
         <div className="flex items-center gap-3 text-xs font-semibold select-none">
           {playingTrackId ? (
             <div className="flex items-center gap-2">
@@ -2261,12 +2261,12 @@ export function AudioDashboard() {
 
       {/* 2. SIMULATE PREMIUM PAYWALL ACCESS OVERLAY */}
       {downloadMessage && (
-        <div className="fixed bottom-24 right-6 bg-[#121824]/95 backdrop-blur-md border border-emerald-500/30 p-4 rounded-xl shadow-2xl z-50 max-w-sm flex items-start gap-3 border-l-4 border-l-emerald-500 transition-all duration-300 transform translate-y-0">
+        <div className="fixed bottom-24 right-6 bg-white/95 backdrop-blur-md border border-emerald-500/30 p-4 rounded-xl shadow-2xl z-50 max-w-sm flex items-start gap-3 border-l-4 border-l-emerald-500 transition-all duration-300 transform translate-y-0">
           <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
             <Lock className="w-4 h-4" />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+            <h4 className="text-xs font-bold text-[#111111] uppercase tracking-wider">
               Transaction Logged
             </h4>
             <p className="text-[11px] text-slate-300 mt-1 font-medium leading-relaxed">
@@ -2275,7 +2275,7 @@ export function AudioDashboard() {
           </div>
           <button 
             onClick={() => setDownloadMessage(null)}
-            className="text-slate-500 hover:text-white transition cursor-pointer p-0.5 hover:bg-slate-800 rounded shrink-0"
+            className="text-slate-500 hover:text-white transition cursor-pointer p-0.5 hover:bg-[#F0EBE3] rounded shrink-0"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -2285,11 +2285,11 @@ export function AudioDashboard() {
       {/* 3. PREMIUM PAYWALL CHECKOUT MODAL */}
       {pendingDownloadTrack && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-[#121824] border border-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl relative">
+          <div className="bg-[#F5F0E8] border border-[#E8E2D9] rounded-2xl p-6 max-w-sm w-full shadow-2xl relative">
             {/* Close Button */}
             <button 
               onClick={() => setPendingDownloadTrack(null)}
-              className="absolute top-4 right-4 text-slate-500 hover:text-white transition cursor-pointer p-1 hover:bg-slate-800 rounded"
+              className="absolute top-4 right-4 text-slate-500 hover:text-white transition cursor-pointer p-1 hover:bg-[#F0EBE3] rounded"
             >
               <X className="w-4 h-4" />
             </button>
@@ -2299,15 +2299,15 @@ export function AudioDashboard() {
               <div className="w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4 shrink-0">
                 <Lock className="w-5 h-5" />
               </div>
-              <h3 className="text-lg font-bold text-white tracking-tight">Checkout Authorization</h3>
+              <h3 className="text-lg font-bold text-[#111111] tracking-tight">Checkout Authorization</h3>
               <p className="text-xs text-slate-400 mt-1 truncate max-w-full px-2">
                 Authorizing license for: <span className="text-blue-400 font-semibold">{pendingDownloadTrack.filename}</span>
               </p>
             </div>
 
             {/* Token Checkout Detail Box */}
-            <div className="bg-[#0b0e14] border border-slate-900 rounded-xl p-4 mb-6 space-y-3">
-              <div className="flex justify-between items-center pb-2.5 border-b border-slate-800/80">
+            <div className="bg-white border border-[#E8E2D9] rounded-xl p-4 mb-6 space-y-3">
+              <div className="flex justify-between items-center pb-2.5 border-b border-[#E8E2D9]">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Item Cost</span>
                 <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Cost: 1 Download Token Credit</span>
               </div>
@@ -2332,7 +2332,7 @@ export function AudioDashboard() {
               
               <button
                 onClick={() => setPendingDownloadTrack(null)}
-                className="w-full py-2.5 bg-transparent hover:bg-slate-800/40 border border-slate-800 hover:border-slate-700 transition-all duration-200 text-xs font-bold uppercase tracking-widest rounded-lg cursor-pointer text-slate-400 hover:text-white"
+                className="w-full py-2.5 bg-transparent hover:bg-[#F0EBE3]/40 border border-[#E8E2D9] hover:border-[#D4CFC6] transition-all duration-200 text-xs font-bold uppercase tracking-widest rounded-lg cursor-pointer text-slate-400 hover:text-white"
               >
                 Cancel
               </button>
