@@ -278,7 +278,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
                     placeholder="Producer name / alias"
                     value={name}
                     onChange={(e) => { setName(e.target.value); setStep1Errors(prev => ({ ...prev, name: '' })); }}
-                    className={inputClass(step1Errors.name)}
+                    className={inputClass(!!step1Errors.name)}
                     autoComplete="name"
                   />
                   {step1Errors.name && <p className="text-red-500 text-[10px] mt-1 ml-1">{step1Errors.name}</p>}
@@ -292,7 +292,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
                   placeholder="Email address"
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setStep1Errors(prev => ({ ...prev, email: '' })); }}
-                  className={inputClass(step1Errors.email)}
+                  className={inputClass(!!step1Errors.email)}
                   autoComplete="email"
                 />
                 {step1Errors.email && <p className="text-red-500 text-[10px] mt-1 ml-1">{step1Errors.email}</p>}
@@ -306,7 +306,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); setStep1Errors(prev => ({ ...prev, password: '' })); }}
                   className={`${inputClass(step1Errors.password)} pr-10`}
-                  autoComplete="new-password"
+                  className={`${inputClass(!!step1Errors.password)} pr-10`}
                 />
                 <button
                   type="button"
