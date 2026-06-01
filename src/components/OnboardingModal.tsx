@@ -305,7 +305,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
                   placeholder="Password (min 8 characters)"
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); setStep1Errors(prev => ({ ...prev, password: '' })); }}
-                  className={`${inputClass(step1Errors.password)} pr-10`}
+                
                   className={`${inputClass(!!step1Errors.password)} pr-10`}
                 />
                 <button
