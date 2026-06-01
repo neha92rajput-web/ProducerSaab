@@ -21,7 +21,7 @@ function EyeIcon({ open }: { open: boolean }) {
   );
 }
 
-export default function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
+export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
   const [step, setStep] = useState(1);
   const [isLoginMode, setIsLoginMode] = useState(false);
   const [name, setName] = useState('');
