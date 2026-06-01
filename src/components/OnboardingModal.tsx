@@ -351,48 +351,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
                   <a href="#" onClick={e => e.preventDefault()} className="text-[#C5A880] hover:underline">Privacy Policy</a>.
                 </p>
                 <p className="text-center text-xs text-[#777777] pt-3">
-  Already have an account?{' '}
-                  {/* ════ LOGIN MODE VIEW ════ */}
-            {isLoginMode && (
-              <form onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }} className="space-y-4">
-                <div>
-                  <input
-                    type="email"
-                    placeholder="Email address"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    className={inputClass(false)}
-                    autoComplete="email"
-                  />
-                </div>
-                <div>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="Password"
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      className={`${inputClass(false)} pr-10`}
-                      autoComplete="current-password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(s => !s)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#AAAAAA] hover:text-[#777777] transition-colors cursor-pointer"
-                    >
-                      <EyeIcon open={showPassword} />
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-[#111111] text-white font-bold text-sm py-3 rounded-xl hover:bg-[#333333] transition-all duration-200 cursor-pointer mt-1"
-                >
-                  Sign In →
-                </button>
-
-                <p className="text-center text-xs text-[#777777] pt-2">
+  
                   Don't have an account?{' '}
                   <button type="button" onClick={() => setIsLoginMode(false)} className="text-[#C5A880] font-bold hover:underline cursor-pointer">
                     Sign Up
