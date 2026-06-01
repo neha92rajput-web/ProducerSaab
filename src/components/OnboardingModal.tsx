@@ -268,55 +268,54 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
             {/* Step Indicator */}
             {!isLoginMode && <StepIndicator current={step} />}
 
-            {/* ════ STEP 1: Account Credentials ════ */}
-           {step === 1 && (
-              <form onSubmit={handleStep1Submit} noValidate className="space-y-3">
-                {/* Name */}
+            {step === 1 && (
+            <form onSubmit={handleStep1Submit} noValidate className="space-y-3">
+              {/* Name - Hidden when logging in */}
+              {!isLoginMode && (
                 <div>
                   <input
                     type="text"
                     placeholder="Producer name / alias"
                     value={name}
-                    onChange={e => { setName(e.target.value); setStep1Errors(prev => ({ ...prev, name: '' })); }}
-                    className={inputClass(!!step1Errors.name)}
+                    onChange={(e) => { setName(e.target.value); setStep1Errors(prev => ({ ...prev, name: '' })); }}
+                    className={inputClass(step1Errors.name)}
                     autoComplete="name"
                   />
                   {step1Errors.name && <p className="text-red-500 text-[10px] mt-1 ml-1">{step1Errors.name}</p>}
                 </div>
+              )}
 
-                {/* Email */}
-                <div>
-                  <input
-                    type="email"
-                    placeholder="Email address"
-                    value={email}
-                    onChange={e => { setEmail(e.target.value); setStep1Errors(prev => ({ ...prev, email: '' })); }}
-                    className={inputClass(!!step1Errors.email)}
-                    autoComplete="email"
-                  />
-                  {step1Errors.email && <p className="text-red-500 text-[10px] mt-1 ml-1">{step1Errors.email}</p>}
-                </div>
+              {/* Email */}
+              <div>
+                <input
+                  type="email"
+                  placeholder="Email address"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setStep1Errors(prev => ({ ...prev, email: '' })); }}
+                  className={inputClass(step1Errors.email)}
+                  autoComplete="email"
+                />
+                {step1Errors.email && <p className="text-red-500 text-[10px] mt-1 ml-1">{step1Errors.email}</p>}
+              </div>
 
-                {/* Password */}
-                <div>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="Password (min 8 characters)"
-                      value={password}
-                      onChange={e => { setPassword(e.target.value); setStep1Errors(prev => ({ ...prev, password: '' })); }}
-                      className={`${inputClass(!!step1Errors.password)} pr-10`}
-                      autoComplete="new-password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(s => !s)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#AAAAAA] hover:text-[#777777] transition-colors cursor-pointer"
-                    >
-                      <EyeIcon open={showPassword} />
-                    </button>
-                  </div>
-                  {step1Errors.password && <p className="text-red-500 text-[10px] mt-1 ml-1">{step1Errors.password}</p>}
+              {/* Password */}
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Password (min 8 characters)"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setStep1Errors(prev => ({ ...prev, password: '' })); }}
+                  className={`${inputClass(step1Errors.password)} pr-10`}
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#AAAAAA] hover:text-[#777777] transition-colors cursor-pointer"
+                >
+                  <EyeIcon open={showPassword} />
+                </button>
+              </div>
                   {/* Password strength mini bar */}
                   {password.length > 0 && (
                     <div className="flex gap-1 mt-1.5">
