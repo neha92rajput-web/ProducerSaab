@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { OnboardingModal } from '@/components/OnboardingModal';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -573,49 +574,7 @@ export default function FeedPage() {
       </footer>
 
       {/* ══════════════ JOIN / UPLOAD MODAL ══════════════ */}
-      {showJoinModal && (
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={e => { if (e.target === e.currentTarget) setShowJoinModal(false); }}
-        >
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative">
-            <button
-              onClick={() => setShowJoinModal(false)}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#F0EBE3] flex items-center justify-center text-[#777777] hover:bg-[#E8E2D9] transition-colors cursor-pointer"
-            >
-              ✕
-            </button>
-            <div className="text-center mb-6">
-              <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-[#C5A880] to-[#B8986E] flex items-center justify-center">
-                <WaveformIcon className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-xl font-extrabold text-[#111111] tracking-tight">Join Producer Saab</h3>
-              <p className="text-[#999999] text-sm mt-1">Upload sounds, get discovered, grow your audience.</p>
-            </div>
-            <div className="space-y-3">
-              <input
-                type="text"
-                placeholder="Producer name / alias"
-                className="w-full bg-[#FAF8F5] border border-[#E8E2D9] rounded-xl px-4 py-2.5 text-sm text-[#111111] placeholder:text-[#AAAAAA] outline-none focus:border-[#C5A880] transition-colors"
-              />
-              <input
-                type="email"
-                placeholder="Email address"
-                className="w-full bg-[#FAF8F5] border border-[#E8E2D9] rounded-xl px-4 py-2.5 text-sm text-[#111111] placeholder:text-[#AAAAAA] outline-none focus:border-[#C5A880] transition-colors"
-              />
-              <button className="w-full bg-[#111111] text-white font-bold text-sm py-3 rounded-xl hover:bg-[#333333] transition-colors cursor-pointer">
-                Create Account →
-              </button>
-              <button
-                onClick={() => setShowJoinModal(false)}
-                className="w-full text-xs text-[#AAAAAA] hover:text-[#777777] transition-colors cursor-pointer py-1"
-              >
-                Maybe later
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <OnboardingModal isOpen={showJoinModal} onClose={() => setShowJoinModal(false)} />
 
     </div>
   );
