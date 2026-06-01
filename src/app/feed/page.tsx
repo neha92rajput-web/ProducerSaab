@@ -18,7 +18,7 @@ interface Track {
   likes: number;
   plays: number;
   image: string;
-  artColor: string; // Tailwind gradient classes
+  artColor: string;
 }
 
 interface Producer {
@@ -42,42 +42,14 @@ interface LeaderboardEntry {
   change: 'up' | 'down' | 'same';
 }
 
-// ─── Static Data ─────────────────────────────────────────────────────────────
+// ─── Empty Data Arrays (will be populated from real database) ─────────────────
 
-const trendingTracks: Track[] = [
-  { id: 1, title: 'Midnight Trap Melody', producer: 'ProdJay', genre: 'TRAP', bpm: 140, key: 'A Min', duration: '0:28', likes: 1240, plays: 8400, image: '/images/trending_trap.png', artColor: 'from-purple-600 to-indigo-800' },
-  { id: 2, title: 'UK Drill Loop 808', producer: 'LunaBeats', genre: 'DRILL', bpm: 138, key: 'F# Min', duration: '0:20', likes: 856, plays: 5200, image: '/images/trending_drill.png', artColor: 'from-slate-600 to-slate-900' },
-  { id: 3, title: 'R&B Piano Chords', producer: 'Nova', genre: 'R&B', bpm: 90, key: 'D Maj', duration: '0:24', likes: 654, plays: 3900, image: '/images/trending_rnb.png', artColor: 'from-amber-700 to-amber-900' },
-  { id: 4, title: 'Lofi Guitar Sample', producer: 'Soulfy', genre: 'LOFI', bpm: 75, key: 'G Maj', duration: '0:21', likes: 542, plays: 2700, image: '/images/trending_lofi.png', artColor: 'from-amber-600 to-stone-700' },
-  { id: 5, title: 'Ambient Texture Pad', producer: 'Aureus', genre: 'AMBIENT', bpm: 95, key: 'C Maj', duration: '0:22', likes: 432, plays: 1900, image: '/images/trending_ambient.png', artColor: 'from-sky-400 to-blue-600' },
-  { id: 6, title: 'Afrobeats Groove', producer: 'Kofi Beats', genre: 'AFRO', bpm: 105, key: 'E Min', duration: '0:26', likes: 381, plays: 1500, image: '/images/trending_trap.png', artColor: 'from-orange-500 to-amber-700' },
-];
-
-const discoverProducers: Producer[] = [
-  { id: 1, name: 'ProdJay', role: 'Trap Producer', followers: '12.4K', uploads: 324, initial: 'P', gradient: 'from-purple-600 to-indigo-700', verified: true },
-  { id: 2, name: 'LunaBeats', role: 'Drill Producer', followers: '8.1K', uploads: 182, initial: 'L', gradient: 'from-slate-600 to-slate-800', verified: true },
-  { id: 3, name: 'MetroVibes', role: 'Melody Maker', followers: '6.7K', uploads: 241, initial: 'M', gradient: 'from-[#C5A880] to-[#B8986E]', verified: false },
-  { id: 4, name: 'Soulfy', role: 'R&B Producer', followers: '5.2K', uploads: 152, initial: 'S', gradient: 'from-amber-600 to-amber-800', verified: false },
-  { id: 5, name: 'Aureus', role: 'Ambient Artist', followers: '4.8K', uploads: 98, initial: 'A', gradient: 'from-sky-500 to-blue-700', verified: true },
-  { id: 6, name: 'KofiBeats', role: 'Afrobeats', followers: '3.9K', uploads: 77, initial: 'K', gradient: 'from-orange-500 to-amber-700', verified: false },
-];
-
-const leaderboard: LeaderboardEntry[] = [
-  { rank: 1, name: 'ProdJay', genre: 'TRAP', plays: '84K', initial: 'P', gradient: 'from-yellow-400 to-orange-500', change: 'same' },
-  { rank: 2, name: 'LunaBeats', genre: 'DRILL', plays: '52K', initial: 'L', gradient: 'from-slate-500 to-slate-700', change: 'up' },
-  { rank: 3, name: 'MetroVibes', genre: 'MELODIC', plays: '39K', initial: 'M', gradient: 'from-[#C5A880] to-[#B8986E]', change: 'up' },
-  { rank: 4, name: 'Nova', genre: 'R&B', plays: '27K', initial: 'N', gradient: 'from-pink-500 to-rose-700', change: 'down' },
-  { rank: 5, name: 'Aureus', genre: 'AMBIENT', plays: '19K', initial: 'A', gradient: 'from-sky-400 to-blue-600', change: 'same' },
-];
+const trendingTracks: Track[] = [];
+const discoverProducers: Producer[] = [];
+const leaderboard: LeaderboardEntry[] = [];
+const newUploads: Track[] = [];
 
 const genres = ['All', 'Trap', 'Drill', 'R&B', 'Lofi', 'Ambient', 'Afrobeats', 'Hip Hop', 'Melodic', 'Pop', 'EDM', 'Phonk', 'Drill & Bass', 'Soul'];
-
-const newUploads: Track[] = [
-  { id: 10, title: 'Phonk Drift Loop', producer: 'DarkProd', genre: 'PHONK', bpm: 132, key: 'B Min', duration: '0:18', likes: 88, plays: 340, image: '/images/trending_trap.png', artColor: 'from-red-700 to-slate-900' },
-  { id: 11, title: 'Soul Chord Stab', producer: 'Soulfy', genre: 'SOUL', bpm: 88, key: 'F Maj', duration: '0:23', likes: 62, plays: 210, image: '/images/trending_rnb.png', artColor: 'from-rose-500 to-pink-700' },
-  { id: 12, title: 'Melodic 808 Slide', producer: 'MetroVibes', genre: 'MELODIC', bpm: 145, key: 'C# Min', duration: '0:22', likes: 54, plays: 190, image: '/images/trending_drill.png', artColor: 'from-violet-600 to-indigo-800' },
-  { id: 13, title: 'Indie Guitar Loop', producer: 'WaveRider', genre: 'INDIE', bpm: 120, key: 'G Maj', duration: '0:25', likes: 41, plays: 155, image: '/images/trending_lofi.png', artColor: 'from-lime-600 to-green-800' },
-];
 
 // ─── Static waveform heights (avoids hydration mismatch) ─────────────────────
 const waveBarHeights = [30, 55, 75, 40, 90, 50, 20, 65, 80, 30, 15, 60, 85, 35, 25, 70, 80, 22, 12, 45, 90, 28, 18, 58, 82];
@@ -142,7 +114,7 @@ function SearchIcon() {
 
 // ─── Waveform Progress Bar (static, no random) ───────────────────────────────
 
-function WaveformBar({ progress, gold = false }: { progress: number; gold?: boolean }) {
+function WaveformBar({ progress }: { progress: number }) {
   return (
     <div className="relative w-full h-8 bg-[#F0EBE3] rounded-lg overflow-hidden flex items-center px-2 border border-[#E8E2D9]">
       {/* progress fill */}
@@ -258,6 +230,65 @@ function TrackCard({ track, isPlaying, onTogglePlay }: {
   );
 }
 
+// ─── Placeholder Track Card ──────────────────────────────────────────────────
+
+function PlaceholderTrackCard() {
+  return (
+    <div className="bg-white border border-[#E8E2D9] rounded-2xl overflow-hidden group">
+      {/* Artwork Placeholder */}
+      <div className="relative aspect-square overflow-hidden bg-[#F0EBE3]">
+        {/* Genre pill */}
+        <span className="absolute top-3 left-3 bg-black/20 text-white/50 text-[10px] font-bold tracking-widest px-2 py-0.5 rounded-md uppercase">
+          ---
+        </span>
+        {/* BPM + Key */}
+        <div className="absolute top-3 right-3 flex gap-1">
+          <span className="bg-black/20 text-white/50 text-[9px] font-semibold px-1.5 py-0.5 rounded-md">0 BPM</span>
+          <span className="bg-black/20 text-white/50 text-[9px] font-semibold px-1.5 py-0.5 rounded-md">---</span>
+        </div>
+        {/* Play overlay */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-12 h-12 bg-white/60 rounded-full flex items-center justify-center shadow-xl text-[#CCCCCC]">
+            <PlayIcon />
+          </div>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="p-4 space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <h3 className="font-bold text-[#CCCCCC] text-sm truncate">No track yet</h3>
+            <p className="text-[#DDDDDD] text-xs mt-0.5">--- · 0:00</p>
+          </div>
+          <div className="shrink-0 p-1.5">
+            <HeartIcon />
+          </div>
+        </div>
+
+        {/* Waveform */}
+        <WaveformBar progress={0} />
+
+        {/* Bottom row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 text-[#DDDDDD] text-[11px]">
+            <span className="flex items-center gap-1">
+              <HeartIcon /> 0
+            </span>
+            <span className="flex items-center gap-1">
+              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+              0
+            </span>
+          </div>
+          <span className="flex items-center gap-1 text-[#DDDDDD] text-[11px] font-semibold">
+            <DownloadIcon /> Download
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Producer Card ────────────────────────────────────────────────────────────
 
 function ProducerCard({ producer }: { producer: Producer }) {
@@ -295,6 +326,70 @@ function ProducerCard({ producer }: { producer: Producer }) {
       >
         {following ? '✓ Following' : 'Follow'}
       </button>
+    </div>
+  );
+}
+
+// ─── Placeholder Producer Card ────────────────────────────────────────────────
+
+function PlaceholderProducerCard() {
+  return (
+    <div className="bg-white border border-[#E8E2D9] rounded-2xl p-5 text-center group">
+      {/* Avatar */}
+      <div className="relative mx-auto mb-3 w-fit">
+        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#E8E2D9] to-[#D4CFC6] flex items-center justify-center shadow-md">
+          <span className="text-xl font-black text-white/60">?</span>
+        </div>
+      </div>
+      <h3 className="font-bold text-[#CCCCCC] text-sm">No Producer</h3>
+      <p className="text-[#DDDDDD] text-[11px] mt-0.5 mb-3">---</p>
+      <div className="flex justify-center gap-5 mb-4 text-center">
+        <div>
+          <p className="font-bold text-[#CCCCCC] text-sm">0</p>
+          <p className="text-[#AAAAAA] text-[10px]">Followers</p>
+        </div>
+        <div>
+          <p className="font-bold text-[#CCCCCC] text-sm">0</p>
+          <p className="text-[#AAAAAA] text-[10px]">Sounds</p>
+        </div>
+      </div>
+      <button className="w-full py-2 rounded-full text-xs font-bold tracking-wide bg-[#E8E2D9] text-[#AAAAAA] cursor-default">
+        ---
+      </button>
+    </div>
+  );
+}
+
+// ─── Placeholder Leaderboard Entry ────────────────────────────────────────────
+
+function PlaceholderLeaderboardEntry({ rank }: { rank: number }) {
+  return (
+    <div className="flex items-center gap-3 px-5 py-4 border-b border-[#E8E2D9] last:border-b-0">
+      {/* Rank */}
+      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
+        rank === 1 ? 'bg-yellow-400/30 text-yellow-600' :
+        rank === 2 ? 'bg-slate-300/30 text-slate-500' :
+        rank === 3 ? 'bg-amber-600/30 text-amber-700' :
+        'bg-[#F0EBE3] text-[#AAAAAA]'
+      }`}>
+        {rank}
+      </div>
+      {/* Avatar */}
+      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#E8E2D9] to-[#D4CFC6] flex items-center justify-center shrink-0">
+        <span className="text-xs font-black text-white/60">?</span>
+      </div>
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-bold text-[#CCCCCC] truncate">---</p>
+        <p className="text-[10px] text-[#DDDDDD]">---</p>
+      </div>
+      {/* Plays + trend */}
+      <div className="text-right shrink-0">
+        <p className="text-xs font-bold text-[#DDDDDD]">0</p>
+        <div className="flex justify-end mt-0.5">
+          <span className="text-[10px] text-[#DDDDDD]">—</span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -390,18 +485,18 @@ export default function FeedPage() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {filteredTracks.map(track => (
+            {filteredTracks.length > 0 ? filteredTracks.map(track => (
               <TrackCard
                 key={track.id}
                 track={track}
                 isPlaying={playingId === track.id}
                 onTogglePlay={togglePlay}
               />
-            ))}
-            {filteredTracks.length === 0 && (
-              <div className="col-span-full py-16 text-center text-[#AAAAAA] text-sm">
-                No sounds found for <span className="text-[#C5A880] font-semibold">&ldquo;{searchQuery}&rdquo;</span>
-              </div>
+            )) : (
+              /* Placeholder cards when no data */
+              [1, 2, 3, 4, 5, 6].map(i => (
+                <PlaceholderTrackCard key={i} />
+              ))
             )}
           </div>
         </section>
@@ -416,9 +511,14 @@ export default function FeedPage() {
               <h2 className="text-2xl font-extrabold text-[#111111] tracking-tight">🌍 Discover Producers</h2>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {discoverProducers.map(p => (
+              {discoverProducers.length > 0 ? discoverProducers.map(p => (
                 <ProducerCard key={p.id} producer={p} />
-              ))}
+              )) : (
+                /* Placeholder cards when no data */
+                [1, 2, 3, 4, 5, 6].map(i => (
+                  <PlaceholderProducerCard key={i} />
+                ))
+              )}
             </div>
           </div>
 
@@ -429,7 +529,7 @@ export default function FeedPage() {
               <h2 className="text-2xl font-extrabold text-[#111111] tracking-tight">📈 Leaderboard</h2>
             </div>
             <div className="bg-white border border-[#E8E2D9] rounded-2xl overflow-hidden">
-              {leaderboard.map((entry, i) => (
+              {leaderboard.length > 0 ? leaderboard.map((entry, i) => (
                 <div
                   key={entry.rank}
                   className={`flex items-center gap-3 px-5 py-4 ${i < leaderboard.length - 1 ? 'border-b border-[#E8E2D9]' : ''} hover:bg-[#FAF6F0] transition-colors group`}
@@ -460,7 +560,12 @@ export default function FeedPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                /* Placeholder entries when no data */
+                [1, 2, 3, 4, 5].map(i => (
+                  <PlaceholderLeaderboardEntry key={i} rank={i} />
+                ))
+              )}
             </div>
           </div>
         </section>
@@ -507,7 +612,7 @@ export default function FeedPage() {
           </div>
 
           <div className="space-y-3">
-            {newUploads.map((track, i) => (
+            {newUploads.length > 0 ? newUploads.map((track, i) => (
               <div
                 key={track.id}
                 className="bg-white border border-[#E8E2D9] rounded-2xl p-4 flex items-center gap-4 hover:shadow-md hover:shadow-[#C5A880]/8 transition-all duration-300 group"
@@ -551,7 +656,47 @@ export default function FeedPage() {
                   <DownloadIcon />
                 </button>
               </div>
-            ))}
+            )) : (
+              /* Placeholder rows when no data */
+              [1, 2, 3, 4].map(i => (
+                <div
+                  key={i}
+                  className="bg-white border border-[#E8E2D9] rounded-2xl p-4 flex items-center gap-4 group"
+                >
+                  {/* Index */}
+                  <span className="text-[#DDDDDD] text-xs font-bold w-5 text-center shrink-0">{String(i).padStart(2, '0')}</span>
+
+                  {/* Art */}
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#E8E2D9] to-[#D4CFC6] flex items-center justify-center shrink-0">
+                    <WaveformIcon className="w-4 h-4 text-white/60" />
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-[#CCCCCC] truncate">No track yet</p>
+                    <p className="text-[11px] text-[#DDDDDD]">--- · --- · 0 BPM · ---</p>
+                  </div>
+
+                  {/* Waveform */}
+                  <div className="hidden sm:block w-32">
+                    <WaveformBar progress={0} />
+                  </div>
+
+                  {/* Duration */}
+                  <span className="text-[11px] text-[#DDDDDD] font-medium shrink-0 hidden md:block">0:00</span>
+
+                  {/* Play */}
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center border border-[#E8E2D9] shrink-0 bg-white text-[#CCCCCC]">
+                    <PlayIcon />
+                  </div>
+
+                  {/* Download */}
+                  <span className="text-[#DDDDDD] shrink-0">
+                    <DownloadIcon />
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </section>
 
