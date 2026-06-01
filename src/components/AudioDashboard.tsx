@@ -75,11 +75,7 @@ interface TrendingCreator {
   plays: string;
 }
 
-const trendingCreators: TrendingCreator[] = [
-  { rank: 1, username: "@ProdByAlex", avatarLetter: "A", genreTag: "Trap", plays: "14.2k" },
-  { rank: 2, username: "@MetroVibes", avatarLetter: "M", genreTag: "Hip Hop", plays: "11.5k" },
-  { rank: 3, username: "@LogicKing", avatarLetter: "L", genreTag: "R&B", plays: "9.1k" }
-];
+const trendingCreators: TrendingCreator[] = [];
 
 // --- IndexedDB Audio File Storage ---
 const IDB_NAME = 'ProducerSaabAudio';
@@ -1221,7 +1217,7 @@ export function AudioDashboard() {
                   </div>
 
                   <div className="space-y-3.5">
-                    {trendingCreators.map((creator) => (
+                    {trendingCreators.length > 0 ? trendingCreators.map((creator) => (
                       <div key={creator.rank} className="flex items-center justify-between gap-2 pb-3 border-b border-[#E8E2D9] last:border-b-0 last:pb-0">
                         <div className="flex items-center gap-2.5 min-w-0">
                           {/* Rank Badge */}
@@ -1260,7 +1256,15 @@ export function AudioDashboard() {
                           Follow
                         </button>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="py-8 text-center">
+                        <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-[#F0EBE3] flex items-center justify-center">
+                          <TrendingUp className="w-5 h-5 text-[#C5A880]" />
+                        </div>
+                        <p className="text-[#777777] text-xs mb-1">No trending creators yet</p>
+                        <p className="text-[#AAAAAA] text-[10px]">Upload sounds to start trending.</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
