@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { supabase } from '../utils/supabase';
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -43,7 +44,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
 
   if (!isOpen) return null;
 
-  const handleStep1Submit = (e: React.FormEvent) => {
+  const handleStep1Submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
     
@@ -57,10 +58,32 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
     }
 
     if (isLoginMode) {
-      console.log('Logging in with:', { email, password });
-      onClose();
+      // Live Supabase Login Flow
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) {
+        setStep1Errors({ email: error.message });
+      } else {
+        onClose();
+      }
     } else {
-      setStep(2);
+      // Live Supabase Registration Flow
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: name,
+          },
+        },
+      });
+      if (error) {
+        setStep1Errors({ email: error.message });
+      } else {
+        setStep(2);
+      }
     }
   };
 
