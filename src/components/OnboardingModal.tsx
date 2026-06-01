@@ -248,12 +248,11 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
               <h3 className="text-xl font-extrabold text-[#111111] tracking-tight">
                 {isLoginMode ? 'Welcome Back' : step === 1 ? 'Join Producer Saab' : 'Producer Verification'}
               </h3>
-              <p className="text-[#999999] text-xs mt-1">
-                {step === 1
-                 ? isLoginMode ? 'Sign in to access your profile.' : 'Create your free account in 2 steps.'
-: 'We only admit working producers. Prove your craft.'
-                  
-              </p>
+<p className="text-[#999999] text-xs mt-1">
+            {step === 1
+              ? isLoginMode ? "Sign in to access your profile." : "Create your free account in 2 steps."
+              : "We only admit working producers. Prove your craft."}
+          </p>
             </div>
 
             {/* Step Indicator */}
