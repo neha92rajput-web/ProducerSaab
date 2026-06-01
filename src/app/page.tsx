@@ -6,21 +6,12 @@ import Link from 'next/link';
 import { OnboardingModal } from '@/components/OnboardingModal';
 
 // ─── Trending Sound Data ──────────────────────────────────────────────────────
-const trendingSounds = [
-  { id: 1, genre: 'TRAP', duration: '0:28', title: 'Dark Trap Melody', producer: 'Prod. Jay', image: '/images/trending_trap.png', likes: '1.2K', downloads: '213' },
-  { id: 2, genre: 'DRILL', duration: '0:20', title: 'UK Drill Loop', producer: 'LunaBeats', image: '/images/trending_drill.png', likes: '856', downloads: '112' },
-  { id: 3, genre: 'R&B', duration: '0:24', title: 'R&B Piano Chords', producer: 'Nova', image: '/images/trending_rnb.png', likes: '654', downloads: '87' },
-  { id: 4, genre: 'LOFI', duration: '0:21', title: 'Guitar Sample', producer: 'Soulfy', image: '/images/trending_lofi.png', likes: '542', downloads: '64' },
-  { id: 5, genre: 'AMBIENT', duration: '0:22', title: 'Ambient Texture', producer: 'Aureus', image: '/images/trending_ambient.png', likes: '432', downloads: '51' },
-];
+// Empty arrays - will be populated with real data from database
+const trendingSounds: { id: number; genre: string; duration: string; title: string; producer: string; image: string; likes: string; downloads: string }[] = [];
 
 // ─── Featured Producers Data ──────────────────────────────────────────────────
-const featuredProducers = [
-  { name: 'ProdJay', role: 'Trap Producer', followers: '12.4K', uploads: '324', initial: 'P', gradient: 'from-amber-700 to-amber-900' },
-  { name: 'LunaBeats', role: 'Drill Producer', followers: '8.1K', uploads: '182', initial: 'L', gradient: 'from-stone-600 to-stone-800' },
-  { name: 'MetroVibes', role: 'Melody Maker', followers: '6.7K', uploads: '241', initial: 'M', gradient: 'from-[#C5A880] to-[#B8986E]' },
-  { name: 'Soulfy', role: 'R&B Producer', followers: '5.2K', uploads: '152', initial: 'S', gradient: 'from-amber-600 to-amber-800' },
-];
+// Empty arrays - will be populated with real data from database
+const featuredProducers: { name: string; role: string; followers: string; uploads: string; initial: string; gradient: string }[] = [];
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
 function WaveformIcon({ className = 'w-5 h-5' }: { className?: string }) {
@@ -217,12 +208,12 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* Stats Row — non-interactive, no click handler */}
+              {/* Stats Row — real counts from database (0 when no data) */}
               <div className="flex gap-8">
                 {[
-                  { icon: UsersIcon, value: '12K+', label: 'Producers' },
-                  { icon: MusicIcon, value: '120K+', label: 'Sounds' },
-                  { icon: GlobeIcon, value: '50+', label: 'Countries' },
+                  { icon: UsersIcon, value: '0', label: 'Producers' },
+                  { icon: MusicIcon, value: '0', label: 'Sounds' },
+                  { icon: GlobeIcon, value: '0', label: 'Countries' },
                 ].map((stat) => (
                   <div key={stat.label} className="flex items-center gap-2.5">
                     <stat.icon className="w-5 h-5 text-[#AAAAAA]" />
@@ -294,7 +285,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
-            {trendingSounds.map((sound) => (
+            {trendingSounds.length > 0 ? trendingSounds.map((sound) => (
               /* Each card links to /feed — no state, just a real link */
               <Link
                 key={sound.id}
@@ -337,7 +328,41 @@ export default function Home() {
                   <span className="flex items-center gap-1"><DownloadIcon className="w-3 h-3" /> {sound.downloads}</span>
                 </div>
               </Link>
-            ))}
+            )) : (
+              /* Empty state placeholder cards - same grid layout */
+              [1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="group block">
+                  {/* Card Image Placeholder */}
+                  <div className="relative rounded-xl overflow-hidden aspect-square mb-3 shadow-md bg-[#F0EBE3] border border-[#E8E2D9]">
+                    <span className="absolute top-2.5 left-2.5 bg-black/20 text-white/50 text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-md uppercase">
+                      ---
+                    </span>
+                    <span className="absolute top-2.5 right-2.5 bg-black/20 text-white/50 text-[10px] font-medium px-1.5 py-0.5 rounded-md">
+                      0:00
+                    </span>
+                    {/* Play overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-10 h-10 bg-white/60 rounded-full flex items-center justify-center shadow-lg">
+                        <PlayIcon className="w-4 h-4 text-[#CCCCCC] ml-0.5" />
+                      </div>
+                    </div>
+                    {/* Waveform strip */}
+                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-black/20 to-transparent flex items-end justify-center gap-[2px] pb-1.5 px-3">
+                      {[25,45,65,30,85,40,15,60,80,25,10,55,90,30,20,75,80,20,10,40].map((h, j) => (
+                        <div key={j} className="w-[3px] bg-[#C5A880]/30 rounded-full" style={{ height: `${h}%` }} />
+                      ))}
+                    </div>
+                  </div>
+                  {/* Card Info Placeholder */}
+                  <h3 className="font-semibold text-sm text-[#CCCCCC] truncate">No sound yet</h3>
+                  <p className="text-[#DDDDDD] text-xs mt-0.5">---</p>
+                  <div className="flex items-center gap-3 mt-2 text-[#DDDDDD] text-[11px]">
+                    <span className="flex items-center gap-1"><HeartIcon className="w-3 h-3" /> 0</span>
+                    <span className="flex items-center gap-1"><DownloadIcon className="w-3 h-3" /> 0</span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -355,7 +380,7 @@ export default function Home() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducers.map((producer) => (
+            {featuredProducers.length > 0 ? featuredProducers.map((producer) => (
               <div
                 key={producer.name}
                 className="bg-[#FAF8F5] rounded-2xl border border-[#E8E2D9] p-6 text-center group hover:shadow-lg hover:shadow-[#C5A880]/5 transition-all duration-300"
@@ -379,7 +404,34 @@ export default function Home() {
                   Follow
                 </button>
               </div>
-            ))}
+            )) : (
+              /* Empty state placeholder cards - same grid layout */
+              [1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="bg-[#FAF8F5] rounded-2xl border border-[#E8E2D9] p-6 text-center group hover:shadow-lg hover:shadow-[#C5A880]/5 transition-all duration-300"
+                >
+                  <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-[#E8E2D9] to-[#D4CFC6] flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform duration-300">
+                    <span className="text-2xl font-bold text-white/60">?</span>
+                  </div>
+                  <h3 className="font-bold text-[#CCCCCC] text-base">No Producer</h3>
+                  <p className="text-[#DDDDDD] text-xs mt-0.5 mb-4">---</p>
+                  <div className="flex justify-center gap-6 mb-5">
+                    <div>
+                      <p className="font-bold text-[#CCCCCC] text-sm">0</p>
+                      <p className="text-[#AAAAAA] text-[10px]">Followers</p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-[#CCCCCC] text-sm">0</p>
+                      <p className="text-[#AAAAAA] text-[10px]">Uploads</p>
+                    </div>
+                  </div>
+                  <button className="w-full bg-[#E8E2D9] text-[#AAAAAA] font-semibold text-sm py-2.5 rounded-full cursor-default">
+                    ---
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -391,7 +443,7 @@ export default function Home() {
             Ready to share your sound<span className="text-[#C5A880]">?</span>
           </h2>
           <p className="text-[#FAF8F5]/60 text-base max-w-lg mx-auto mb-8">
-            Join thousands of producers uploading loops, building audiences, and collaborating across the globe.
+            Join producers uploading loops, building audiences, and collaborating across the globe.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
             {/* Primary: Explore the feed */}
