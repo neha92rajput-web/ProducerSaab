@@ -316,33 +316,33 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
                   <EyeIcon open={showPassword} />
                 </button>
               </div>
-                  {/* Password strength mini bar */}
-                  {password.length > 0 && (
-                    <div className="flex gap-1 mt-1.5">
-                      {[1, 2, 3, 4].map(lvl => {
-                        const strength = password.length < 8 ? 1 : password.length < 12 ? 2 : /[A-Z]/.test(password) && /[0-9]/.test(password) ? 4 : 3;
-                        return (
-                          <div
-                            key={lvl}
-                            className={`h-0.5 flex-1 rounded-full transition-colors duration-300 ${
-                              lvl <= strength
-                                ? strength <= 1 ? 'bg-red-400' : strength <= 2 ? 'bg-yellow-400' : strength <= 3 ? 'bg-amber-400' : 'bg-emerald-400'
-                                : 'bg-[#E8E2D9]'
-                            }`}
-                          />
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
 
-                {/* CTA */}
-                <button
-                  type="submit"
-                  className="w-full bg-[#111111] text-white font-bold text-sm py-3 rounded-xl hover:bg-[#333333] active:scale-[0.98] transition-all duration-200 cursor-pointer mt-1"
-                >
-                  Continue — Verify Your Profile →
-                </button>
+              {/* Password strength mini bar - Only show when signing up */}
+              {!isLoginMode && password.length > 0 && (
+                <div className="flex gap-1 mt-1.5">
+                  {[1, 2, 3, 4].map((lvl) => {
+                    const strength = password.length < 8 ? 1 : password.length < 12 ? 2 : /[A-Z]/.test(password) && /[0-9]/.test(password) ? 4 : 3;
+                    return (
+                      <div
+                        key={lvl}
+                        className={`h-0.5 flex-1 rounded-full transition-colors duration-300 ${
+                          lvl <= strength
+                            ? strength === 1 ? 'bg-red-400' : strength === 2 ? 'bg-yellow-400' : strength === 3 ? 'bg-amber-400' : 'bg-emerald-400'
+                            : 'bg-[#EBE2D9]'
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* CTA Button */}
+              <button
+                type="submit"
+                className="w-full bg-[#111111] text-white font-bold text-sm py-3 rounded-xl hover:bg-[#333333] active:scale-[0.98] transition-all duration-200 cursor-pointer mt-2"
+              >
+                {isLoginMode ? "Sign In →" : "Continue — Verify Your Profile →"}
+              </button>
 
                 <p className="text-center text-[10px] text-[#AAAAAA] pt-1">
                   By continuing you agree to our{' '}
