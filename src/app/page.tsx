@@ -218,27 +218,4 @@ export default async function Home() {
           {featuredProducers && featuredProducers.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {featuredProducers.map((prod: any) => (
-                <div key={prod.id} className="bg-white border border-[#EAE6DA] rounded-xl p-4 text-center space-y-2 shadow-sm">
-                  <div className="w-10 h-10 bg-neutral-900 text-white font-serif font-black text-sm rounded-full flex items-center justify-center mx-auto shadow-sm uppercase">
-                    {prod.display_name?.charAt(0) || prod.username?.charAt(0) || 'P'}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-xs text-neutral-900">@{prod.username}</h3>
-                    <p className="text-[9px] text-neutral-400 uppercase tracking-wider font-semibold">{prod.account_type || 'Producer'}</p>
-                  </div>
-                  <Link 
-                    href={`/${prod.username}`}
-                    className="block w-full py-1.5 text-center bg-[#FAF9F5] hover:bg-neutral-100 text-neutral-800 border border-[#EAE6DA] rounded-lg text-[10px] font-bold transition"
-                  >
-                    View Profile
-                  </Link>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-neutral-400 text-center py-4">No creator profile handles registered yet.</p>
-          )}
-        </div>
-
-        {/* CLOSING CONVERSION BANNER */}
-        <div className="bg-[#1E1E1E] text-white text-center py-12 px-4 rounded-2xl space-y-4 mt-8 border border-neutral-800
+                <div key={prod.id} className="bg-white border border-[#EAE6DA] rounded-xl p-4 text-center space-y-2 shadow-
