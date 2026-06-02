@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 
+// Force dynamic execution and use standard Node.js serverless architecture to prevent Edge timeouts
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
@@ -17,6 +18,7 @@ export default async function Home() {
     .from('sounds')
     .select('*', { count: 'exact', head: true });
 
+  // Fetch unique countries from profiles to calculate the distribution dynamically
   const { data: countryData } = await supabase
     .from('profiles')
     .select('country')
@@ -62,9 +64,9 @@ export default async function Home() {
             SAAB
           </Link>
 
-          {/* Centered Routing Interface Element */}
+          {/* Centered Routing Interface Element with Updated Wording */}
           <div className="text-xs font-semibold text-neutral-500 hover:text-black transition">
-            <Link href="/signin">Sign in</Link>
+            <Link href="/signin">Sign in to your Dashboard</Link>
           </div>
 
           {/* Action Trigger Navigation */}
@@ -133,7 +135,7 @@ export default async function Home() {
           <div className="flex items-center gap-2">
             <span className="text-neutral-400 text-sm">🌐</span>
             <div>
-              <p className="text-sm font-serif font-black text-neutral-900 leading-none">
+              <p className="text-sm font-serif font-black text-neutral-900 rewind leading-none">
                 {uniqueCountriesCount || 0}
               </p>
               <p className="text-[10px] text-neutral-400 font-medium">Countries</p>
@@ -179,7 +181,7 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* REAL UPLOADED AUDIO RACK GENERATION */}
+        {/* REAL DYNAMIC UPLOADED AUDIO RACK GENERATION */}
         <div className="pt-12 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-serif font-black text-neutral-900 flex items-center gap-1.5">🔥 Recent Uploads</h2>
