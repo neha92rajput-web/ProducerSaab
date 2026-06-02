@@ -1,16 +1,9 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
-});
-
 export const metadata: Metadata = {
-  title: "Producer Saab | The Home for Music Producers",
-  description: "Join a community of producers sharing loops, melodies, samples, and ideas. Upload your sounds. Get discovered. Build your audience.",
+  title: "ProducerSaab | Elite Music Creator Community",
+  description: "Connect, collaborate, and discover elite producers, artists, and sound designers.",
 };
 
 export default function RootLayout({
@@ -19,8 +12,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased scroll-smooth">
-      <body className={`${inter.variable} min-h-full flex flex-col font-sans bg-[#FAF9F5]`}>
+    <html lang="en">
+      <body className="antialiased bg-[#FAF9F5]">
         {children}
       </body>
     </html>
