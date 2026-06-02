@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Music } from 'lucide-react';
 
 export default function ProducerFeedView() {
