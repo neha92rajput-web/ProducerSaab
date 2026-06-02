@@ -3,10 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-// FIXED: Adjusted import configuration schema from named to direct default module instance mapping
 import OnboardingModal from '@/components/OnboardingModal';
-
-// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface Track {
   id: number;
@@ -43,19 +40,13 @@ interface LeaderboardEntry {
   change: 'up' | 'down' | 'same';
 }
 
-// ─── Empty Data Arrays (will be populated from real database) ─────────────────
-
 const trendingTracks: Track[] = [];
 const discoverProducers: Producer[] = [];
 const leaderboard: LeaderboardEntry[] = [];
 const newUploads: Track[] = [];
 
 const genres = ['All', 'Trap', 'Drill', 'R&B', 'Lofi', 'Ambient', 'Afrobeats', 'Hip Hop', 'Melodic', 'Pop', 'EDM', 'Phonk', 'Drill & Bass', 'Soul'];
-
-// ─── Static waveform heights (avoids hydration mismatch) ─────────────────────
 const waveBarHeights = [30, 55, 75, 40, 90, 50, 20, 65, 80, 30, 15, 60, 85, 35, 25, 70, 80, 22, 12, 45, 90, 28, 18, 58, 82];
-
-// ─── Icons ───────────────────────────────────────────────────────────────────
 
 function PlayIcon() {
   return (
@@ -89,36 +80,9 @@ function HeartIcon({ filled = false }: { filled?: boolean }) {
   );
 }
 
-function DownloadIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
-    </svg>
-  );
-}
-
-function UpArrowIcon() {
-  return <svg viewBox="0 0 10 10" className="w-3 h-3" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round"><line x1="5" y1="8" x2="5" y2="2" /><polyline points="2 5 5 2 8 5" /></svg>;
-}
-
-function DownArrowIcon() {
-  return <svg viewBox="0 0 10 10" className="w-3 h-3" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round"><line x1="5" y1="2" x2="5" y2="8" /><polyline points="2 5 5 8 8 5" /></svg>;
-}
-
-function SearchIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  );
-}
-
-// ─── Waveform Progress Bar (static, no random) ───────────────────────────────
-
 function WaveformBar({ progress }: { progress: number }) {
   return (
     <div className="relative w-full h-8 bg-[#F0EBE3] rounded-lg overflow-hidden flex items-center px-2 border border-[#E8E2D9]">
-      {/* progress fill */}
       <div
         className="absolute left-0 top-0 h-full bg-[#C5A880]/10 pointer-events-none transition-all duration-300"
         style={{ width: `${progress}%` }}
@@ -142,8 +106,6 @@ function WaveformBar({ progress }: { progress: number }) {
   );
 }
 
-// ─── Track Card ──────────────────────────────────────────────────────────────
-
 function TrackCard({ track, isPlaying, onTogglePlay }: {
   track: Track;
   isPlaying: boolean;
@@ -164,7 +126,6 @@ function TrackCard({ track, isPlaying, onTogglePlay }: {
 
   return (
     <div className="bg-white border border-[#E8E2D9] rounded-2xl overflow-hidden hover:shadow-lg hover:shadow-[#C5A880]/8 transition-all duration-300 group">
-      {/* Artwork */}
       <div className="relative aspect-square overflow-hidden">
         <Image
           src={track.image}
@@ -173,16 +134,13 @@ function TrackCard({ track, isPlaying, onTogglePlay }: {
           height={400}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
-        {/* Genre pill */}
         <span className="absolute top-3 left-3 bg-black/65 backdrop-blur-sm text-white text-[10px] font-bold tracking-widest px-2 py-0.5 rounded-md uppercase">
           {track.genre}
         </span>
-        {/* BPM + Key */}
         <div className="absolute top-3 right-3 flex gap-1">
           <span className="bg-black/65 backdrop-blur-sm text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-md">{track.bpm} BPM</span>
           <span className="bg-black/65 backdrop-blur-sm text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-md">{track.key}</span>
         </div>
-        {/* Play overlay */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-all duration-300 flex items-center justify-center">
           <button
             onClick={() => onTogglePlay(track.id)}
@@ -193,7 +151,6 @@ function TrackCard({ track, isPlaying, onTogglePlay }: {
         </div>
       </div>
 
-      {/* Info */}
       <div className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
@@ -207,20 +164,13 @@ function TrackCard({ track, isPlaying, onTogglePlay }: {
             <HeartIcon filled={liked} />
           </button>
         </div>
-
-        {/* Waveform */}
         <WaveformBar progress={isPlaying ? progress : 0} />
       </div>
     </div>
   );
 }
 
-// ─── Main Component View Wrapper ──────────────────────────────────────────────
-
-export-empty-layout-fix-fallback-routing
-interface ProducerFeedLayoutProps {}
-
-function ProducerFeedView({}: ProducerFeedLayoutProps) {
+export default function ProducerFeedView() {
   const [currentPlaying, setCurrentPlaying] = useState<number | null>(null);
 
   const handleTogglePlay = (id: number) => {
@@ -234,7 +184,10 @@ function ProducerFeedView({}: ProducerFeedLayoutProps) {
           <WaveformIcon className="w-7 h-7 text-emerald-600" />
           <h1 className="text-3xl font-bold text-gray-900">Trending Music Feed</h1>
         </div>
-        
-        {trendingTracks.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center shadow-sm">
-            <p className="text-gray-500 text-sm">Your discovery music feed is initialized and ready to sync
+        <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center shadow-sm">
+          <p className="text-gray-500 text-sm">Your discovery music feed is initialized and ready to sync tracks.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
