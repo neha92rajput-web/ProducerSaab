@@ -210,3 +210,31 @@ function TrackCard({ track, isPlaying, onTogglePlay }: {
 
         {/* Waveform */}
         <WaveformBar progress={isPlaying ? progress : 0} />
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Component View Wrapper ──────────────────────────────────────────────
+
+export-empty-layout-fix-fallback-routing
+interface ProducerFeedLayoutProps {}
+
+function ProducerFeedView({}: ProducerFeedLayoutProps) {
+  const [currentPlaying, setCurrentPlaying] = useState<number | null>(null);
+
+  const handleTogglePlay = (id: number) => {
+    setCurrentPlaying(prev => prev === id ? null : id);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-12 px-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center gap-3 mb-8">
+          <WaveformIcon className="w-7 h-7 text-emerald-600" />
+          <h1 className="text-3xl font-bold text-gray-900">Trending Music Feed</h1>
+        </div>
+        
+        {trendingTracks.length === 0 ? (
+          <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center shadow-sm">
+            <p className="text-gray-500 text-sm">Your discovery music feed is initialized and ready to sync
