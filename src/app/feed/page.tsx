@@ -11,9 +11,7 @@ export default function ProducerFeedView() {
           <Music className="h-6 w-6" />
         </div>
         <h1 className="text-xl font-bold text-gray-900 mb-2">Trending Music Feed</h1>
-        <p className="text-gray-500 text-sm">
-          Your music discovery feed is initialized and ready.
-        </p>
+        <p className="text-gray-500 text-sm">Your music discovery feed is ready.</p>
       </div>
     </div>
   );
