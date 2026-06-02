@@ -1,3 +1,4 @@
+Ini, TOML
 [build]
   command = "npm run build"
   publish = ".next"
@@ -7,4 +8,4 @@
 
 [[edge_functions]]
   path = "/*"
-  excluded_paths = ["/", "/signin", "/dashboard", "/library", "/feed"]
+  excludedPath = ["/", "/signin", "/dashboard", "/library", "/feed"]
