@@ -288,7 +288,7 @@ export default function Home() {
                 <input type="text" value={prodName} onChange={e => setProdName(e.target.value)} required className="w-full bg-[#F5F5F7] text-black text-xs p-3 rounded-xl border border-transparent focus:border-gray-300 outline-none" />
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Unique Username *</label>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Unique Username</label>
                 <input type="text" placeholder="e.g. metro_boomin" value={username} onChange={e => setUsername(e.target.value)} className="w-full bg-[#F5F5F7] text-black text-xs p-3 rounded-xl border border-transparent focus:border-gray-300 outline-none" />
               </div>
             </div>
@@ -429,4 +429,73 @@ export default function Home() {
             <h2 className="text-lg font-black mb-1">Update Core Metadata Information</h2>
             <p className="text-gray-400 text-xs mb-6">Modify system profile structural records assigned to user token nodes contextually.</p>
             <form onSubmit={executeProfileSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-
+              <div className="grid grid-cols-2 gap-4">
+                <input type="text" placeholder="Producer Name" value={prodName} onChange={e => setProdName(e.target.value)} required className="bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none text-black" />
+                <input type="text" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} required className="bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none text-black" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <input type="text" placeholder="Country" value={country} onChange={e => setCountry(e.target.value)} required className="bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none text-black" />
+                <input type="text" placeholder="Avatar photo image link" value={avatarUrl} onChange={e => setAvatarUrl(e.target.value)} className="bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none text-black" />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <input type="text" placeholder="Instagram URL" value={instagram} onChange={e => setInstagram(e.target.value)} className="bg-[#F5F5F7] text-black text-xs p-3 rounded-xl outline-none" />
+                <input type="text" placeholder="YouTube URL" value={youtube} onChange={e => setYoutube(e.target.value)} className="bg-[#F5F5F7] text-black text-xs p-3 rounded-xl outline-none" />
+                <input type="text" placeholder="Website URL" value={website} onChange={e => setWebsite(e.target.value)} className="bg-[#F5F5F7] text-black text-xs p-3 rounded-xl outline-none" />
+              </div>
+              <textarea placeholder="Biography details..." value={bio} onChange={e => setBio(e.target.value)} rows={2} className="w-full bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none resize-none text-black" />
+              <button type="submit" className="bg-[#111111] text-white px-6 py-2.5 rounded-xl text-xs font-bold cursor-pointer hover:bg-black">
+                Update Security Profile Nodes
+              </button>
+            </form>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+
+  function renderDirectoryInterface() {
+    const parsedGridItems = sounds.filter(s => {
+      const gMatch = filterGenre ? s.genre?.toLowerCase().includes(filterGenre.toLowerCase()) : true;
+      const bMatch = filterBpm ? s.bpm?.toString() === filterBpm : true;
+      const kMatch = filterKey ? s.musical_key?.toLowerCase().includes(filterKey.toLowerCase()) : true;
+      return gMatch && bMatch && kMatch;
+    });
+
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-3 gap-3 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+          <input type="text" placeholder="🔍 Genre Parameter Filter" value={filterGenre} onChange={e => setFilterGenre(e.target.value)} className="bg-[#F5F5F7] p-2.5 rounded-lg text-xs outline-none text-black" />
+          <input type="text" placeholder="🔍 BPM Filter Index" value={filterBpm} onChange={e => setFilterBpm(e.target.value)} className="bg-[#F5F5F7] p-2.5 rounded-lg text-xs outline-none text-black" />
+          <input type="text" placeholder="🔍 Musical Key Filter" value={filterKey} onChange={e => setFilterKey(e.target.value)} className="bg-[#F5F5F7] p-2.5 rounded-lg text-xs outline-none text-black" />
+        </div>
+
+        {parsedGridItems.length === 0 ? (
+          <p className="text-gray-400 text-xs text-center py-6 bg-white rounded-xl border">No tracks found matching your active filter criteria.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {parsedGridItems.map((s: any) => (
+              <div key={s.id} className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between space-y-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-extrabold text-sm text-black">{s.title}</h4>
+                    <p className="text-xs text-gray-400 mt-0.5">By {s.profiles?.producer_name || 'Verified Member'}</p>
+                  </div>
+                  <span className="bg-[#C5A880]/10 text-[#C5A880] text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">{s.genre}</span>
+                </div>
+                
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-500 font-medium bg-gray-50 p-2.5 rounded-lg">
+                  <span>🥁 {s.bpm} BPM</span>
+                  <span>🎹 Key: {s.musical_key}</span>
+                  <span>⏱️ Signature: {s.time_signature}</span>
+                  <span className="ml-auto text-[10px] text-gray-400">📅 {s.created_at ? new Date(s.created_at).toLocaleDateString() : 'N/A'}</span>
+                </div>
+
+                <audio src={s.file_url} controls className="w-full h-9 mt-1" />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+}
