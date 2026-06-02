@@ -80,8 +80,34 @@ export default function Home() {
   };
 
   const fetchLibrary = async () => {
-    const { data } = await supabase.from('sounds').select('*, profiles(producer_name)');
-    if (data) setSounds(data);
+    // 1. Fetch sounds safely
+    const { data: soundsData, error: soundsError } = await supabase
+      .from('sounds')
+      .select('*');
+      
+    if (soundsError) {
+      console.error(soundsError);
+      setSounds([]);
+      return;
+    }
+
+    if (!soundsData) return;
+
+    // 2. Fetch profiles separately to bypass relationship schema caching issues
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('id, producer_name');
+
+    // 3. Map them together safely in memory
+    const joinedSounds = soundsData.map((sound: any) => {
+      const matchProf = profilesData?.find(p => p.id === sound.user_id);
+      return {
+        ...sound,
+        profiles: matchProf ? { producer_name: matchProf.producer_name } : null
+      };
+    });
+
+    setSounds(joinedSounds);
   };
 
   const fetchMySounds = async (userId: string) => {
@@ -122,7 +148,6 @@ export default function Home() {
       return;
     }
 
-    // Client-side MIME validation guardrail
     const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/wave'];
     if (!allowedTypes.includes(audioFile.type)) {
       alert('Invalid format! Please upload a valid MP3 or WAV file.');
