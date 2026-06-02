@@ -1,117 +1,108 @@
-'use client';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import Link from 'next/link';
+import { Music, UploadCloud, Users, Disc } from 'lucide-react';
 
-import { useState } from "react";
-import {
-  LayoutDashboard,
-  Globe2,
-  Pin,
-  Upload,
-  FileAudio,
-  LogOut,
-  Music2,
-  Inbox,
-} from "lucide-react";
+export default async function Dashboard() {
+  const supabase = createServerComponentClient({ cookies });
+  
+  const { data: { session } } = await supabase.auth.getSession();
+  const { data: profile } = await supabase.from('profiles').select('*').eq('id', session?.user.id).single();
+  const { data: mySounds } = await supabase.from('sounds').select('*').eq('user_id', session?.user.id).order('created_at', { ascending: false });
+  const { data: featuredProducers } = await supabase.from('profiles').select('*').neq('id', session?.user.id).limit(3);
 
-export default function ProducerCenter() {
-  const [active, setActive] = useState<"dashboard" | "library">("dashboard");
-  const [fileName, setFileName] = useState("looperman-l-3481630-02935...rvrfriday-bryson-tiller-pad.wav");
-  const [title, setTitle] = useState("Neha Thkur");
-  const [genre, setGenre] = useState("drill");
-  const [bpm, setBpm] = useState("120");
-  const [musicKey, setMusicKey] = useState("");
-  const [time, setTime] = useState("4/4");
-  const [desc, setDesc] = useState("");
-  const [tags, setTags] = useState("");
-  const [uploading, setUploading] = useState(true);
+  // Profile completeness tracking calculation
+  const metrics = [profile?.avatar_url, profile?.bio, profile?.instagram_url || profile?.youtube_url, profile?.genres?.length];
+  const completionPercentage = Math.round((metrics.filter(Boolean).length / metrics.length) * 100);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto flex min-h-screen max-w-[1400px]">
-        {/* SIDEBAR */}
-        <aside className="flex w-64 shrink-0 flex-col justify-between border-r border-border bg-background px-5 py-8">
+    <div className="min-h-screen bg-[#FAF9F5] text-[#1E1E1E] p-6 sm:p-10">
+      <div className="max-w-7xl mx-auto space-y-8">
+        
+        {/* Welcome Dashboard Block */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-8 bg-white border border-[#EAE6DA] rounded-2xl shadow-sm">
           <div>
-            <div className="px-2">
-              <p className="font-display text-sm tracking-[0.28em] text-gold">PRODUCER CENTER</p>
-            </div>
-            <nav className="mt-10 flex flex-col gap-2">
-              <SideItem icon={<LayoutDashboard className="h-4 w-4" />} label="Producer Dashboard" active={active === "dashboard"} onClick={() => setActive("dashboard")} />
-              <SideItem icon={<Globe2 className="h-4 w-4" />} label="Global Library" active={active === "library"} onClick={() => setActive("library")} />
-            </nav>
+            <h1 className="text-3xl font-serif font-bold text-neutral-900">Welcome back, {profile?.display_name || 'Creator'}</h1>
+            <p className="text-sm text-neutral-500 mt-1">@{profile?.username} • {profile?.account_type}</p>
           </div>
-          <button className="flex items-center justify-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive transition hover:bg-destructive/10">
-            <LogOut className="h-4 w-4" /> Sign Out Account
-          </button>
-        </aside>
+          <Link href="/dashboard/upload" className="flex items-center justify-center gap-2 px-5 py-3 bg-[#1E1E1E] text-white font-medium rounded-xl hover:bg-neutral-800 transition shadow-sm">
+            <UploadCloud className="w-5 h-5 text-[#D4AF37]" />
+            <span>Upload Track Asset</span>
+          </Link>
+        </div>
 
-        {/* MAIN */}
-        <main className="flex-1 px-8 py-8">
-          <section className="relative overflow-hidden rounded-2xl border border-border bg-card/70 px-8 py-7">
-            <div className="flex items-start justify-between gap-6">
-              <div>
-                <h1 className="text-3xl md:text-4xl">Welcome back, <span className="text-gold">Producer</span></h1>
-                <p className="mt-2 text-sm text-muted-foreground">With your dashboard configured, your layout is locked down.</p>
-              </div>
-            </div>
-          </section>
-
-          <section className="mt-8 grid gap-6 lg:grid-cols-2">
-            <div className="rounded-2xl border border-border bg-card/70 p-7">
-              <div className="flex items-center gap-2"><Upload className="h-5 w-5 text-gold" /><h2 className="text-2xl">Upload New Audio</h2></div>
-              <div className="mt-7 space-y-5">
-                <FileField fileName={fileName} setFileName={setFileName} />
-                <Input label="Title" value={title} onChange={setTitle} placeholder="Track title" />
-                <Input label="Genre" value={genre} onChange={setGenre} placeholder="e.g. drill" />
-                <div className="grid grid-cols-2 gap-4">
-                  <Input label="BPM" value={bpm} onChange={setBpm} placeholder="120" />
-                  <Input label="Key" value={musicKey} onChange={setMusicKey} placeholder="Key (e.g., C Min)" />
+        {/* Modular Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Main Feed Column */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-white border border-[#EAE6DA] rounded-2xl p-6 shadow-sm">
+              <h2 className="text-xl font-serif font-bold mb-4 flex items-center gap-2">
+                <Music className="w-5 h-5 text-[#D4AF37]" /> My Released Assets
+              </h2>
+              {mySounds && mySounds.length > 0 ? (
+                <div className="divide-y divide-[#FAF9F5]">
+                  {mySounds.map(sound => (
+                    <div key={sound.id} className="py-4 flex justify-between items-center">
+                      <div>
+                        <p className="font-semibold text-neutral-900">{sound.title}</p>
+                        <p className="text-xs text-neutral-400 mt-0.5">{sound.genre} • {sound.bpm || 'N/A'} BPM • {sound.musical_key || 'No Key'}</p>
+                      </div>
+                      <span className="text-xs text-neutral-400">{new Date(sound.created_at).toLocaleDateString()}</span>
+                    </div>
+                  ))}
                 </div>
-                <Input label="Time Sig" value={time} onChange={setTime} placeholder="4/4" />
-                <button onClick={() => setUploading(!uploading)} className="w-full rounded-xl px-4 py-3.5 text-sm font-medium transition bg-muted text-muted-foreground">
-                  {uploading ? "Uploading Engine Active…" : "Submit to Library"}
-                </button>
-              </div>
+              ) : (
+                <div className="text-center py-12 border border-dashed border-[#EAE6DA] rounded-xl bg-[#FAF9F5]">
+                  <Disc className="w-8 h-8 text-neutral-300 mx-auto mb-2 animate-spin-slow" />
+                  <p className="text-sm text-neutral-400">No audio files deployed to public library yet.</p>
+                </div>
+              )}
             </div>
+          </div>
+
+          {/* Sidebar Analytics Column */}
+          <div className="space-y-6">
             
-            <div className="rounded-2xl border border-border bg-card/70 p-7">
-              <div className="flex items-center gap-2"><FileAudio className="h-5 w-5 text-gold" /><h2 className="text-2xl">My Uploaded Portfolio</h2></div>
-              <div className="mt-10 flex min-h-[420px] flex-col items-center justify-center text-center">
-                <Inbox className="h-7 w-7 text-muted-foreground" />
-                <p className="mt-5 text-sm text-muted-foreground">No audio files tracked yet.</p>
+            {/* Completion Matrix Card */}
+            <div className="bg-white border border-[#EAE6DA] rounded-2xl p-6 shadow-sm">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-2">Network Profile Strength</h3>
+              <div className="flex items-end gap-3">
+                <span className="text-4xl font-serif font-black text-[#D4AF37]">{completionPercentage}%</span>
+                <span className="text-xs text-neutral-400 mb-1">Optimized Discoverability</span>
+              </div>
+              <div className="w-full bg-[#FAF9F5] h-2 rounded-full mt-3 overflow-hidden border border-[#EAE6DA]">
+                <div className="bg-[#D4AF37] h-full transition-all duration-500" style={{ width: `${completionPercentage}%` }}></div>
               </div>
             </div>
-          </section>
-        </main>
+
+            {/* Network Peer Suggestion Card */}
+            <div className="bg-white border border-[#EAE6DA] rounded-2xl p-6 shadow-sm space-y-4">
+              <h3 className="text-md font-serif font-bold flex items-center gap-2">
+                <Users className="w-4 h-4 text-[#D4AF37]" /> Community Spotlight
+              </h3>
+              <div className="space-y-3">
+                {featuredProducers && featuredProducers.length > 0 ? (
+                  featuredProducers.map(prod => (
+                    <Link href={`/@${prod.username}`} key={prod.id} className="flex items-center gap-3 p-2 hover:bg-[#FAF9F5] rounded-xl transition group">
+                      <div className="w-10 h-10 rounded-full bg-neutral-200 overflow-hidden border border-[#EAE6DA]">
+                        {prod.avatar_url && <img src={prod.avatar_url} className="w-full h-full object-cover" alt="" />}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold group-hover:text-[#D4AF37] transition">{prod.display_name}</p>
+                        <p className="text-xs text-neutral-400">{prod.account_type}</p>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <p className="text-xs text-neutral-400">Expanding network nodes...</p>
+                )}
+              </div>
+            </div>
+
+          </div>
+        </div>
       </div>
-    </div>
-  );
-}
-
-function SideItem({ icon, label, active, onClick }: any) {
-  return (
-    <button onClick={onClick} className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm ${active ? "bg-foreground text-background" : "hover:bg-card/80"}`}>
-      {icon} <span className="font-medium">{label}</span>
-    </button>
-  );
-}
-
-function Input({ label, value, onChange, placeholder }: any) {
-  return (
-    <div>
-      <label className="block text-[10px] uppercase text-muted-foreground">{label}</label>
-      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="mt-2 w-full rounded-xl border px-4 py-3 text-sm focus:outline-none" />
-    </div>
-  );
-}
-
-function FileField({ fileName, setFileName }: any) {
-  return (
-    <div>
-      <label className="block text-[10px] uppercase text-muted-foreground">Audio File (MP3/WAV)</label>
-      <label className="mt-2 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed px-4 py-3 text-sm">
-        <span>Choose file</span>
-        <span className="truncate">{fileName}</span>
-        <input type="file" className="hidden" onChange={(e) => e.target.files?.[0] && setFileName(e.target.files[0].name)} />
-      </label>
     </div>
   );
 }
