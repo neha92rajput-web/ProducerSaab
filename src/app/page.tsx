@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabase';
-import { OnboardingModal } from '../components/OnboardingModal';
+import OnboardingModal from '../components/OnboardingModal';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
