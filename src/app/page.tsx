@@ -16,7 +16,7 @@ export default function Home() {
   const featuredProducers = [
     { name: 'ProdJay', role: 'Trap Producer', initial: 'P', followers: '12.4K', uploads: '324' },
     { name: 'LunaBeats', role: 'Drill Producer', initial: 'L', followers: '8.1K', uploads: '182' },
-    { name: 'MetroVibes', role: 'Melody Maker', initial: 'M', followers: '6.7K', uploads: '241' },
+    { name: 'MetroVibes', role: 'Melody Maker', initial: 'M', followers: '6.7K', uploads: '241' }
   ];
 
   return (
@@ -34,7 +34,7 @@ export default function Home() {
 
           {/* Centered Routing Interface Element */}
           <div className="text-xs font-semibold text-neutral-500 hover:text-black transition">
-            <Link href="/dashboard">in</Link>
+            <Link href="/dashboard">Log in</Link>
           </div>
 
           {/* Action Trigger Navigation */}
@@ -43,7 +43,7 @@ export default function Home() {
               href="/dashboard" 
               className="px-5 py-2 bg-[#1E1E1E] hover:bg-neutral-800 text-white text-xs font-bold rounded-full transition shadow-sm"
             >
-              Community
+              Join the Community
             </Link>
           </div>
 
@@ -70,7 +70,7 @@ export default function Home() {
             href="/dashboard" 
             className="px-6 py-3 bg-[#1E1E1E] hover:bg-neutral-800 text-white text-xs font-bold rounded-full transition shadow-sm flex items-center justify-center gap-2"
           >
-            Join the Community <span className="text-sm">→</span>
+            Join the Community →
           </Link>
           <Link 
             href="/library" 
@@ -90,7 +90,7 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-neutral-400 text-sm">🎵</span>
+            <span className="text-neutral-400 text-sm">?.</span>
             <div>
               <p className="text-sm font-serif font-black text-neutral-900 leading-none">120K+</p>
               <p className="text-[10px] text-neutral-400 font-medium">Sounds</p>
@@ -147,7 +147,7 @@ export default function Home() {
         <div className="pt-12 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-serif font-black text-neutral-900 flex items-center gap-1.5">🔥 Trending Sounds</h2>
-            <Link href="/library" className="text-[11px] font-bold text-neutral-400 hover:text-black flex items-center gap-0.5 transition">View all <span className="text-xs">→</span></Link>
+            <Link href="/library" className="text-[11px] font-bold text-neutral-400 hover:text-black flex items-center gap-0.5 transition">View all →</Link>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
@@ -173,4 +173,66 @@ export default function Home() {
           </div>
         </div>
 
-        {/* PRODUCERS HIGHLIGHT CARDS CONTAINER
+        {/* PRODUCERS HIGHLIGHT CARDS CONTAINER */}
+        <div className="pt-12 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-serif font-black text-neutral-900 flex items-center gap-1.5">⭐ Featured Producers</h2>
+            <Link href="/feed" className="text-[11px] font-bold text-neutral-400 hover:text-black flex items-center gap-0.5 transition">View all →</Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {featuredProducers.map(prod => (
+              <div key={prod.name} className="bg-white border border-[#EAE6DA] rounded-xl p-4 text-center space-y-3 shadow-sm">
+                <div className="w-12 h-12 bg-neutral-900 text-white font-serif font-black text-base rounded-full flex items-center justify-center mx-auto shadow-sm">
+                  {prod.initial}
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-neutral-900">@{prod.name}</h3>
+                  <p className="text-[10px] text-neutral-400">{prod.role}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-1 text-center py-1.5 border-y border-[#FAF9F5] text-[11px]">
+                  <div>
+                    <p className="font-black text-neutral-800">{prod.followers}</p>
+                    <p className="text-[9px] text-neutral-400 font-medium">Followers</p>
+                  </div>
+                  <div>
+                    <p className="font-black text-neutral-800">{prod.uploads}</p>
+                    <p className="text-[9px] text-neutral-400 font-medium">Uploads</p>
+                  </div>
+                </div>
+                <button className="w-full py-1.5 bg-[#FAF9F5] hover:bg-neutral-100 text-neutral-800 border border-[#EAE6DA] rounded-lg text-[11px] font-bold transition">
+                  Follow
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* FOOT HOOK BANNER BLOCK */}
+        <div className="bg-[#1E1E1E] text-white text-center py-12 px-4 rounded-2xl space-y-4 mt-8 border border-neutral-800">
+          <h2 className="text-2xl font-serif font-black tracking-tight">Ready to share your sound<span className="text-[#C5A880]">?</span></h2>
+          <p className="text-xs text-neutral-400 max-w-xs mx-auto leading-relaxed">Join thousands of producers uploading loops, building audiences, and collaborating across the globe.</p>
+          <Link href="/dashboard" className="inline-block px-5 py-2.5 bg-white text-neutral-900 font-bold rounded-full text-xs hover:bg-neutral-100 transition shadow-md">
+            Get Started — It's Free →
+          </Link>
+        </div>
+
+        {/* TAIL END META COMPONENT FOOTER */}
+        <footer className="pt-10 pb-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] font-medium text-neutral-400 border-t border-[#EAE6DA]/40">
+          <div className="flex items-center gap-1 font-black text-neutral-800 tracking-wider uppercase text-xs">
+            <span className="font-light text-sm tracking-tighter text-neutral-500">川</span> PRODUCER SAAB
+          </div>
+          <div className="flex gap-4">
+            <a href="#" className="hover:text-black transition">About</a>
+            <a href="#" className="hover:text-black transition">Terms</a>
+            <a href="#" className="hover:text-black transition">Privacy</a>
+            <a href="#" className="hover:text-black transition">Contact</a>
+          </div>
+          <p>© 2026 Producer Saab. All rights reserved.</p>
+        </footer>
+
+      </main>
+
+    </div>
+  );
+}
