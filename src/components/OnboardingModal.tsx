@@ -115,7 +115,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
 
         {step === 1 && (
           <form onSubmit={handleStep1Submit} noValidate className="w-full space-y-3">
-            {!isLoginMode && (
+          {(step === 1 || isLoginMode) && (
               <div>
                 <input
                   type="text"
