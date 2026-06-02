@@ -8,14 +8,14 @@ import { Globe, Instagram, Youtube, Music, MapPin } from 'lucide-react';
 interface Props { params: { username: string } }
 
 export default async function PublicProfile({ params }: Props) {
-  // Decode parameters safely to handle special characters or encoding variations
-  const resolvedUsername = decodeURIComponent(params.username).toLowerCase();
+  // Strip out any accidental "@" symbols from the URL parameter automatically
+  const cleanUsername = decodeURIComponent(params.username).replace('@', '').toLowerCase();
   const supabase = createServerComponentClient({ cookies });
 
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
-    .eq('username', resolvedUsername)
+    .eq('username', cleanUsername)
     .single();
 
   if (!profile) notFound();
