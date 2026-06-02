@@ -2,7 +2,9 @@ import Link from 'next/link';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 
+// Force dynamic execution and use standard Node.js serverless architecture to prevent Edge timeouts
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export default async function Home() {
   const supabase = createServerComponentClient({ cookies });
@@ -16,7 +18,7 @@ export default async function Home() {
     .from('sounds')
     .select('*', { count: 'exact', head: true });
 
-  // Fetch unique countries from profiles to calculate the distribution array length
+  // Fetch unique countries from profiles to calculate the distribution dynamically
   const { data: countryData } = await supabase
     .from('profiles')
     .select('country')
@@ -26,7 +28,7 @@ export default async function Home() {
     ? new Set(countryData.map(p => p.country?.toLowerCase().trim())).size 
     : 0;
 
-  // 2. REAL USER AUDIO SOURCE REEL FETCHING
+  // 2. FETCH REAL RECENT UPLOADS
   const { data: trendingSounds } = await supabase
     .from('sounds')
     .select(`
@@ -43,7 +45,7 @@ export default async function Home() {
     .order('created_at', { ascending: false })
     .limit(4);
 
-  // 3. REAL FEATURED PRODUCERS REGISTER ROWS FETCHING
+  // 3. FETCH REAL REGISTERED PRODUCERS
   const { data: featuredProducers } = await supabase
     .from('profiles')
     .select('id, username, display_name, account_type')
@@ -52,16 +54,22 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-[#FAF9F5] text-[#1E1E1E] font-sans antialiased">
       
-      {/* BRAND NAVIGATION HEADER */}
+      {/* EXACT VIDEO NAVBAR BRAND HEADER */}
       <header className="sticky top-0 z-50 bg-[#FAF9F5] border-b border-[#EAE6DA] px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
+          
+          {/* Logo Icon and Text String */}
           <Link href="/" className="flex items-center gap-1.5 font-sans font-black tracking-widest text-lg text-neutral-900">
             <span className="text-xl font-light tracking-tighter text-neutral-800 mr-0.5">川</span>
             SAAB
           </Link>
+
+          {/* Centered Routing Interface Element */}
           <div className="text-xs font-semibold text-neutral-500 hover:text-black transition">
             <Link href="/dashboard">Log in</Link>
           </div>
+
+          {/* Action Trigger Navigation */}
           <div>
             <Link 
               href="/dashboard" 
@@ -70,10 +78,11 @@ export default async function Home() {
               Join the Community
             </Link>
           </div>
+
         </div>
       </header>
 
-      {/* HERO SECTION FRAME */}
+      {/* HERO HERO TITLE BLOCK */}
       <main className="max-w-4xl mx-auto pt-14 pb-12 px-4 text-left space-y-6">
         <div className="space-y-3">
           <p className="text-[10px] font-bold text-[#C5A880] uppercase tracking-widest">
@@ -87,7 +96,7 @@ export default async function Home() {
           </p>
         </div>
 
-        {/* Action Trigger Buttons */}
+        {/* Dynamic Action Buttons */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1 w-full sm:w-auto">
           <Link 
             href="/dashboard" 
@@ -103,7 +112,7 @@ export default async function Home() {
           </Link>
         </div>
 
-        {/* METRICS PANEL OPERATING ON LIVE REAL DATA SUMS */}
+        {/* METRICS COUNT PANEL OPERATING ON REAL NUMBERS */}
         <div className="pt-6 grid grid-cols-3 gap-2 max-w-md text-left">
           <div className="flex items-center gap-2">
             <span className="text-neutral-400 text-sm">👥</span>
@@ -134,18 +143,18 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* IMAGE PREVIEW FRAME */}
+        {/* WORKSPACE PREVIEW MODULE */}
         <div className="pt-4">
           <div className="rounded-2xl overflow-hidden border border-[#EAE6DA] shadow-sm bg-neutral-100 aspect-[16/10]">
             <img 
               src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1200&auto=format&fit=crop&q=80" 
               className="w-full h-full object-cover" 
-              alt="Studio Setup" 
+              alt="Producer Gear Studio Setup Layout" 
             />
           </div>
         </div>
 
-        {/* EXPLANATORY CONTENT SECTION */}
+        {/* VALUES EXPLANATION PARAGRAPH BLOCK */}
         <div className="pt-10 text-center space-y-8 border-t border-[#EAE6DA]/40">
           <h2 className="text-2xl font-serif font-black text-neutral-900">Why Join Producer Saab?</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-center max-w-xl mx-auto">
@@ -159,10 +168,20 @@ export default async function Home() {
               <h4 className="font-bold text-sm text-neutral-900">Build Your Audience</h4>
               <p className="text-xs text-neutral-400 leading-relaxed max-w-xs mx-auto">Gain followers and grow your producer profile.</p>
             </div>
+            <div className="space-y-1.5">
+              <span className="text-xl">✨</span>
+              <h4 className="font-bold text-sm text-neutral-900">Discover Talent</h4>
+              <p className="text-xs text-neutral-400 leading-relaxed max-w-xs mx-auto">Find and connect with producers worldwide.</p>
+            </div>
+            <div className="space-y-1.5">
+              <span className="text-xl">📈</span>
+              <h4 className="font-bold text-sm text-neutral-900">Collaborate & Grow</h4>
+              <p className="text-xs text-neutral-400 leading-relaxed max-w-xs mx-auto">Find collaborators, learn, and create opportunities.</p>
+            </div>
           </div>
         </div>
 
-        {/* REAL DYNAMIC UPLOADED TRENDING SOUNDS MODULE */}
+        {/* REAL UPLOADED AUDIO RACK GENERATION */}
         <div className="pt-12 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-serif font-black text-neutral-900 flex items-center gap-1.5">🔥 Recent Uploads</h2>
@@ -189,7 +208,7 @@ export default async function Home() {
           )}
         </div>
 
-        {/* REAL FEATURED USERS RACK */}
+        {/* PRODUCERS HIGHLIGHT CARDS CONTAINER FROM DB */}
         <div className="pt-12 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-serif font-black text-neutral-900 flex items-center gap-1.5">⭐ Featured Producers</h2>
@@ -221,7 +240,7 @@ export default async function Home() {
           )}
         </div>
 
-        {/* FOOTER CALL TO ACTION */}
+        {/* FOOT HOOK BANNER BLOCK */}
         <div className="bg-[#1E1E1E] text-white text-center py-12 px-4 rounded-2xl space-y-4 mt-8 border border-neutral-800">
           <h2 className="text-2xl font-serif font-black tracking-tight">Ready to share your sound<span className="text-[#C5A880]">?</span></h2>
           <p className="text-xs text-neutral-400 max-w-xs mx-auto leading-relaxed">Join thousands of producers uploading loops, building audiences, and collaborating across the globe.</p>
@@ -230,10 +249,16 @@ export default async function Home() {
           </Link>
         </div>
 
-        {/* STRUCTURAL FOOTER MARGIN */}
+        {/* TAIL END META COMPONENT FOOTER */}
         <footer className="pt-10 pb-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] font-medium text-neutral-400 border-t border-[#EAE6DA]/40">
           <div className="flex items-center gap-1 font-black text-neutral-800 tracking-wider uppercase text-xs">
             <span className="font-light text-sm tracking-tighter text-neutral-500">川</span> PRODUCER SAAB
+          </div>
+          <div className="flex gap-4">
+            <a href="#" className="hover:text-black transition">About</a>
+            <a href="#" className="hover:text-black transition">Terms</a>
+            <a href="#" className="hover:text-black transition">Privacy</a>
+            <a href="#" className="hover:text-black transition">Contact</a>
           </div>
           <p>© 2026 Producer Saab. All rights reserved.</p>
         </footer>
