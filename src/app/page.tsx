@@ -230,7 +230,7 @@ export default function Home() {
     } catch (err: any) {
       alert(`Upload routing failure detected: ${err.message}`);
       console.error(err);
-    } finally {
+    } fillAll {
       setIsUploading(false);
     }
   };
@@ -282,6 +282,7 @@ export default function Home() {
                 <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Producer Name *</label>
                 <input type="text" value={prodName} onChange={e => setProdName(e.target.value)} required className="w-full bg-[#F5F5F7] text-black text-xs p-3 rounded-xl border border-transparent focus:border-gray-300 outline-none" />
               </div>
+              {/* FIXED: Added missing UI field block for unique username requirement hook */}
               <div>
                 <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Unique Username *</label>
                 <input type="text" placeholder="e.g. metro_boomin" value={username} onChange={e => setUsername(e.target.value)} required className="w-full bg-[#F5F5F7] text-black text-xs p-3 rounded-xl border border-transparent focus:border-gray-300 outline-none" />
@@ -425,12 +426,17 @@ export default function Home() {
             <p className="text-gray-400 text-xs mb-6">Modify system profile structural records assigned to user token nodes contextually.</p>
             <form onSubmit={executeProfileSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <input type="text" placeholder="Producer Name" value={prodName} onChange={e => setProdName(e.target.value)} required className="bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none text-black" />
-                <input type="text" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} required className="bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none text-black" />
+                <input type="text" placeholder="Producer Name" value={prodName} onChange={e => setProdName(e.target.value)} required className="bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none text-black animate-none" />
+                <input type="text" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} required className="bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none text-black animate-none" />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <input type="text" placeholder="Country" value={country} onChange={e => setCountry(e.target.value)} required className="bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none text-black" />
-                <input type="text" placeholder="Avatar photo image link" value={avatarUrl} onChange={e => setAvatarUrl(e.target.value)} className="bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none text-black" />
+                <input type="text" placeholder="Country" value={country} onChange={e => setCountry(e.target.value)} required className="bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none text-black animate-none" />
+                <input type="text" placeholder="Avatar photo image link" value={avatarUrl} onChange={e => setAvatarUrl(e.target.value)} className="bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none text-black animate-none" />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <input type="text" placeholder="Instagram URL" value={instagram} onChange={e => setInstagram(e.target.value)} className="bg-[#F5F5F7] text-black text-xs p-3 rounded-xl outline-none" />
+                <input type="text" placeholder="YouTube URL" value={youtube} onChange={e => setYoutube(e.target.value)} className="bg-[#F5F5F7] text-black text-xs p-3 rounded-xl outline-none" />
+                <input type="text" placeholder="Website URL" value={website} onChange={e => setWebsite(e.target.value)} className="bg-[#F5F5F7] text-black text-xs p-3 rounded-xl outline-none" />
               </div>
               <textarea placeholder="Biography details..." value={bio} onChange={e => setBio(e.target.value)} rows={2} className="w-full bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none resize-none text-black" />
               <button type="submit" className="bg-[#111111] text-white px-6 py-2.5 rounded-xl text-xs font-bold cursor-pointer hover:bg-black">
