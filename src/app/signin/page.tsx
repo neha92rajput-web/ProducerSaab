@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function SignInGate() {
+function SignInContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -17,7 +17,7 @@ export default function SignInGate() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Read URL query params to switch directly to Sign Up if requested
+  // Read URL query params safely inside the suspense window
   useEffect(() => {
     if (searchParams.get('view') === 'signup') {
       setIsSignUp(true);
@@ -135,5 +135,18 @@ export default function SignInGate() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Wrap inside a Suspense boundary to cleanly pass NextJS static analysis builds
+export default function SignInGate() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#FAF9F5] flex items-center justify-center text-xs font-bold text-neutral-400 tracking-widest uppercase">
+        Loading Portal...
+      </div>
+    }>
+      <SignInContent />
+    </Suspense>
   );
 }
