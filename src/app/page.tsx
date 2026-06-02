@@ -144,16 +144,22 @@ export default function Home() {
 
   const executeProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!prodName.trim() || !username.trim() || !country.trim() || selectedGenres.length === 0) {
+    if (!prodName.trim() || !country.trim() || selectedGenres.length === 0) {
       alert('Please fill out all required attributes marked (*).');
       return;
     }
 
     setLoading(true);
+
+    // Bypassing Fallback: Generates a username automatically if state string is missing
+    const guaranteedUsername = username.trim() 
+      ? username.replace('@', '').trim() 
+      : `${prodName.toLowerCase().replace(/\s+/g, '_')}_${Math.floor(1000 + Math.random() * 9000)}`;
+
     const profilePayload = {
       id: user.id,
       producer_name: prodName,
-      username: username.replace('@', '').trim(),
+      username: guaranteedUsername,
       bio,
       country,
       genres: selectedGenres,
@@ -230,7 +236,7 @@ export default function Home() {
     } catch (err: any) {
       alert(`Upload routing failure detected: ${err.message}`);
       console.error(err);
-    } fillAll {
+    } finally {
       setIsUploading(false);
     }
   };
@@ -274,224 +280,4 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center p-6">
         <div className="bg-white max-w-xl w-full rounded-3xl p-8 shadow-xl border border-gray-100">
-          <h2 className="text-2xl font-black mb-1">Onboarding Profile Architecture</h2>
-          <p className="text-gray-400 text-xs mb-6">Complete configuration properties metadata before gaining dashboard clearance access.</p>
-          <form onSubmit={executeProfileSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Producer Name *</label>
-                <input type="text" value={prodName} onChange={e => setProdName(e.target.value)} required className="w-full bg-[#F5F5F7] text-black text-xs p-3 rounded-xl border border-transparent focus:border-gray-300 outline-none" />
-              </div>
-              {/* FIXED: Added missing UI field block for unique username requirement hook */}
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Unique Username *</label>
-                <input type="text" placeholder="e.g. metro_boomin" value={username} onChange={e => setUsername(e.target.value)} required className="w-full bg-[#F5F5F7] text-black text-xs p-3 rounded-xl border border-transparent focus:border-gray-300 outline-none" />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Country *</label>
-                <input type="text" value={country} onChange={e => setCountry(e.target.value)} required className="w-full bg-[#F5F5F7] text-black text-xs p-3 rounded-xl border border-transparent focus:border-gray-300 outline-none" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Profile Avatar URL</label>
-                <input type="text" placeholder="https://..." value={avatarUrl} onChange={e => setAvatarUrl(e.target.value)} className="w-full bg-[#F5F5F7] text-black text-xs p-3 rounded-xl border border-transparent focus:border-gray-300 outline-none" />
-              </div>
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Select Core Genres *</label>
-              <div className="flex flex-wrap gap-1.5 mt-1">
-                {genresList.map(g => (
-                  <button type="button" key={g} onClick={() => setSelectedGenres(prev => prev.includes(g) ? prev.filter(item => item !== g) : [...prev, g])} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${selectedGenres.includes(g) ? 'bg-[#C5A880] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
-                    {g}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Bio Description</label>
-              <textarea value={bio} onChange={e => setBio(e.target.value)} rows={2} className="w-full bg-[#F5F5F7] text-black text-xs p-3 rounded-xl border border-transparent focus:border-gray-300 outline-none resize-none" />
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <input type="text" placeholder="Instagram URL" value={instagram} onChange={e => setInstagram(e.target.value)} className="w-full bg-[#F5F5F7] text-black text-[11px] p-2.5 rounded-lg outline-none" />
-              <input type="text" placeholder="YouTube URL" value={youtube} onChange={e => setYoutube(e.target.value)} className="w-full bg-[#F5F5F7] text-black text-[11px] p-2.5 rounded-lg outline-none" />
-              <input type="text" placeholder="Website URL" value={website} onChange={e => setWebsite(e.target.value)} className="w-full bg-[#F5F5F7] text-black text-[11px] p-2.5 rounded-lg outline-none" />
-            </div>
-            <button type="submit" className="w-full bg-black text-white font-bold p-3 rounded-xl text-xs tracking-wide cursor-pointer mt-2 hover:bg-gray-800">
-              Finalize Infrastructure Profile Layout →
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
-  // FLOW 3: Locked Consolidated Authenticated Terminal Layout View Controller
-  return (
-    <div className="min-h-screen bg-[#F5F5F7] text-[#111111] flex">
-      <aside className="w-64 bg-white p-6 border-r border-gray-200 flex flex-col justify-between shadow-sm">
-        <div className="space-y-6">
-          <div className="pb-4 border-b border-gray-100">
-            <h2 className="text-sm font-black uppercase tracking-wider text-[#C5A880]">Saab Workstation</h2>
-            <p className="text-[10px] text-gray-400 truncate mt-0.5">@{username || 'guest_producer'}</p>
-          </div>
-          <nav className="space-y-1">
-            <button onClick={() => setActiveTab('dashboard')} className={`w-full text-left p-3 rounded-xl text-xs font-black flex items-center gap-2 cursor-pointer ${activeTab === 'dashboard' ? 'bg-[#111111] text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
-              🎛️ Command Dashboard
-            </button>
-            <button onClick={() => setActiveTab('library')} className={`w-full text-left p-3 rounded-xl text-xs font-black flex items-center gap-2 cursor-pointer ${activeTab === 'library' ? 'bg-[#111111] text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
-              🌍 Global Directory
-            </button>
-            <button onClick={() => setActiveTab('edit-profile')} className={`w-full text-left p-3 rounded-xl text-xs font-black flex items-center gap-2 cursor-pointer ${activeTab === 'edit-profile' ? 'bg-[#111111] text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
-              ✏️ Modify Profile Settings
-            </button>
-          </nav>
-        </div>
-        <button onClick={async () => await supabase.auth.signOut()} className="w-full bg-red-50 text-red-600 hover:bg-red-100 p-3 rounded-xl text-xs font-bold cursor-pointer transition-all">
-          Sign Out Account Session
-        </button>
-      </aside>
-
-      <main className="flex-1 p-8 overflow-y-auto">
-        {runtimeError && <div className="bg-red-500 text-white p-3 rounded-xl text-xs font-bold mb-4">{runtimeError}</div>}
-        
-        {activeTab === 'dashboard' && (
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex justify-between items-center">
-              <div>
-                <h2 className="text-xl font-black">Welcome back, {prodName}</h2>
-                <p className="text-gray-400 text-xs mt-0.5">Console logs fully operational. Manage and catalog your dynamic format assets.</p>
-              </div>
-              <span className="bg-gray-100 px-4 py-1.5 rounded-full text-xs font-extrabold text-gray-500">📍 {country}</span>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4 h-fit">
-                <h3 className="text-sm font-black uppercase tracking-wider text-gray-400">📤 Catalog New Sound</h3>
-                <form onSubmit={executeAudioUpload} className="space-y-3">
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase">File Node (WAV/MP3) *</label>
-                    <input id="audio-upload-field" type="file" accept=".mp3,.wav" onChange={e => setAudioFile(e.target.files?.[0] || null)} required className="w-full text-xs mt-1" />
-                  </div>
-                  <input type="text" placeholder="Asset Title *" value={trackTitle} onChange={e => setTrackTitle(e.target.value)} required className="w-full bg-[#F5F5F7] text-black text-xs p-2.5 rounded-lg outline-none" />
-                  <input type="text" placeholder="Genre * (e.g. Trap)" value={trackGenre} onChange={e => setTrackGenre(e.target.value)} required className="w-full bg-[#F5F5F7] text-black text-xs p-2.5 rounded-lg outline-none" />
-                  <div className="grid grid-cols-2 gap-2">
-                    <input type="number" placeholder="BPM *" value={trackBpm} onChange={e => setTrackBpm(e.target.value)} required className="w-full bg-[#F5F5F7] text-black text-xs p-2.5 rounded-lg outline-none" />
-                    <input type="text" placeholder="Key * (e.g. G# Min)" value={trackKey} onChange={e => setTrackKey(e.target.value)} required className="w-full bg-[#F5F5F7] text-black text-xs p-2.5 rounded-lg outline-none" />
-                  </div>
-                  <input type="text" placeholder="Time Signature (e.g. 4/4)" value={trackTimeSig} onChange={e => setTrackTimeSig(e.target.value)} className="w-full bg-[#F5F5F7] text-black text-xs p-2.5 rounded-lg outline-none" />
-                  <textarea placeholder="Description notes..." value={trackDesc} onChange={e => setTrackDesc(e.target.value)} rows={2} className="w-full bg-[#F5F5F7] text-black text-xs p-2.5 rounded-lg outline-none resize-none" />
-                  <input type="text" placeholder="Tags (comma separated)" value={trackTags} onChange={e => setTrackTags(e.target.value)} className="w-full bg-[#F5F5F7] text-black text-xs p-2.5 rounded-lg outline-none" />
-                  <button type="submit" disabled={isUploading} className="w-full bg-[#111111] text-white p-3 rounded-xl text-xs font-bold cursor-pointer transition-all hover:bg-black disabled:bg-gray-300">
-                    {isUploading ? 'Compiling Server Allocation Buffer...' : 'Deploy Audio Node Asset'}
-                  </button>
-                </form>
-              </div>
-
-              <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-                <h3 className="text-sm font-black uppercase tracking-wider text-gray-400">🗄️ Managed Portfolios Library</h3>
-                {mySounds.length === 0 ? (
-                  <p className="text-gray-400 text-xs">No local assets registered in profile database array pipeline instances.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {mySounds.map((s: any) => (
-                      <div key={s.id} className="p-4 bg-[#F5F5F7] rounded-xl flex items-center justify-between gap-4 text-xs">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-black truncate">{s.title}</p>
-                          <p className="text-[10px] text-gray-400 mt-0.5">{s.genre} • {s.bpm} BPM • Key Matrix: {s.musical_key} • {s.time_signature}</p>
-                        </div>
-                        <audio src={s.file_url} controls className="h-8 max-w-xs" />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'library' && (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-black">Global Index Directory Module</h2>
-              <p className="text-gray-400 text-xs">Read-only public array catalog stream pipeline feed interfaces.</p>
-            </div>
-            {renderDirectoryInterface()}
-          </div>
-        )}
-
-        {activeTab === 'edit-profile' && (
-          <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm max-w-xl">
-            <h2 className="text-lg font-black mb-1">Update Core Metadata Information</h2>
-            <p className="text-gray-400 text-xs mb-6">Modify system profile structural records assigned to user token nodes contextually.</p>
-            <form onSubmit={executeProfileSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <input type="text" placeholder="Producer Name" value={prodName} onChange={e => setProdName(e.target.value)} required className="bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none text-black animate-none" />
-                <input type="text" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} required className="bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none text-black animate-none" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <input type="text" placeholder="Country" value={country} onChange={e => setCountry(e.target.value)} required className="bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none text-black animate-none" />
-                <input type="text" placeholder="Avatar photo image link" value={avatarUrl} onChange={e => setAvatarUrl(e.target.value)} className="bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none text-black animate-none" />
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <input type="text" placeholder="Instagram URL" value={instagram} onChange={e => setInstagram(e.target.value)} className="bg-[#F5F5F7] text-black text-xs p-3 rounded-xl outline-none" />
-                <input type="text" placeholder="YouTube URL" value={youtube} onChange={e => setYoutube(e.target.value)} className="bg-[#F5F5F7] text-black text-xs p-3 rounded-xl outline-none" />
-                <input type="text" placeholder="Website URL" value={website} onChange={e => setWebsite(e.target.value)} className="bg-[#F5F5F7] text-black text-xs p-3 rounded-xl outline-none" />
-              </div>
-              <textarea placeholder="Biography details..." value={bio} onChange={e => setBio(e.target.value)} rows={2} className="w-full bg-[#F5F5F7] p-3 rounded-xl text-xs outline-none resize-none text-black" />
-              <button type="submit" className="bg-[#111111] text-white px-6 py-2.5 rounded-xl text-xs font-bold cursor-pointer hover:bg-black">
-                Update Security Profile Nodes
-              </button>
-            </form>
-          </div>
-        )}
-      </main>
-    </div>
-  );
-
-  function renderDirectoryInterface() {
-    const parsedGridItems = sounds.filter(s => {
-      const gMatch = filterGenre ? s.genre?.toLowerCase().includes(filterGenre.toLowerCase()) : true;
-      const bMatch = filterBpm ? s.bpm?.toString() === filterBpm : true;
-      const kMatch = filterKey ? s.musical_key?.toLowerCase().includes(filterKey.toLowerCase()) : true;
-      return gMatch && bMatch && kMatch;
-    });
-
-    return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-3 gap-3 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-          <input type="text" placeholder="🔍 Genre Parameter Filter" value={filterGenre} onChange={e => setFilterGenre(e.target.value)} className="bg-[#F5F5F7] p-2.5 rounded-lg text-xs outline-none text-black" />
-          <input type="text" placeholder="🔍 BPM Filter Index" value={filterBpm} onChange={e => setFilterBpm(e.target.value)} className="bg-[#F5F5F7] p-2.5 rounded-lg text-xs outline-none text-black" />
-          <input type="text" placeholder="🔍 Musical Key Filter" value={filterKey} onChange={e => setFilterKey(e.target.value)} className="bg-[#F5F5F7] p-2.5 rounded-lg text-xs outline-none text-black" />
-        </div>
-
-        {parsedGridItems.length === 0 ? (
-          <p className="text-gray-400 text-xs text-center py-6 bg-white rounded-xl border">No tracks found matching your active filter criteria.</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {parsedGridItems.map((s: any) => (
-              <div key={s.id} className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="font-extrabold text-sm text-black">{s.title}</h4>
-                    <p className="text-xs text-gray-400 mt-0.5">By {s.profiles?.producer_name || 'Verified Member'}</p>
-                  </div>
-                  <span className="bg-[#C5A880]/10 text-[#C5A880] text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">{s.genre}</span>
-                </div>
-                
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-500 font-medium bg-gray-50 p-2.5 rounded-lg">
-                  <span>🥁 {s.bpm} BPM</span>
-                  <span>🎹 Key: {s.musical_key}</span>
-                  <span>⏱️ Signature: {s.time_signature}</span>
-                  <span className="ml-auto text-[10px] text-gray-400">📅 {s.created_at ? new Date(s.created_at).toLocaleDateString() : 'N/A'}</span>
-                </div>
-
-                <audio src={s.file_url} controls className="w-full h-9 mt-1" />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-}
+          <h2 className="text-2xl font
