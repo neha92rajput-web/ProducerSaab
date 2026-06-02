@@ -42,7 +42,6 @@ export default function Home() {
   const genresList = ['Hip Hop', 'Trap', 'Boom Bap', 'R&B', 'House', 'Techno', 'Pop', 'Lo-Fi', 'Drill'];
 
   useEffect(() => {
-    // Wrap entire initialization process in a try/catch block
     const initializeApp = async () => {
       try {
         await checkUser();
@@ -50,7 +49,6 @@ export default function Home() {
       } catch (err) {
         console.error("Initialization error:", err);
       } finally {
-        // Safe guardrail: Always clear loading screen even if database steps fail
         setLoading(false);
       }
     };
@@ -102,7 +100,6 @@ export default function Home() {
 
   const fetchLibrary = async () => {
     try {
-      // 1. Fetch sounds safely
       const { data: soundsData, error: soundsError } = await supabase
         .from('sounds')
         .select('*');
@@ -112,12 +109,10 @@ export default function Home() {
         return;
       }
 
-      // 2. Fetch profiles separately
       const { data: profilesData } = await supabase
         .from('profiles')
         .select('id, producer_name');
 
-      // 3. Match values seamlessly in memory
       const joinedSounds = soundsData.map((sound: any) => {
         const matchProf = profilesData?.find(p => p.id === sound.user_id);
         return {
@@ -313,23 +308,4 @@ export default function Home() {
             <button onClick={() => setActiveTab('dashboard')} className={`w-full text-left p-3 rounded-xl text-sm font-bold flex items-center ${activeTab === 'dashboard' ? 'bg-[#111111] text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
               🎛️ Producer Dashboard
             </button>
-            <button onClick={() => setActiveTab('library')} className={`w-full text-left p-3 rounded-xl text-sm font-bold flex items-center ${activeTab === 'library' ? 'bg-[#111111] text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
-              🌍 Global Library
-            </button>
-          </nav>
-        </div>
-        <button onClick={() => supabase.auth.signOut()} className="w-full bg-red-50 hover:bg-red-100 text-red-600 p-3 rounded-xl text-xs font-bold">
-          Sign Out Account
-        </button>
-      </aside>
-
-      {/* Main Content Workspace */}
-      <main className="flex-1 p-8 overflow-y-auto">
-        {activeTab === 'dashboard' ? (
-          <div className="space-y-8">
-            <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-black">Welcome back, {prodName || 'Producer'}</h2>
-                <p className="text-gray-400 text-xs">With your dashboard configured, your layout is locked down.</p>
-              </div>
-             <span className="bg-gray-100 px-4 py-1.5 rounded-full text-xs font-bold text-gray-500">📍 {country}</span>
+            <button onClick={() => setActiveTab('library')} className={`w-full text-left p-3 rounded
