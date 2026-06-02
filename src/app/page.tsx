@@ -332,4 +332,4 @@ export default function Home() {
                 <h2 className="text-2xl font-black">Welcome back, {prodName || 'Producer'}</h2>
                 <p className="text-gray-400 text-xs">With your dashboard configured, your layout is locked down.</p>
               </div>
-              <span className="bg-gray-100 px-4 py-1.5 rounded-full text-xs font-bold text-
+             <span className="bg-gray-100 px-4 py-1.5 rounded-full text-xs font-bold text-gray-500">📍 {country}</span>
