@@ -17,7 +17,6 @@ function SignInContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Read URL query params safely inside the suspense window
   useEffect(() => {
     if (searchParams.get('view') === 'signup') {
       setIsSignUp(true);
@@ -29,35 +28,43 @@ function SignInContent() {
     setLoading(true);
     setErrorMsg('');
 
-    if (isSignUp) {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: {
-            username: username.toLowerCase().trim(),
-            display_name: username,
+    try {
+      if (isSignUp) {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            data: {
+              username: username.toLowerCase().trim(),
+              display_name: username,
+            }
           }
-        }
-      });
+        });
 
-      if (error) {
-        setErrorMsg(error.message);
+        if (error) {
+          setErrorMsg(error.message); // Displays "User already registered" directly from Supabase
+        } else if (data?.user && data.user.identities?.length === 0) {
+          // Supabase security quirk: if email exists, it returns an empty identities array
+          setErrorMsg('This email address is already registered. Try signing in!');
+        } else {
+          alert('Check your email inbox to verify your network handle profile!');
+          router.push('/dashboard');
+        }
       } else {
-        alert('Check your email inbox to verify your network handle profile!');
-        router.push('/dashboard');
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          setErrorMsg(error.message);
+        } else {
+          router.push('/dashboard');
+          router.refresh();
+        }
       }
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        setErrorMsg(error.message);
-      } else {
-        router.push('/dashboard');
-        router.refresh();
-      }
+    } catch (err) {
+      setErrorMsg('Connection error. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -113,7 +120,11 @@ function SignInContent() {
               />
             </div>
 
-            {errorMsg && <p className="text-xs font-semibold text-red-500">{errorMsg}</p>}
+            {errorMsg && (
+              <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 px-3 py-2 rounded-xl text-center">
+                ⚠️ {errorMsg}
+              </p>
+            )}
 
             <button 
               type="submit" 
@@ -126,7 +137,11 @@ function SignInContent() {
 
           <div className="text-center pt-2">
             <button 
-              onClick={() => setIsSignUp(!isSignUp)}
+              type="button"
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setErrorMsg('');
+              }}
               className="text-xs font-bold text-neutral-500 hover:text-black transition"
             >
               {isSignUp ? 'Already registered? Sign in here' : 'New to SAAB? Join the community network'}
@@ -138,7 +153,6 @@ function SignInContent() {
   );
 }
 
-// Wrap inside a Suspense boundary to cleanly pass NextJS static analysis builds
 export default function SignInGate() {
   return (
     <Suspense fallback={
