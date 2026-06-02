@@ -1,16 +1,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@layer base {
-  :root {
-    --cream: #FAF8F5;
-    --gold: #C5A880;
-    --charcoal: #111111;
-  }
-  
-  body {
-    background-color: var(--cream);
-    color: var(--charcoal);
-  }
-}
