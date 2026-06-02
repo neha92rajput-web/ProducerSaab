@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 
-// Force dynamic execution and use standard Node.js serverless architecture to prevent Edge timeouts
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
@@ -18,7 +17,6 @@ export default async function Home() {
     .from('sounds')
     .select('*', { count: 'exact', head: true });
 
-  // Fetch unique countries from profiles to calculate the distribution dynamically
   const { data: countryData } = await supabase
     .from('profiles')
     .select('country')
@@ -66,13 +64,13 @@ export default async function Home() {
 
           {/* Centered Routing Interface Element */}
           <div className="text-xs font-semibold text-neutral-500 hover:text-black transition">
-            <Link href="/dashboard">Log in</Link>
+            <Link href="/signin">Sign in</Link>
           </div>
 
           {/* Action Trigger Navigation */}
           <div>
             <Link 
-              href="/dashboard" 
+              href="/signin?view=signup" 
               className="px-5 py-2 bg-[#1E1E1E] hover:bg-neutral-800 text-white text-xs font-bold rounded-full transition shadow-sm"
             >
               Join the Community
@@ -99,7 +97,7 @@ export default async function Home() {
         {/* Dynamic Action Buttons */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1 w-full sm:w-auto">
           <Link 
-            href="/dashboard" 
+            href="/signin?view=signup" 
             className="px-6 py-3 bg-[#1E1E1E] hover:bg-neutral-800 text-white text-xs font-bold rounded-full transition shadow-sm flex items-center justify-center gap-2"
           >
             Join the Community →
@@ -244,7 +242,7 @@ export default async function Home() {
         <div className="bg-[#1E1E1E] text-white text-center py-12 px-4 rounded-2xl space-y-4 mt-8 border border-neutral-800">
           <h2 className="text-2xl font-serif font-black tracking-tight">Ready to share your sound<span className="text-[#C5A880]">?</span></h2>
           <p className="text-xs text-neutral-400 max-w-xs mx-auto leading-relaxed">Join thousands of producers uploading loops, building audiences, and collaborating across the globe.</p>
-          <Link href="/dashboard" className="inline-block px-5 py-2.5 bg-white text-neutral-900 font-bold rounded-full text-xs hover:bg-neutral-100 transition shadow-md">
+          <Link href="/signin?view=signup" className="inline-block px-5 py-2.5 bg-white text-neutral-900 font-bold rounded-full text-xs hover:bg-neutral-100 transition shadow-md">
             Get Started — It's Free →
           </Link>
         </div>
