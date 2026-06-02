@@ -1,43 +1,67 @@
-'use client';
-
 import Link from 'next/link';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
-export default function Home() {
-  // Exact trending sounds data from your video
-  const trendingSounds = [
-    { id: 1, title: 'Dark Trap Melody', prod: 'Prod. Jay', tag: 'TRAP', duration: '0:28', likes: '1.2K', downloads: '213', img: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&auto=format&fit=crop&q=60' },
-    { id: 2, title: 'UK Drill Loop', prod: 'LunaBeats', tag: 'DRILL', duration: '0:20', likes: '856', downloads: '112', img: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&auto=format&fit=crop&q=60' },
-    { id: 3, title: 'R&B Piano Chords', prod: 'Nova', tag: 'R&B', duration: '0:24', likes: '654', downloads: '87', img: 'https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=400&auto=format&fit=crop&q=60' },
-    { id: 4, title: 'Guitar Sample', prod: 'Soulfy', tag: 'LOFI', duration: '0:21', likes: '542', downloads: '64', img: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=400&auto=format&fit=crop&q=60' },
-    { id: 5, title: 'Ambient Texture', prod: 'Aureus', tag: 'AMBIENT', duration: '0:22', likes: '432', downloads: '51', img: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=400&auto=format&fit=crop&q=60' }
-  ];
+export const dynamic = 'force-dynamic';
 
-  // Exact featured producers data from your video
-  const featuredProducers = [
-    { name: 'ProdJay', role: 'Trap Producer', initial: 'P', followers: '12.4K', uploads: '324' },
-    { name: 'LunaBeats', role: 'Drill Producer', initial: 'L', followers: '8.1K', uploads: '182' },
-    { name: 'MetroVibes', role: 'Melody Maker', initial: 'M', followers: '6.7K', uploads: '241' }
-  ];
+export default async function Home() {
+  const supabase = createServerComponentClient({ cookies });
+
+  // 1. DYNAMIC STATS CALCULATIONS (REAL NUMBERS ONLY)
+  const { count: producersCount } = await supabase
+    .from('profiles')
+    .select('*', { count: 'exact', head: true });
+
+  const { count: soundsCount } = await supabase
+    .from('sounds')
+    .select('*', { count: 'exact', head: true });
+
+  // Fetch unique countries from profiles to calculate the distribution array length
+  const { data: countryData } = await supabase
+    .from('profiles')
+    .select('country')
+    .not('country', 'is', null);
+  
+  const uniqueCountriesCount = countryData 
+    ? new Set(countryData.map(p => p.country?.toLowerCase().trim())).size 
+    : 0;
+
+  // 2. REAL USER AUDIO SOURCE REEL FETCHING
+  const { data: trendingSounds } = await supabase
+    .from('sounds')
+    .select(`
+      id,
+      title,
+      genre,
+      audio_url,
+      created_at,
+      profiles (
+        username,
+        display_name
+      )
+    `)
+    .order('created_at', { ascending: false })
+    .limit(4);
+
+  // 3. REAL FEATURED PRODUCERS REGISTER ROWS FETCHING
+  const { data: featuredProducers } = await supabase
+    .from('profiles')
+    .select('id, username, display_name, account_type')
+    .limit(3);
 
   return (
     <div className="min-h-screen bg-[#FAF9F5] text-[#1E1E1E] font-sans antialiased">
       
-      {/* EXACT VIDEO NAVBAR BRAND HEADER */}
+      {/* BRAND NAVIGATION HEADER */}
       <header className="sticky top-0 z-50 bg-[#FAF9F5] border-b border-[#EAE6DA] px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          
-          {/* Logo Icon and Text String */}
           <Link href="/" className="flex items-center gap-1.5 font-sans font-black tracking-widest text-lg text-neutral-900">
             <span className="text-xl font-light tracking-tighter text-neutral-800 mr-0.5">川</span>
             SAAB
           </Link>
-
-          {/* Centered Routing Interface Element */}
           <div className="text-xs font-semibold text-neutral-500 hover:text-black transition">
             <Link href="/dashboard">Log in</Link>
           </div>
-
-          {/* Action Trigger Navigation */}
           <div>
             <Link 
               href="/dashboard" 
@@ -46,11 +70,10 @@ export default function Home() {
               Join the Community
             </Link>
           </div>
-
         </div>
       </header>
 
-      {/* HERO HERO TITLE BLOCK */}
+      {/* HERO SECTION FRAME */}
       <main className="max-w-4xl mx-auto pt-14 pb-12 px-4 text-left space-y-6">
         <div className="space-y-3">
           <p className="text-[10px] font-bold text-[#C5A880] uppercase tracking-widest">
@@ -64,7 +87,7 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Dynamic Action Buttons */}
+        {/* Action Trigger Buttons */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1 w-full sm:w-auto">
           <Link 
             href="/dashboard" 
@@ -80,43 +103,49 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* METRICS COUNT PANEL */}
+        {/* METRICS PANEL OPERATING ON LIVE REAL DATA SUMS */}
         <div className="pt-6 grid grid-cols-3 gap-2 max-w-md text-left">
           <div className="flex items-center gap-2">
             <span className="text-neutral-400 text-sm">👥</span>
             <div>
-              <p className="text-sm font-serif font-black text-neutral-900 leading-none">12K+</p>
+              <p className="text-sm font-serif font-black text-neutral-900 leading-none">
+                {producersCount || 0}
+              </p>
               <p className="text-[10px] text-neutral-400 font-medium">Producers</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-neutral-400 text-sm">?.</span>
+            <span className="text-neutral-400 text-sm">🎵</span>
             <div>
-              <p className="text-sm font-serif font-black text-neutral-900 leading-none">120K+</p>
+              <p className="text-sm font-serif font-black text-neutral-900 leading-none">
+                {soundsCount || 0}
+              </p>
               <p className="text-[10px] text-neutral-400 font-medium">Sounds</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-neutral-400 text-sm">🌐</span>
             <div>
-              <p className="text-sm font-serif font-black text-neutral-900 leading-none">50+</p>
+              <p className="text-sm font-serif font-black text-neutral-900 leading-none">
+                {uniqueCountriesCount || 0}
+              </p>
               <p className="text-[10px] text-neutral-400 font-medium">Countries</p>
             </div>
           </div>
         </div>
 
-        {/* WORKSPACE PREVIEW MODULE */}
+        {/* IMAGE PREVIEW FRAME */}
         <div className="pt-4">
           <div className="rounded-2xl overflow-hidden border border-[#EAE6DA] shadow-sm bg-neutral-100 aspect-[16/10]">
             <img 
               src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1200&auto=format&fit=crop&q=80" 
               className="w-full h-full object-cover" 
-              alt="Producer Gear Studio Setup Layout" 
+              alt="Studio Setup" 
             />
           </div>
         </div>
 
-        {/* VALUES EXPLANATION PARAGRAPH BLOCK */}
+        {/* EXPLANATORY CONTENT SECTION */}
         <div className="pt-10 text-center space-y-8 border-t border-[#EAE6DA]/40">
           <h2 className="text-2xl font-serif font-black text-neutral-900">Why Join Producer Saab?</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-center max-w-xl mx-auto">
@@ -130,85 +159,69 @@ export default function Home() {
               <h4 className="font-bold text-sm text-neutral-900">Build Your Audience</h4>
               <p className="text-xs text-neutral-400 leading-relaxed max-w-xs mx-auto">Gain followers and grow your producer profile.</p>
             </div>
-            <div className="space-y-1.5">
-              <span className="text-xl">✨</span>
-              <h4 className="font-bold text-sm text-neutral-900">Discover Talent</h4>
-              <p className="text-xs text-neutral-400 leading-relaxed max-w-xs mx-auto">Find and connect with producers worldwide.</p>
-            </div>
-            <div className="space-y-1.5">
-              <span className="text-xl">📈</span>
-              <h4 className="font-bold text-sm text-neutral-900">Collaborate & Grow</h4>
-              <p className="text-xs text-neutral-400 leading-relaxed max-w-xs mx-auto">Find collaborators, learn, and create opportunities.</p>
-            </div>
           </div>
         </div>
 
-        {/* TRENDING AUDIO RACK GENERATION */}
+        {/* REAL DYNAMIC UPLOADED TRENDING SOUNDS MODULE */}
         <div className="pt-12 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-serif font-black text-neutral-900 flex items-center gap-1.5">🔥 Trending Sounds</h2>
+            <h2 className="text-base font-serif font-black text-neutral-900 flex items-center gap-1.5">🔥 Recent Uploads</h2>
             <Link href="/library" className="text-[11px] font-bold text-neutral-400 hover:text-black flex items-center gap-0.5 transition">View all →</Link>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-            {trendingSounds.map(sound => (
-              <div key={sound.id} className="bg-white border border-[#EAE6DA] rounded-xl overflow-hidden p-2.5 space-y-2 group shadow-sm flex flex-col justify-between">
-                <div className="space-y-2">
-                  <div className="aspect-square w-full rounded-lg bg-neutral-100 overflow-hidden relative border border-[#EAE6DA]/40">
-                    <img src={sound.img} className="w-full h-full object-cover group-hover:scale-102 transition duration-300" alt="" />
-                    <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-black/80 backdrop-blur-sm text-white text-[8px] font-black rounded tracking-wide uppercase">{sound.tag}</span>
-                    <span className="absolute bottom-1.5 right-1.5 px-1 py-0.5 bg-white/90 backdrop-blur-sm text-neutral-800 text-[8px] font-bold rounded">{sound.duration}</span>
+          {trendingSounds && trendingSounds.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {trendingSounds.map((sound: any) => (
+                <div key={sound.id} className="bg-white border border-[#EAE6DA] rounded-xl p-4 flex items-center justify-between gap-4 shadow-sm">
+                  <div className="truncate">
+                    <span className="px-1.5 py-0.5 bg-black text-white text-[8px] font-black rounded tracking-wide uppercase mr-2">{sound.genre || 'Loop'}</span>
+                    <h4 className="font-bold text-xs text-neutral-900 truncate inline-block">{sound.title}</h4>
+                    <p className="text-[10px] text-neutral-400 truncate">by @{sound.profiles?.username || 'producer'}</p>
                   </div>
-                  <div className="px-0.5">
-                    <h4 className="font-bold text-xs text-neutral-900 truncate">{sound.title}</h4>
-                    <p className="text-[10px] text-neutral-400 truncate">{sound.prod}</p>
-                  </div>
+                  <audio controls src={sound.audio_url} className="h-7 w-40 accent-[#1E1E1E]" />
                 </div>
-                <div className="flex items-center gap-3 border-t border-[#FAF9F5] pt-1.5 text-[10px] font-bold text-neutral-400 px-0.5">
-                  <span className="flex items-center gap-0.5">❤️ {sound.likes}</span>
-                  <span className="flex items-center gap-0.5">📥 {sound.downloads}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 border border-dashed border-[#EAE6DA] rounded-xl bg-white">
+              <p className="text-xs text-neutral-400 font-medium">The deck is clear. Be the first to upload an audio asset!</p>
+            </div>
+          )}
         </div>
 
-        {/* PRODUCERS HIGHLIGHT CARDS CONTAINER */}
+        {/* REAL FEATURED USERS RACK */}
         <div className="pt-12 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-serif font-black text-neutral-900 flex items-center gap-1.5">⭐ Featured Producers</h2>
             <Link href="/feed" className="text-[11px] font-bold text-neutral-400 hover:text-black flex items-center gap-0.5 transition">View all →</Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {featuredProducers.map(prod => (
-              <div key={prod.name} className="bg-white border border-[#EAE6DA] rounded-xl p-4 text-center space-y-3 shadow-sm">
-                <div className="w-12 h-12 bg-neutral-900 text-white font-serif font-black text-base rounded-full flex items-center justify-center mx-auto shadow-sm">
-                  {prod.initial}
-                </div>
-                <div>
-                  <h3 className="font-bold text-sm text-neutral-900">@{prod.name}</h3>
-                  <p className="text-[10px] text-neutral-400">{prod.role}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-1 text-center py-1.5 border-y border-[#FAF9F5] text-[11px]">
-                  <div>
-                    <p className="font-black text-neutral-800">{prod.followers}</p>
-                    <p className="text-[9px] text-neutral-400 font-medium">Followers</p>
+          {featuredProducers && featuredProducers.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {featuredProducers.map((prod: any) => (
+                <div key={prod.id} className="bg-white border border-[#EAE6DA] rounded-xl p-4 text-center space-y-2 shadow-sm">
+                  <div className="w-10 h-10 bg-neutral-900 text-white font-serif font-black text-sm rounded-full flex items-center justify-center mx-auto shadow-sm uppercase">
+                    {prod.display_name?.charAt(0) || prod.username?.charAt(0) || 'P'}
                   </div>
                   <div>
-                    <p className="font-black text-neutral-800">{prod.uploads}</p>
-                    <p className="text-[9px] text-neutral-400 font-medium">Uploads</p>
+                    <h3 className="font-bold text-xs text-neutral-900">@{prod.username}</h3>
+                    <p className="text-[9px] text-neutral-400 uppercase tracking-wider font-semibold">{prod.account_type || 'Producer'}</p>
                   </div>
+                  <Link 
+                    href={`/${prod.username}`}
+                    className="block w-full py-1.5 text-center bg-[#FAF9F5] hover:bg-neutral-100 text-neutral-800 border border-[#EAE6DA] rounded-lg text-[10px] font-bold transition"
+                  >
+                    View Profile
+                  </Link>
                 </div>
-                <button className="w-full py-1.5 bg-[#FAF9F5] hover:bg-neutral-100 text-neutral-800 border border-[#EAE6DA] rounded-lg text-[11px] font-bold transition">
-                  Follow
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-neutral-400 text-center py-4">No creator profile handles registered yet.</p>
+          )}
         </div>
 
-        {/* FOOT HOOK BANNER BLOCK */}
+        {/* FOOTER CALL TO ACTION */}
         <div className="bg-[#1E1E1E] text-white text-center py-12 px-4 rounded-2xl space-y-4 mt-8 border border-neutral-800">
           <h2 className="text-2xl font-serif font-black tracking-tight">Ready to share your sound<span className="text-[#C5A880]">?</span></h2>
           <p className="text-xs text-neutral-400 max-w-xs mx-auto leading-relaxed">Join thousands of producers uploading loops, building audiences, and collaborating across the globe.</p>
@@ -217,16 +230,10 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* TAIL END META COMPONENT FOOTER */}
+        {/* STRUCTURAL FOOTER MARGIN */}
         <footer className="pt-10 pb-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] font-medium text-neutral-400 border-t border-[#EAE6DA]/40">
           <div className="flex items-center gap-1 font-black text-neutral-800 tracking-wider uppercase text-xs">
             <span className="font-light text-sm tracking-tighter text-neutral-500">川</span> PRODUCER SAAB
-          </div>
-          <div className="flex gap-4">
-            <a href="#" className="hover:text-black transition">About</a>
-            <a href="#" className="hover:text-black transition">Terms</a>
-            <a href="#" className="hover:text-black transition">Privacy</a>
-            <a href="#" className="hover:text-black transition">Contact</a>
           </div>
           <p>© 2026 Producer Saab. All rights reserved.</p>
         </footer>
