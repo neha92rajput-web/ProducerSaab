@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../utils/supabase';
 import { supabase } from '@/utils/supabase';
+
 interface OnboardingModalProps {
   isOpen: boolean;
   onClose: () => void;
