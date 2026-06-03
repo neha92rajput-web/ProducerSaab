@@ -6,6 +6,9 @@ import type { NextRequest } from 'next/server';
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
+  
+  // FIX: Look for the '?next=' parameter we sent from the sign-up page, default to /dashboard if empty
+  const nextTarget = requestUrl.searchParams.get('next') || '/dashboard';
 
   if (code) {
     const cookieStore = cookies();
@@ -28,6 +31,6 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // 3. DYNAMIC REDIRECT: Safely routes them to the /dashboard of whatever branch domain they are using!
-  return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
+  // 3. DYNAMIC REDIRECT: Safely routes them to the exact nextTarget path requested!
+  return NextResponse.redirect(`${requestUrl.origin}${nextTarget}`);
 }
