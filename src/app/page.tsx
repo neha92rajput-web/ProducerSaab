@@ -110,8 +110,9 @@ export default function Home() {
               The Home for Music Producers<span className="text-[#C79A6D]">.</span>
             </h1>
             
-            <p className="text-sm font-medium text-[#6F6F6F] max-w-xl leading-relaxed mx-auto sm:mx-0 pt-2">
-              Join a community of producers sharing loops, melodies, samples, and ideas. Upload your sounds. Get discovered. Build your audience.
+            {/* UPDATED USER CUSTOM QUOTE */}
+            <p className="text-sm font-medium text-[#6F6F6F] max-w-2xl leading-relaxed mx-auto sm:mx-0 pt-2">
+              Join a community of music creators sharing tracks, loops, melodies, samples, and beats. Upload your audio, connect with collaborators, get discovered. Build your Studio and grow your audience.
             </p>
           </div>
 
@@ -124,7 +125,7 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* METRICS METERS */}
+          {/* METRICS */}
           <div className="pt-8 grid grid-cols-3 gap-6 max-w-sm mx-auto sm:mx-0 text-left border-t border-[#E8E1D7]">
             <div className="flex items-center gap-2">
               <span className="text-[#6F6F6F] text-sm">👥</span>
@@ -267,7 +268,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* SUMMER LIGHT PRE-FOOTER CARD */}
+      {/* CALL TO ACTION ACCENT CARD */}
       <section className="max-w-6xl mx-auto px-6 pb-12">
         <div className="bg-[#EDE9DE] rounded-[2.5rem] p-10 sm:p-14 text-center space-y-5 border border-[#E8E1D7]">
           <div className="max-w-md mx-auto space-y-2">
