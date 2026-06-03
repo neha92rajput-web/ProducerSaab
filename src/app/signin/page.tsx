@@ -11,11 +11,15 @@ const database = createClient(supabaseUrl, supabaseAnonKey);
 export default function AuthPage() {
   const router = useRouter();
   
-  const [view, setView] = useState('signup');
-  const [username, setUsername] = useState(''); // Tracking Unique Handle
+  const [view, setView] = useState('signup'); // 'signup' (Agree & Join) or 'signin' (Sign in to Studio)
+  const [username, setUsername] = useState(''); // Core User Identity Handle
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  
+  // Visibility Eye States
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
@@ -27,59 +31,74 @@ export default function AuthPage() {
     setStatusMessage('');
     setIsError(false);
 
-    // 1. Client side password confirmation validation
-    if (view === 'signup' && password !== confirmPassword) {
-      setLoading(false);
-      setIsError(true);
-      setStatusMessage('❌ Passwords do not match! Please re-verify.');
-      return;
-    }
+    // 1. Client-side validation checks
+    if (view === 'signup') {
+      const cleanHandle = username.trim().toLowerCase();
+      
+      if (!cleanHandle) {
+        setLoading(false);
+        setIsError(true);
+        setStatusMessage('❌ Please establish a unique handle identity to join.');
+        return;
+      }
 
-    try {
-      if (view === 'signup') {
-        
-        // 2. CHECK FOR DUPLICATE USERNAME FIRST
-        // This looks inside your public profiles data table to ensure the handle isn't taken
-        const cleanUserHandle = username.trim().toLowerCase();
-        const { data: existingUser, error: usernameCheckError } = await database
+      if (password !== confirmPassword) {
+        setLoading(false);
+        setIsError(true);
+        setStatusMessage('❌ Passwords do not match! Please re-verify.');
+        return;
+      }
+
+      try {
+        // 2. Query Supabase profiles table to check if the username identity already exists
+        const { data: existingUser } = await database
           .from('profiles') 
           .select('username')
-          .eq('username', cleanUserHandle)
+          .eq('username', cleanHandle)
           .maybeSingle();
 
         if (existingUser) {
           setLoading(false);
           setIsError(true);
-          setStatusMessage(`❌ The handle @${cleanUserHandle} is already taken! Please choose another one.`);
+          setStatusMessage(`❌ The username handle @${cleanHandle} is already taken! Please try a different identity.`);
           return;
         }
 
-        // 3. REAL-DATA SIGNUP (Supabase natively catches duplicate emails here)
+        // 3. Register Account with Email + Password + Username Metadata Identity
         const { data, error } = await database.auth.signUp({
           email: email.trim(),
           password: password,
           options: {
             emailRedirectTo: `${window.location.origin}/dashboard`,
-            // Save the unique handle along with the registration metadata
             data: {
-              username: cleanUserHandle,
+              username: cleanHandle,
             }
           },
         });
 
-        // If the email is already in use, Supabase throws an explicit error object
         if (error) throw error;
 
         setIsError(false);
-        setStatusMessage('✉️ A one-time confirmation link has been sent to your email! Please check your inbox to verify your account.');
-        
-        // Reset inputs
+        setStatusMessage('✉️ A one-time confirmation link has been sent to your email! Verify it to claim your username identity.');
         setUsername('');
         setEmail('');
         setPassword('');
         setConfirmPassword('');
-      } else {
-        // REAL-DATA SIGN IN
+
+      } catch (err: any) {
+        setIsError(true);
+        let visualError = err.message || 'Action failed';
+        if (visualError.includes('already registered') || visualError.includes('Email already in use')) {
+          visualError = 'This email address is already linked to an existing account. Try Signing In instead!';
+        }
+        setStatusMessage(`❌ ${visualError}`);
+      } finally {
+        setLoading(false);
+      }
+
+    } else {
+      // Real-Data Sign In Block
+      try {
         const { data, error } = await database.auth.signInWithPassword({
           email: email.trim(),
           password: password,
@@ -87,19 +106,12 @@ export default function AuthPage() {
 
         if (error) throw error;
         router.push('/dashboard');
+      } catch (err: any) {
+        setIsError(true);
+        setStatusMessage(`❌ ${err.message || 'Invalid Sign In credentials'}`);
+      } finally {
+        setLoading(false);
       }
-    } catch (err: any) {
-      setIsError(true);
-      
-      // Clean up common system error messages for standard human reading
-      let visualError = err.message || 'Action failed';
-      if (visualError.includes('already registered') || visualError.includes('Email already in use')) {
-        visualError = 'This email address is already linked to an existing account. Try Signing In instead!';
-      }
-      
-      setStatusMessage(`❌ ${visualError}`);
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -123,7 +135,7 @@ export default function AuthPage() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FAF8F5', fontFamily: 'sans-serif', color: '#111111', padding: '20px' }}>
-      <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '420px', padding: '40px', borderRadius: '24px', border: '1px solid #E8E2D9', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', boxSizing: 'border-box' }}>
+      <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '#420px', padding: '40px', borderRadius: '24px', border: '1px solid #E8E2D9', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', boxSizing: 'border-box' }}>
         
         <header style={{ textAlign: 'center', marginBottom: '28px' }}>
           <h1 style={{ margin: '0 0 8px 0', fontSize: '32px', fontWeight: '800', letterSpacing: '-0.5px' }}>Producer Saab</h1>
@@ -152,11 +164,18 @@ export default function AuthPage() {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
-          {/* USERNAME HANDLE INPUT ROW */}
+          {/* CORE IDENTITY USERNAME FIELD (Visible only during Agree & Join Sign Up) */}
           {view === 'signup' && (
             <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Unique Handle (@username)</label>
-              <input type="text" placeholder="e.g., n thakur" value={username} onChange={function(e) { setUsername(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} required />
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Create Unique Handle Username</label>
+              <input 
+                type="text" 
+                placeholder="e.g., n_thakur" 
+                value={username} 
+                onChange={function(e) { setUsername(e.target.value.replace(/\s+/g, '')); }} 
+                style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} 
+                required 
+              />
             </div>
           )}
 
@@ -167,18 +186,50 @@ export default function AuthPage() {
 
           <div>
             <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Password</label>
-            <input type="password" placeholder="••••••••" value={password} onChange={function(e) { setPassword(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} required />
+            <div style={{ position: 'relative', width: '100%' }}>
+              <input 
+                type={showPassword ? "text" : "password"} 
+                placeholder="••••••••" 
+                value={password} 
+                onChange={function(e) { setPassword(e.target.value); }} 
+                style={{ width: '100%', padding: '14px 60px 14px 14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} 
+                required 
+              />
+              <button 
+                type="button" 
+                onClick={function() { setShowPassword(!showPassword); }} 
+                style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#C5A880', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
           </div>
 
           {view === 'signup' && (
             <div>
               <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Reconfirm Password</label>
-              <input type="password" placeholder="••••••••" value={confirmPassword} onChange={function(e) { setConfirmPassword(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} required />
+              <div style={{ position: 'relative', width: '100%' }}>
+                <input 
+                  type={showConfirmPassword ? "text" : "password"} 
+                  placeholder="••••••••" 
+                  value={confirmPassword} 
+                  onChange={function(e) { setConfirmPassword(e.target.value); }} 
+                  style={{ width: '100%', padding: '14px 60px 14px 14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} 
+                  required 
+                />
+                <button 
+                  type="button" 
+                  onClick={function() { setShowConfirmPassword(!showConfirmPassword); }} 
+                  style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#C5A880', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}
+                >
+                  {showConfirmPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
             </div>
           )}
 
           <button type="submit" disabled={loading} style={{ width: '100%', padding: '16px', borderRadius: '30px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
-            {loading ? 'Validating fields...' : view === 'signup' ? 'Agree & Join' : 'Sign In to Studio'}
+            {loading ? 'Securing Registration...' : view === 'signup' ? 'Agree & Join' : 'Sign In to Studio'}
           </button>
         </form>
 
@@ -212,7 +263,7 @@ export default function AuthPage() {
             </span>
           ) : (
             <span>
-              Ready to claim your handle?{' '}
+              Ready to claim your handle identity?{' '}
               <button type="button" onClick={function() { setView('signup'); setStatusMessage(''); }} style={{ background: 'none', border: 'none', color: '#C5A880', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Join now</button>
             </span>
           )}
