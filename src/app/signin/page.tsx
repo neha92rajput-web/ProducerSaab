@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
@@ -8,13 +8,12 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const database = createClient(supabaseUrl, supabaseAnonKey);
 
-export default function AuthPage() {
+// 1. Move your main form interface code into its own component block
+function AuthFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // Dynamic view state based on the URL parameter
   const [view, setView] = useState('signup'); 
-  
   const [username, setUsername] = useState(''); 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,7 +26,6 @@ export default function AuthPage() {
   const [statusMessage, setStatusMessage] = useState('');
   const [isError, setIsError] = useState(false);
 
-  // Sync state cleanly whenever the URL search params change
   useEffect(() => {
     const urlView = searchParams.get('view');
     if (urlView === 'signin') {
@@ -77,7 +75,6 @@ export default function AuthPage() {
           email: cleanEmail,
           password: password,
           options: {
-            // FIXED: Added ?next=/dashboard here so users route properly upon email verification!
             emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
             data: { username: cleanHandle }
           },
@@ -128,8 +125,6 @@ export default function AuthPage() {
         )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
-          {/* HIDES USERNAME FOR EXISTING USERS */}
           {view === 'signup' && (
             <div>
               <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Create Unique Handle Username</label>
@@ -150,7 +145,6 @@ export default function AuthPage() {
             </div>
           </div>
 
-          {/* HIDES CONFIRM PASSWORD FOR EXISTING USERS */}
           {view === 'signup' && (
             <div>
               <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Confirm Password</label>
@@ -184,5 +178,14 @@ export default function AuthPage() {
 
       </div>
     </div>
+  );
+}
+
+// 2. Wrap the layout in a Suspense boundary for your default export layer
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif', backgroundColor: '#FAF8F5' }}>Loading Studio Authentication Suite...</div>}>
+      <AuthFormContent />
+    </Suspense>
   );
 }
