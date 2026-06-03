@@ -1,156 +1,110 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 
-function SignInContent() {
-  const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-  
+export default function SignUpPage() {
   const supabase = createClientComponentClient();
-  const searchParams = useSearchParams();
+  const [handle, setHandle] = useState('');
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  // Explicitly listen to URL query changes to force view switches dynamically
-  useEffect(() => {
-    const view = searchParams.get('view');
-    if (view === 'signup') {
-      setIsSignUp(true);
-    } else {
-      setIsSignUp(false);
-    }
-    // Clear out residual alerts on toggle
-    setErrorMsg('');
-    setMessage('');
-  }, [searchParams]);
-
-  const handleMagicLink = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setErrorMsg('');
-    setMessage('');
+    setStatus(null);
+
+    // Clean up the handle formatting (removes '@' if they typed it)
+    const cleanHandle = handle.replace('@', '').trim().toLowerCase();
 
     try {
       const { error } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
+        email: email,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: isSignUp ? {
-            username: username.toLowerCase().trim(),
-            display_name: username,
-          } : undefined
+          // This saves their custom music handle directly into their user account metadata
+          data: { 
+            username: cleanHandle 
+          },
+          // This tells Supabase to send the user to our hidden bridge file when they click the email link
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
       if (error) {
-        setErrorMsg(error.message);
+        setStatus({ type: 'error', message: error.message });
       } else {
-        setMessage('✨ Verification link dispatched! Check your email inbox to verify your profile handle.');
+        setStatus({ 
+          type: 'success', 
+          message: '✨ Access Link Sent! Please check your email inbox to verify your account.' 
+        });
       }
     } catch (err) {
-      setErrorMsg('Network bridge failed. Ensure your connection configuration is live.');
+      setStatus({ type: 'error', message: 'An unexpected connection error occurred.' });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-[#1E1E1E] font-sans flex flex-col justify-center py-12 px-6">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-4">
-        <Link href="/" className="font-sans font-black tracking-widest text-xl inline-block text-neutral-900">
-          <span className="text-2xl font-light tracking-tighter text-neutral-500 mr-1">川</span> Producer Saab
-        </Link>
-        <h2 className="text-2xl font-serif font-black tracking-tight text-neutral-900">
-          {isSignUp ? 'Establish your music handle' : 'Sign in to your Studio'}
-        </h2>
-        <p className="text-xs font-medium text-neutral-400">
-          Passwordless Verification • Direct via Email
-        </p>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white border border-[#EAE6DA] rounded-3xl p-8 shadow-sm space-y-6">
-          <form onSubmit={handleMagicLink} className="space-y-4">
-            
-            {isSignUp && (
-              <div>
-                <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Unique Handle (@username)</label>
-                <input 
-                  type="text" 
-                  required
-                  placeholder="e.g. metroboomin" 
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#FAF9F5] border border-[#EAE6DA] rounded-xl text-sm focus:outline-none focus:border-neutral-900 transition"
-                />
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Email Address</label>
-              <input 
-                type="email" 
-                required
-                placeholder="producer@studio.com" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-[#FAF9F5] border border-[#EAE6DA] rounded-xl text-sm focus:outline-none focus:border-neutral-900 transition"
-              />
-            </div>
-
-            {errorMsg && (
-              <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 px-3 py-2 rounded-xl text-center">
-                ⚠️ {errorMsg}
-              </p>
-            )}
-
-            {message && (
-              <p className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-2 rounded-xl text-center">
-                {message}
-              </p>
-            )}
-
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="w-full py-3 bg-[#1E1E1E] hover:bg-neutral-800 disabled:bg-neutral-400 text-white font-bold rounded-xl text-sm transition shadow-sm"
-            >
-              {loading ? 'Dispatched Notification...' : isSignUp ? 'Send Access Handle Link' : 'Sign in to your Studio'}
-            </button>
-          </form>
-
-          <div className="text-center pt-2">
-            <button 
-              type="button"
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setErrorMsg('');
-                setMessage('');
-              }}
-              className="text-xs font-bold text-neutral-500 hover:text-black transition"
-            >
-              {isSignUp ? 'Already registered? Sign in here' : 'New to Producer Saab? Join the community'}
-            </button>
-          </div>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', fontFamily: 'sans-serif', backgroundColor: '#ffffff' }}>
+      <div style={{ padding: '40px', borderRadius: '24px', border: '1px solid #eaeaea', width: '100%', maxWidth: '420px' }}>
+        
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <h2 style={{ fontSize: '26px', fontWeight: 'bold', margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>Producer Saab</h2>
+          <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Establish your music handle</p>
         </div>
+
+        <form onSubmit={handleSignUp}>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', marginBottom: '8px', color: '#111', letterSpacing: '0.5px' }}>
+              Unique Handle (@username)
+            </label>
+            <input 
+              type="text" 
+              placeholder="nthakur" 
+              value={handle}
+              onChange={(e) => setHandle(e.target.value)}
+              required
+              style={{ width: '100%', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', boxSizing: 'border-box', fontSize: '15px' }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', marginBottom: '8px', color: '#111', letterSpacing: '0.5px' }}>
+              Email Address
+            </label>
+            <input 
+              type="email" 
+              placeholder="neha92rajput@gmail.com" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              style={{ width: '100%', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', boxSizing: 'border-box', fontSize: '15px' }}
+            />
+          </div>
+
+          {status && (
+            <div style={{ 
+              padding: '14px', borderRadius: '10px', fontSize: '14px', marginBottom: '20px', textAlign: 'center', fontWeight: '500',
+              backgroundColor: status.type === 'error' ? '#fff1f2' : '#f0fdf4',
+              color: status.type === 'error' ? '#e11d48' : '#16a34a',
+              border: `1px solid ${status.type === 'error' ? '#fecdd3' : '#bbf7d0'}`
+            }}>
+              {status.message}
+            </div>
+          )}
+
+          <button 
+            type="submit" 
+            disabled={loading}
+            style={{ width: '100%', padding: '16px', borderRadius: '10px', border: 'none', backgroundColor: '#111', color: '#fff', fontSize: '15px', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}
+          >
+            {loading ? 'Processing...' : 'Send Access Handle Link'}
+          </button>
+        </form>
+
       </div>
     </div>
-  );
-}
-
-export default function SignInGate() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#FAF9F5] flex items-center justify-center text-xs font-bold text-neutral-400 tracking-widest uppercase">
-        Loading Portal...
-      </div>
-    }>
-      <SignInContent />
-    </Suspense>
   );
 }
