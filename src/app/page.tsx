@@ -62,10 +62,10 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-[#1E1E1E] font-sans antialiased">
+    <div className="min-h-screen bg-[#F5F2EB] text-[#1E1E1E] font-sans antialiased">
       
-      {/* BRAND HEADER */}
-      <header className="sticky top-0 z-50 bg-[#FAF9F5]/90 backdrop-blur-sm border-b border-[#EAE6DA] px-6 py-4">
+      {/* BRAND HEADER (Locked to Sand-Beige background matching image_1d89e3.png) */}
+      <header className="sticky top-0 z-50 bg-[#F5F2EB]/95 backdrop-blur-sm border-b border-[#E3DDD0] px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-1.5 font-sans font-black tracking-widest text-lg text-neutral-900 uppercase">
             <span className="text-xl font-light tracking-tighter text-neutral-500 mr-0.5">川</span>
@@ -87,9 +87,9 @@ export default function Home() {
 
       {/* HERO SECTION */}
       <main 
-        className="relative bg-[#FAF9F5] bg-cover bg-center bg-no-repeat"
+        className="relative bg-[#F5F2EB] bg-cover bg-center bg-no-repeat"
         style={{ 
-          backgroundImage: `linear-gradient(to bottom, rgba(250, 249, 245, 0.88) 0%, rgba(250, 249, 245, 0.96) 100%), url('https://images.unsplash.com/photo-1552422535-c45813c61732?w=1800&auto=format&fit=crop&q=80')` 
+          backgroundImage: `linear-gradient(to bottom, rgba(245, 242, 235, 0.88) 0%, rgba(245, 242, 235, 0.98) 100%), url('https://images.unsplash.com/photo-1552422535-c45813c61732?w=1800&auto=format&fit=crop&q=80')` 
         }}
       >
         <div className="max-w-6xl mx-auto pt-24 pb-24 px-6 space-y-8 relative z-10 text-center sm:text-left">
@@ -109,13 +109,13 @@ export default function Home() {
             <Link href="/signin?view=signup" className="px-6 py-3 bg-[#1E1E1E] hover:bg-neutral-800 text-white text-xs font-bold rounded-full transition shadow-sm flex items-center justify-center gap-2">
               Join the Community →
             </Link>
-            <Link href="/library" className="px-6 py-3 bg-white border border-[#EAE6DA] hover:bg-neutral-50 text-neutral-800 text-xs font-bold rounded-full transition text-center shadow-sm">
+            <Link href="/library" className="px-6 py-3 bg-white/40 border border-[#E3DDD0] hover:bg-white/80 text-neutral-800 text-xs font-bold rounded-full transition text-center shadow-sm">
               Explore Sounds
             </Link>
           </div>
 
           {/* METRICS */}
-          <div className="pt-8 grid grid-cols-3 gap-6 max-w-sm mx-auto sm:mx-0 text-left border-t border-[#EAE6DA]">
+          <div className="pt-8 grid grid-cols-3 gap-6 max-w-sm mx-auto sm:mx-0 text-left border-t border-[#E3DDD0]">
             <div className="flex items-center gap-2">
               <span className="text-neutral-400 text-sm">👥</span>
               <div>
@@ -142,7 +142,7 @@ export default function Home() {
       </main>
 
       {/* WHY JOIN PRODUCER SAAB FEATURE GRID */}
-      <section className="max-w-4xl mx-auto py-20 px-6 text-center space-y-16 border-t border-[#EAE6DA]/40">
+      <section className="max-w-4xl mx-auto py-20 px-6 text-center space-y-16 border-t border-[#E3DDD0]/50">
         <div>
           <h2 className="text-3xl font-sans font-black text-neutral-900 tracking-tight">
             Why Join Produc<span className="text-[#C5A880]">er</span> Saab?
@@ -152,7 +152,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-y-12 gap-x-16 max-w-2xl mx-auto">
           {/* Item 1 */}
           <div className="flex flex-col items-center text-center space-y-3">
-            <div className="w-16 h-16 bg-[#F2EDE2] rounded-2xl flex items-center justify-center shadow-sm">
+            <div className="w-16 h-16 bg-[#EDE9DE] rounded-2xl flex items-center justify-center shadow-sm">
               <svg className="w-6 h-6 text-[#C5A880]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 18v-6a9 9 0 0118 0v6M4 18h16a1 1 0 001-1v-1a4 4 0 00-4-4H7a4 4 0 00-4 4v1a1 1 0 001 1z" />
               </svg>
@@ -163,7 +163,7 @@ export default function Home() {
 
           {/* Item 2 */}
           <div className="flex flex-col items-center text-center space-y-3">
-            <div className="w-16 h-16 bg-[#F2EDE2] rounded-2xl flex items-center justify-center shadow-sm">
+            <div className="w-16 h-16 bg-[#EDE9DE] rounded-2xl flex items-center justify-center shadow-sm">
               <svg className="w-6 h-6 text-[#C5A880]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
               </svg>
@@ -174,7 +174,7 @@ export default function Home() {
 
           {/* Item 3 */}
           <div className="flex flex-col items-center text-center space-y-3">
-            <div className="w-16 h-16 bg-[#F2EDE2] rounded-2xl flex items-center justify-center shadow-sm">
+            <div className="w-16 h-16 bg-[#EDE9DE] rounded-2xl flex items-center justify-center shadow-sm">
               <svg className="w-6 h-6 text-[#C5A880]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
               </svg>
@@ -185,7 +185,7 @@ export default function Home() {
 
           {/* Item 4 */}
           <div className="flex flex-col items-center text-center space-y-3">
-            <div className="w-16 h-16 bg-[#F2EDE2] rounded-2xl flex items-center justify-center shadow-sm">
+            <div className="w-16 h-16 bg-[#EDE9DE] rounded-2xl flex items-center justify-center shadow-sm">
               <svg className="w-6 h-6 text-[#C5A880]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
               </svg>
@@ -196,8 +196,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* RECENT UPLOADS CONTAINER */}
-      <section className="max-w-6xl mx-auto py-12 px-6 space-y-6 border-t border-[#EAE6DA]/40">
+      {/* TRENDING SOUNDS MODULE DECK (Uniform Sand-Beige Container styling) */}
+      <section className="max-w-6xl mx-auto py-12 px-6 space-y-6 border-t border-[#E3DDD0]/60">
         <h2 className="text-xl font-serif font-black text-neutral-900">🔥 Trending Sounds</h2>
 
         {loading ? (
@@ -205,7 +205,7 @@ export default function Home() {
         ) : recentUploads.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {recentUploads.map((track) => (
-              <div key={track.id} className="bg-white border border-[#EAE6DA] rounded-2xl p-4 space-y-4 shadow-sm">
+              <div key={track.id} className="bg-[#EDE9DE] border border-[#E3DDD0] rounded-2xl p-4 space-y-4 shadow-sm">
                 <div className="truncate">
                   <span className="px-1.5 py-0.5 bg-black text-white text-[8px] font-black rounded tracking-wide uppercase mr-2">{track.genre || 'Loop'}</span>
                   <h4 className="font-bold text-xs text-neutral-900 truncate inline-block">{track.title}</h4>
@@ -215,19 +215,18 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          /* Premium Empty State Fallback matching image_1d91e7.png cards */
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white border border-[#EAE6DA] rounded-2xl p-5 space-y-2 shadow-sm">
+            <div className="bg-[#EDE9DE] border border-[#E3DDD0] rounded-2xl p-5 space-y-2 shadow-sm">
               <span className="px-1.5 py-0.5 bg-black text-white text-[8px] font-black rounded uppercase">TRAP</span>
               <h4 className="font-black text-sm text-neutral-900 pt-1">Dark Trap Melody</h4>
               <p className="text-[11px] text-neutral-400 font-medium">Waiting for your first upload</p>
             </div>
-            <div className="bg-white border border-[#EAE6DA] rounded-2xl p-5 space-y-2 shadow-sm">
+            <div className="bg-[#EDE9DE] border border-[#E3DDD0] rounded-2xl p-5 space-y-2 shadow-sm">
               <span className="px-1.5 py-0.5 bg-black text-white text-[8px] font-black rounded uppercase">DRILL</span>
               <h4 className="font-black text-sm text-neutral-900 pt-1">UK Drill Loop</h4>
               <p className="text-[11px] text-neutral-400 font-medium">Waiting for your first upload</p>
             </div>
-            <div className="bg-white border border-[#EAE6DA] rounded-2xl p-5 space-y-2 shadow-sm">
+            <div className="bg-[#EDE9DE] border border-[#E3DDD0] rounded-2xl p-5 space-y-2 shadow-sm">
               <span className="px-1.5 py-0.5 bg-black text-white text-[8px] font-black rounded uppercase">R&B</span>
               <h4 className="font-black text-sm text-neutral-900 pt-1">R&B Piano Chords</h4>
               <p className="text-[11px] text-neutral-400 font-medium">Waiting for your first upload</p>
@@ -248,7 +247,7 @@ export default function Home() {
         ) : networkProfiles.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {networkProfiles.map((userCard) => (
-              <div key={userCard.id} className="bg-white border border-[#EAE6DA] rounded-2xl p-5 flex items-center justify-between shadow-sm">
+              <div key={userCard.id} className="bg-[#EDE9DE] border border-[#E3DDD0] rounded-2xl p-5 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-4">
                   <div className="w-11 h-11 bg-neutral-900 text-white font-serif font-black text-sm rounded-full flex items-center justify-center uppercase shadow-sm">
                     {String(userCard.display_name || userCard.username || 'P').charAt(0)}
@@ -260,7 +259,7 @@ export default function Home() {
                 </div>
                 <Link 
                   href={`/${userCard.username || ''}`}
-                  className="px-4 py-1.5 bg-[#FAF9F5] hover:bg-neutral-100 text-neutral-800 border border-[#EAE6DA] rounded-xl text-xs font-bold transition shadow-sm"
+                  className="px-4 py-1.5 bg-[#F5F2EB] hover:bg-neutral-100 text-neutral-800 border border-[#E3DDD0] rounded-xl text-xs font-bold transition shadow-sm"
                 >
                   Follow
                 </Link>
@@ -268,9 +267,8 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          /* Premium Fallback directory matching image_1d91e7.png */
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-white border border-[#EAE6DA] rounded-2xl p-5 flex items-center justify-between shadow-sm">
+            <div className="bg-[#EDE9DE] border border-[#E3DDD0] rounded-2xl p-5 flex items-center justify-between shadow-sm">
               <div className="flex items-center gap-4">
                 <div className="w-11 h-11 bg-neutral-900 text-white font-serif font-black text-sm rounded-full flex items-center justify-center">P</div>
                 <div>
@@ -278,9 +276,9 @@ export default function Home() {
                   <p className="text-[10px] text-neutral-400 font-semibold">Trap Producer</p>
                 </div>
               </div>
-              <button className="px-4 py-1.5 bg-[#FAF9F5] border border-[#EAE6DA] text-neutral-800 text-xs font-bold rounded-xl shadow-sm">Follow</button>
+              <button className="px-4 py-1.5 bg-[#F5F2EB] border border-[#E3DDD0] text-neutral-800 text-xs font-bold rounded-xl shadow-sm">Follow</button>
             </div>
-            <div className="bg-white border border-[#EAE6DA] rounded-2xl p-5 flex items-center justify-between shadow-sm">
+            <div className="bg-[#EDE9DE] border border-[#E3DDD0] rounded-2xl p-5 flex items-center justify-between shadow-sm">
               <div className="flex items-center gap-4">
                 <div className="w-11 h-11 bg-neutral-800 text-white font-serif font-black text-sm rounded-full flex items-center justify-center">L</div>
                 <div>
@@ -288,13 +286,13 @@ export default function Home() {
                   <p className="text-[10px] text-neutral-400 font-semibold">Drill Producer</p>
                 </div>
               </div>
-              <button className="px-4 py-1.5 bg-[#FAF9F5] border border-[#EAE6DA] text-neutral-800 text-xs font-bold rounded-xl shadow-sm">Follow</button>
+              <button className="px-4 py-1.5 bg-[#F5F2EB] border border-[#E3DDD0] text-neutral-800 text-xs font-bold rounded-xl shadow-sm">Follow</button>
             </div>
           </div>
         )}
       </section>
 
-      {/* 🌟 RE-ENGINEERED SUMMER LIGHT CTA SECTION */}
+      {/* SUMMER LIGHT CTA SECTION */}
       <section className="max-w-6xl mx-auto px-6 pb-12">
         <div className="bg-[#EFECE2] rounded-[2.5rem] p-10 sm:p-14 text-center space-y-5 border border-[#E4E0D5]">
           <div className="max-w-md mx-auto space-y-2">
@@ -303,16 +301,18 @@ export default function Home() {
               Join thousands of producers uploading loops, building audiences, and collaborating across the globe.
             </p>
           </div>
-          <div className="pt-2">
-            <Link href="/signin?view=signup" className="inline-block px-7 py-3 bg-[#1E1E1E] hover:bg-neutral-800 text-white text-xs font-bold rounded-full transition shadow-sm">
-              Get Started — It's Free →
-            </Link>
+          <div className="grid pt-2">
+            <div>
+              <Link href="/signin?view=signup" className="inline-block px-7 py-3 bg-[#1E1E1E] hover:bg-neutral-800 text-white text-xs font-bold rounded-full transition shadow-sm">
+                Get Started — It's Free →
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="max-w-6xl mx-auto pb-8 px-6 text-[10px] text-neutral-400 border-t border-[#EAE6DA]/40 pt-6 text-center">
+      <footer className="max-w-6xl mx-auto pb-8 px-6 text-[10px] text-neutral-400 border-t border-[#E3DDD0]/40 pt-6 text-center">
         <p>© 2026 Producer Saab. All rights reserved.</p>
       </footer>
 
