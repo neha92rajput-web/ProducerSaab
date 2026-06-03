@@ -30,9 +30,10 @@ export default function AuthPage() {
     setStatusMessage('');
     setIsError(false);
 
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanHandle = username.trim().toLowerCase();
+
     if (view === 'signup') {
-      const cleanHandle = username.trim().toLowerCase();
-      
       if (!cleanHandle) {
         setLoading(false);
         setIsError(true);
@@ -48,63 +49,76 @@ export default function AuthPage() {
       }
 
       try {
-        // Double check duplicate handle manually
-        const { data: existingUser } = await database
+        // 1. STRICT MANUAL PRE-CHECK: SCAN FOR DUPLICATE USERNAME HANDLES
+        const { data: existingUserByHandle } = await database
           .from('profiles') 
           .select('username')
           .eq('username', cleanHandle)
           .maybeSingle();
 
-        if (existingUser) {
+        if (existingUserByHandle) {
           setLoading(false);
           setIsError(true);
           setStatusMessage(`❌ The handle @${cleanHandle} is already taken!`);
           return;
         }
 
-        // SignUp execution block
+        // 2. STRICT MANUAL PRE-CHECK: SCAN FOR DUPLICATE EMAIL ADDRESSES
+        // Looks inside the public profiles table mapping to catch identical emails instantly
+        const { data: existingUserByEmail } = await database
+          .from('profiles')
+          .select('email')
+          .eq('email', cleanEmail)
+          .maybeSingle();
+
+        if (existingUserByEmail) {
+          setLoading(false);
+          setIsError(true);
+          setStatusMessage('❌ This email address is already linked to an existing account! Try signing in instead.');
+          return;
+        }
+
+        // 3. SECURE CORE SIGN UP TERMINAL EXECUTION
         const { data, error } = await database.auth.signUp({
-          email: email.trim(),
+          email: cleanEmail,
           password: password,
           options: {
             data: {
               username: cleanHandle,
+              email: cleanEmail // Storing the text email inside the metadata mapping array
             }
           },
         });
 
         if (error) throw error;
 
-        // If your Supabase dashboard has "Confirm Email" turned OFF, they are auto-logged in here!
         if (data?.session) {
           setIsError(false);
-          setStatusMessage('🎉 Account created successfully! Entering dashboard...');
+          setStatusMessage('🎉 Account established successfully! Entering dashboard...');
           setTimeout(function() {
             router.push('/dashboard');
           }, 1000);
         } else {
           setIsError(false);
-          setStatusMessage('✉️ A confirmation request was dispatched. If you do not see it shortly, try turning off "User Enumeration Protection" in your Supabase Auth settings console!');
+          setStatusMessage('✉️ A validation link has been sent to your email address! Please confirm it to initialize your studio workstation.');
+          setUsername('');
+          setEmail('');
+          setPassword('');
+          setConfirmPassword('');
         }
 
       } catch (err: any) {
         setIsError(true);
-        let visualError = err.message || 'Action failed';
-        
-        // Custom trap catch if user enumeration settings are disabled
-        if (visualError.includes('already registered') || visualError.includes('already in use') || err.status === 422) {
-          visualError = 'This email address is already linked to an existing account! Try switching below to Sign In.';
-        }
-        setStatusMessage(`❌ ${visualError}`);
+        setStatusMessage(`❌ Registration Error: ${err.message || 'Action failed'}`);
       } finally {
         setLoading(false);
       }
 
     } else {
-      // Sign In Flow
+      // Sign In Pipeline
       try {
         const { data, error } = await database.auth.signInWithPassword({
-          email: email.trim(),
+          email: cleanEmail,
           password: password,
         });
 
@@ -112,7 +126,7 @@ export default function AuthPage() {
         router.push('/dashboard');
       } catch (err: any) {
         setIsError(true);
-        setStatusMessage(`❌ ${err.message || 'Invalid login details'}`);
+        setStatusMessage(`❌ Login Failed: ${err.message || 'Invalid email or password parameters'}`);
       } finally {
         setLoading(false);
       }
@@ -138,8 +152,9 @@ export default function AuthPage() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FAF8F5', fontFamily: 'sans-serif', color: '#111111', padding: '20px' }}>
-      <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '#420px', padding: '40px', borderRadius: '24px', border: '1px solid #E8E2D9', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', boxSizing: 'border-box' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', width: '100vw', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FAF8F5', fontFamily: 'sans-serif', color: '#111111', padding: '20px', boxSizing: 'border-box' }}>
+      
+      <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '450px', padding: '40px', borderRadius: '24px', border: '1px solid #E8E2D9', boxShadow: '0 4px 25px rgba(0,0,0,0.03)', boxSizing: 'border-box' }}>
         
         <header style={{ textAlign: 'center', marginBottom: '28px' }}>
           <h1 style={{ margin: '0 0 8px 0', fontSize: '32px', fontWeight: '800', letterSpacing: '-0.5px' }}>Producer Saab</h1>
