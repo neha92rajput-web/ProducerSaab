@@ -84,10 +84,16 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 2. LUXURY STUDIO HERO CONTAINER */}
-      <main className="relative min-h-[520px] flex items-center bg-[#D8CBBE] overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#D8CBBE] via-[#E7DED3]/40 to-[#D8CBBE] opacity-90" />
-        <div className="absolute inset-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#1C1B1A_1px,transparent_1px)] [background-size:16px_16px]" />
+      {/* 2. RE-DESIGNED WARM STUDIO BACKDROP HERO CONTEXT AREA */}
+      <main 
+        className="relative min-h-[540px] flex items-center bg-[#E7DED3] bg-cover bg-center bg-no-repeat overflow-hidden"
+        style={{ 
+          // Beautiful light aesthetic photography featuring keys, workspace setup, plants, and master headphone monitoring layout
+          backgroundImage: `linear-gradient(to right, rgba(246, 241, 234, 0.94) 30%, rgba(246, 241, 234, 0.78) 70%, rgba(246, 241, 234, 0.5) 100%), url('https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1800&auto=format&fit=crop&q=80')` 
+        }}
+      >
+        {/* Subtle grid accent to maintain luxury texture overlay */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#1C1B1A_1px,transparent_1px)] [background-size:16px_16px]" />
 
         <div className="max-w-6xl mx-auto w-full px-8 pt-20 pb-20 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
@@ -96,7 +102,6 @@ export default function Home() {
             <div className="space-y-4">
               <p className="text-[10px] font-bold text-[#1C1B1A] uppercase tracking-[0.25em] bg-[#1C1B1A]/5 px-2.5 py-1 rounded w-max backdrop-blur-sm">WELCOME TO PRODUCER SAAB</p>
               
-              {/* UPDATED: font-normal changed to font-bold to make "The Home for Music Producers" look beautifully thicker */}
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold tracking-tight text-[#1C1B1A] whitespace-nowrap">
                 The Home for Music Producers
               </h1>
@@ -115,7 +120,7 @@ export default function Home() {
               <Link href="/signin?view=signup" className="px-6 py-3 bg-[#111111] hover:bg-[#2B2A27] text-white text-xs font-bold rounded-full transition-all duration-300 shadow-md">
                 Join the Community →
               </Link>
-              <Link href="/library" className="px-6 py-3 bg-transparent border border-[#1C1B1A]/30 hover:border-[#1C1B1A] text-[#1C1B1A] text-xs font-bold rounded-full transition-all duration-300">
+              <Link href="/library" className="px-6 py-3 bg-transparent border border-[#1C1B1A]/20 hover:border-[#1C1B1A] text-[#1C1B1A] text-xs font-bold rounded-full transition-all duration-300">
                 Discover Sounds
               </Link>
             </div>
@@ -125,19 +130,19 @@ export default function Home() {
                 <h4 className="text-xs font-bold tracking-wide text-[#1C1B1A] flex items-center gap-1.5">
                   <span className="text-[#3F5A3A]">●</span> Upload Your Audio
                 </h4>
-                <p className="text-[11px] text-[#1C1B1A]/70 font-medium">Share your best work</p>
+                <p className="text-[11px] text-[#5A5550] font-medium">Share your best work</p>
               </div>
               <div className="space-y-1">
                 <h4 className="text-xs font-bold tracking-wide text-[#1C1B1A] flex items-center gap-1.5">
                   <span className="text-[#3F5A3A]">●</span> Connect & Collaborate
                 </h4>
-                <p className="text-[11px] text-[#1C1B1A]/70 font-medium">Work with creators</p>
+                <p className="text-[11px] text-[#5A5550] font-medium">Work with creators</p>
               </div>
               <div className="space-y-1">
                 <h4 className="text-xs font-bold tracking-wide text-[#1C1B1A] flex items-center gap-1.5">
                   <span className="text-[#3F5A3A]">●</span> Build Your Studio
                 </h4>
-                <p className="text-[11px] text-[#1C1B1A]/70 font-medium">Grow your audience</p>
+                <p className="text-[11px] text-[#5A5550] font-medium">Grow your audience</p>
               </div>
             </div>
           </div>
@@ -240,7 +245,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* 6. FEATURED PRODUCERS MODULE */}
+      {/* 6. FEATURED CREATORS MODULE */}
       <section className="max-w-4xl mx-auto py-10 px-8 space-y-4">
         <h3 className="text-xs font-bold uppercase tracking-widest text-[#1C1B1A] flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-[#3F5A3A]" /> Featured Producers
