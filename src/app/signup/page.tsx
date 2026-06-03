@@ -35,12 +35,12 @@ export default function SignUpPage() {
     if (password !== confirmPassword) {
       setLoading(false);
       setIsError(true);
-      setStatusMessage('❌ Passwords do not match! Please re-verify.');
+      setStatusMessage('❌ Passwords do not match!');
       return;
     }
 
     try {
-      // 1. Strict manual check to make sure username isn't taken
+      // 1. Pre-verify username unique check inside the verified profiles table
       const { data: existingUser } = await database
         .from('profiles')
         .select('username')
@@ -54,22 +54,20 @@ export default function SignUpPage() {
         return;
       }
 
-      // 2. Sign up user purely into auth table system
+      // 2. Register user into auth metadata mapping system
       const { error } = await database.auth.signUp({
         email: cleanEmail,
         password: password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: {
-            username: cleanHandle,
-          }
+          data: { username: cleanHandle }
         },
       });
 
       if (error) throw error;
 
       setIsError(false);
-      setStatusMessage('✉️ Verification link sent! Your profile will be officially created once you click the link in your email inbox.');
+      setStatusMessage('✉️ Verification link sent! Check your email inbox to activate your account.');
       setUsername('');
       setEmail('');
       setPassword('');
@@ -77,7 +75,7 @@ export default function SignUpPage() {
     } catch (err: any) {
       setIsError(true);
       setStatusMessage(`❌ Error: ${err.message || 'Registration failed.'}`);
-    } author finally {
+    } finally {
       setLoading(false);
     }
   };
