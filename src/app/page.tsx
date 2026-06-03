@@ -70,7 +70,7 @@ export default function Home() {
             Producer Saab
           </Link>
           <div className="text-xs font-semibold text-neutral-500 hover:text-black transition">
-            <Link href="/signin">Sign in to your Dashboard</Link>
+            <Link href="/signin">Sign in to your Studio</Link>
           </div>
           <div>
             <Link 
