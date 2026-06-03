@@ -7,7 +7,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 export default function Home() {
   const supabase = createClientComponentClient();
 
-  // Dynamic state arrays
+  // Dynamic real-time database lookups
   const [recentUploads, setRecentUploads] = useState<any[]>([]);
   const [networkProfiles, setNetworkProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +52,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#F6F1EA] text-[#5A5550] font-sans antialiased">
       
-      {/* HEADER NAV */}
+      {/* HEADER NAVBAR */}
       <header className="sticky top-0 z-50 bg-[#F6F1EA]/95 backdrop-blur-sm border-b border-[#E7DED3] px-8 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-1.5 font-sans font-black tracking-widest text-lg text-[#1C1B1A] uppercase">
@@ -81,24 +81,27 @@ export default function Home() {
         </div>
       </header>
 
-      {/* CINEMATIC HERO SECTION (Styled with Hero Dark Overlay #2B2A27 / #3A352F) */}
+      {/* HERO SECTION WITH PERFECT GRADIENT OVERLAY OVER STUDIO IMAGE */}
       <main 
         className="relative min-h-[540px] flex items-center overflow-hidden"
         style={{ 
-          backgroundImage: `linear-gradient(to right, rgba(43, 42, 39, 0.95) 25%, rgba(58, 53, 47, 0.65) 60%, rgba(43, 42, 39, 0.2) 100%), url('https://images.unsplash.com/photo-1552422535-c45813c61732?w=1800&auto=format&fit=crop&q=80')`,
+          backgroundImage: `linear-gradient(to right, rgba(43, 42, 39, 0.96) 25%, rgba(58, 53, 47, 0.7) 60%, rgba(43, 42, 39, 0.2) 100%), url('https://images.unsplash.com/photo-1552422535-c45813c61732?w=1800&auto=format&fit=crop&q=80')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
       >
         <div className="max-w-7xl mx-auto w-full px-8 pt-16 pb-20 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+          
+          {/* Hero Left Content Column */}
           <div className="lg:col-span-7 space-y-8 text-left">
             <div className="space-y-4">
               <p className="text-[10px] font-bold text-[#C89B6D] uppercase tracking-widest">WELCOME TO PRODUCER SAAB</p>
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-black tracking-tight text-white leading-[1.1]">
                 The Home for <br />Music Producers<span className="text-[#C89B6D]">.</span>
               </h1>
-              <div className="max-w-2xl text-neutral-200 space-y-3 font-medium">
-                <p className="text-sm leading-relaxed text-neutral-300">
+              
+              <div className="max-w-2xl text-neutral-300 space-y-4 font-medium">
+                <p className="text-sm leading-relaxed text-neutral-300/90">
                   Join a community of music creators sharing tracks, loops, melodies, samples, and beats. Upload your audio, connect with collaborators, get discovered.
                 </p>
                 <p className="text-lg text-white font-normal tracking-tight">
@@ -107,6 +110,7 @@ export default function Home() {
               </div>
             </div>
 
+            {/* CTAs */}
             <div className="flex items-center gap-3.5">
               <Link href="/signin?view=signup" className="px-6 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white text-xs font-bold rounded-full transition shadow-sm flex items-center gap-2">
                 Join the Community →
@@ -115,9 +119,34 @@ export default function Home() {
                 Discover Sounds
               </Link>
             </div>
+
+            {/* Inline Sub-Features indicators matching image_122cc0.jpg */}
+            <div className="pt-8 grid grid-cols-3 gap-6 max-w-xl text-left border-t border-white/10">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-white">
+                  <span className="text-neutral-400 text-xs">👥</span>
+                  <h4 className="text-xs font-bold tracking-tight">Upload Your Audio</h4>
+                </div>
+                <p className="text-[11px] text-neutral-400 font-medium">Share your best work</p>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-white">
+                  <span className="text-neutral-400 text-xs">🎵</span>
+                  <h4 className="text-xs font-bold tracking-tight">Connect & Collaborate</h4>
+                </div>
+                <p className="text-[11px] text-neutral-400 font-medium">Work with creators</p>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-white">
+                  <span className="text-neutral-400 text-xs">🌐</span>
+                  <h4 className="text-xs font-bold tracking-tight">Build Your Studio</h4>
+                </div>
+                <p className="text-[11px] text-neutral-400 font-medium">Grow your audience</p>
+              </div>
+            </div>
           </div>
 
-          {/* Floating Media Player Card */}
+          {/* Floating Media Player Card on the Right Column */}
           <div className="lg:col-span-5 w-full flex justify-center lg:justify-end self-end pt-8 lg:pt-0">
             <div className="w-full max-w-sm bg-[#F6F1EA]/95 backdrop-blur-md border border-white/20 rounded-2xl p-4 shadow-2xl flex items-center justify-between gap-4 transition-all hover:scale-[1.02]">
               <div className="flex items-center gap-3 truncate">
@@ -144,10 +173,11 @@ export default function Home() {
               )}
             </div>
           </div>
+
         </div>
       </main>
 
-      {/* SUB-HERO MOTTO BANNER */}
+      {/* WHY JOIN SECTION TITLE HEADER */}
       <section className="max-w-6xl mx-auto pt-24 pb-12 px-8 text-center space-y-3">
         <p className="text-[10px] font-bold text-[#C89B6D] uppercase tracking-widest font-sans">WHY JOIN PRODUCER SAAB?</p>
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-black tracking-tight text-[#1C1B1A]">
@@ -155,7 +185,7 @@ export default function Home() {
         </h2>
       </section>
 
-      {/* 4-GRID FEATURE CARDS ROW (With Natural Cozy Accent #3F5A3A) */}
+      {/* 4-GRID VALUE PROP LAYER */}
       <section className="max-w-4xl mx-auto pb-20 px-8 text-center">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-y-12 gap-x-16 max-w-2xl mx-auto">
           <div className="flex flex-col items-center space-y-2.5">
@@ -181,7 +211,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TRENDING SOUNDS MODULE */}
+      {/* TRENDING AUDIO DATA SHELF */}
       <section className="max-w-4xl mx-auto py-10 px-8 space-y-4 border-t border-[#E7DED3]">
         <h3 className="text-xs font-bold text-[#1C1B1A] flex items-center gap-1">🔥 Trending Sounds</h3>
         {loading ? (
@@ -208,7 +238,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* FEATURED PRODUCERS MODULE */}
+      {/* PRODUCERS DATA RACK */}
       <section className="max-w-4xl mx-auto py-10 px-8 space-y-4">
         <h3 className="text-xs font-bold text-[#1C1B1A] flex items-center gap-1">⭐ Featured Producers</h3>
         {loading ? (
@@ -241,7 +271,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* RE-ENGINEERED SUMMER LIGHT CTA HOVER BLOCK */}
+      {/* SOFT PRE-FOOTER CTA BLOCK */}
       <section className="max-w-4xl mx-auto px-8 pb-16 pt-6">
         <div className="bg-[#E7DED3] rounded-3xl p-12 text-center space-y-6 border border-[#D8CBBE]/80">
           <div className="max-w-md mx-auto space-y-2">
