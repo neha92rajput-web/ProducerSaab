@@ -11,10 +11,10 @@ export async function GET(request: NextRequest) {
     const cookieStore = cookies();
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     
-    // 1. Authenticate and confirm token validation code on the server side
+    // 1. Exchange the one-time email token for an active user session login
     const { data } = await supabase.auth.exchangeCodeForSession(code);
     
-    // 2. Profile Generation happens ONLY now after successful validation verification
+    // 2. Generate their profile workspace row if they are brand new
     if (data?.user) {
       const metadataUsername = data.user.user_metadata?.username || `user_${data.user.id.substring(0, 5)}`;
       const metadataEmail = data.user.email || '';
@@ -23,11 +23,11 @@ export async function GET(request: NextRequest) {
         id: data.user.id,
         username: metadataUsername.toLowerCase().trim(),
         email: metadataEmail.toLowerCase().trim(),
-        onboarded: false // Flags them to fill out their trade options on the dashboard card
+        onboarded: false // Keeps them flagged for the profile setup wizard card
       });
     }
   }
 
-  // Redirect to their studio space
+  // 3. DYNAMIC REDIRECT: Safely routes them to the /dashboard of whatever branch domain they are using!
   return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
 }
