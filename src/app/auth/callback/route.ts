@@ -1,4 +1,4 @@
-import { createServerClient } from '@supabase/ssr';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -7,35 +7,17 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
   
-  // Look for the '?next=' parameter we sent from the sign-up page, default to /dashboard
+  // 1. Extract the target parameter we appended from the login screen (defaults to /dashboard)
   const nextTarget = requestUrl.searchParams.get('next') || '/dashboard';
 
   if (code) {
     const cookieStore = cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     
-    // Create the modern official Supabase server client
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-          set(name: string, value: string, options: any) {
-            cookieStore.set({ name, value, ...options });
-          },
-          remove(name: string, options: any) {
-            cookieStore.set({ name, value: '', ...options });
-          },
-        },
-      }
-    );
-
-    // 1. Safely exchange the code token for a live browser session cookie
+    // 2. Exchange the one-time secure email token code for an active user login session
     const { data } = await supabase.auth.exchangeCodeForSession(code);
     
-    // 2. Provision or check their profile database row status
+    // 3. Provision their profile setup row if they are a brand new registrant
     if (data?.user) {
       const metadataUsername = data.user.user_metadata?.username || `user_${data.user.id.substring(0, 5)}`;
       const metadataEmail = data.user.email || '';
@@ -44,11 +26,11 @@ export async function GET(request: NextRequest) {
         id: data.user.id,
         username: metadataUsername.toLowerCase().trim(),
         email: metadataEmail.toLowerCase().trim(),
-        onboarded: false // Keeps them flagged for your dashboard setup card wizard
+        onboarded: false // Keeps them flagged for the profile completion setup card
       });
     }
   }
 
-  // 3. DYNAMIC REDIRECT: Confidently takes them straight into your dashboard layout!
+  // 4. DYNAMIC REDIRECT: Maps them directly to whatever domain or branch URL they are visiting from!
   return NextResponse.redirect(`${requestUrl.origin}${nextTarget}`);
 }
