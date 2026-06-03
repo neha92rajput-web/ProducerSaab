@@ -59,7 +59,7 @@ export default function Home() {
             Producer Saab
           </Link>
 
-          {/* Navigation Center Links - Verbatim updates matching image_10c802.jpg replacement request */}
+          {/* Navigation Center Links */}
           <nav className="hidden md:flex items-center gap-10 text-[11px] font-bold uppercase tracking-widest text-[#5A5550]">
             <Link href="/library" className="hover:text-[#1C1B1A] transition-colors duration-200">Sound Library</Link>
             <Link href="/signin" className="hover:text-[#1C1B1A] transition-colors duration-200">Producer Community</Link>
@@ -83,7 +83,7 @@ export default function Home() {
 
       {/* 2. HERO CONTAINER */}
       <main 
-        className="relative min-h-[500px] flex items-center bg-[#E7DED3] bg-cover bg-center bg-no-repeat overflow-hidden"
+        className="relative min-h-[580px] flex items-center bg-[#E7DED3] bg-cover bg-center bg-no-repeat overflow-hidden"
         style={{ 
           backgroundImage: `linear-gradient(to right, rgba(246, 241, 234, 0.96) 35%, rgba(246, 241, 234, 0.82) 65%, rgba(246, 241, 234, 0.4) 100%), url('https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1800&auto=format&fit=crop&q=80')` 
         }}
@@ -111,8 +111,8 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Feature row border line and columns */}
-            <div className="pt-8 grid grid-cols-3 gap-6 max-w-xl text-left border-t border-[#1C1B1A]/10">
+            {/* UPDATED: Increased top padding from pt-8 to pt-16 and added mt-4 to drop the dot indicators comfortably downward */}
+            <div className="pt-16 mt-4 grid grid-cols-3 gap-6 max-w-xl text-left border-t border-[#1C1B1A]/10">
               <div className="space-y-1">
                 <h4 className="text-xs font-bold tracking-wide text-[#1C1B1A] flex items-center gap-1.5">
                   <span className="text-[#3F5A3A]">●</span> Upload Your Audio
