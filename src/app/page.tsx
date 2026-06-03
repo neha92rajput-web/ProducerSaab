@@ -82,8 +82,9 @@ export default function Home() {
             Producer Saab
           </Link>
           <div className="flex items-center gap-6">
+            {/* UPDATED FROM LOG IN TO SIGN IN TO YOUR STUDIO */}
             <Link href="/signin" className="text-xs font-bold text-[#6F6F6F] hover:text-[#191919] transition">
-              Log in
+              Sign in to your Studio
             </Link>
             <Link 
               href="/signin?view=signup" 
@@ -115,7 +116,6 @@ export default function Home() {
               <p className="text-sm leading-relaxed">
                 Join a community of music creators sharing tracks, loops, melodies, samples, and beats. Upload your audio, connect with collaborators, get discovered.
               </p>
-              {/* This line is now exactly 2 font sizes up (text-lg) but font-normal instead of font-bold */}
               <p className="text-lg text-[#191919] font-normal tracking-tight">
                 Build your Studio and grow your audience.
               </p>
