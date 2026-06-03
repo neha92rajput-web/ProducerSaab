@@ -40,6 +40,7 @@ export default function SignUpPage() {
     }
 
     try {
+      // Check profiles table to ensure username isn't taken
       const { data: existingUser } = await database
         .from('profiles')
         .select('username')
@@ -53,6 +54,7 @@ export default function SignUpPage() {
         return;
       }
 
+      // Execute signup
       const { error } = await database.auth.signUp({
         email: cleanEmail,
         password: password,
