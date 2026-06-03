@@ -21,7 +21,6 @@ export default function SignInGate() {
     setMessage('');
 
     try {
-      // Direct email notification handshake - drops password vulnerabilities
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
@@ -52,7 +51,7 @@ export default function SignInGate() {
           <span className="text-2xl font-light tracking-tighter text-neutral-500 mr-1">川</span> Producer Saab
         </Link>
         <h2 className="text-2xl font-serif font-black tracking-tight text-neutral-900">
-          {isSignUp ? 'Establish your music handle' : 'Sign in to your Dashboard'}
+          {isSignUp ? 'Establish your music handle' : 'Sign in to your Studio'}
         </h2>
         <p className="text-xs font-medium text-neutral-400">
           Passwordless Verification • Direct via Email
@@ -106,7 +105,7 @@ export default function SignInGate() {
               disabled={loading}
               className="w-full py-3 bg-[#1E1E1E] hover:bg-neutral-800 disabled:bg-neutral-400 text-white font-bold rounded-xl text-sm transition shadow-sm"
             >
-              {loading ? 'Dispatched Notification...' : isSignUp ? 'Send Access Handle Link' : 'Send Sign In Link'}
+              {loading ? 'Dispatched Notification...' : isSignUp ? 'Send Access Handle Link' : 'Sign in to your Studio'}
             </button>
           </form>
 
