@@ -1,108 +1,90 @@
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import Link from 'next/link';
-import { Music, UploadCloud, Users, Disc } from 'lucide-react';
+import { redirect } from 'next/navigation';
 
-export default async function Dashboard() {
-  const supabase = createServerComponentClient({ cookies });
-  
+export default async function DashboardPage() {
+  const cookieStore = cookies();
+  const supabase = createServerComponentClient({ cookies: () => cookieStore });
+
+  // 1. Guard Protection: If someone isn't authenticated, bounce them to signin
   const { data: { session } } = await supabase.auth.getSession();
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', session?.user.id).single();
-  const { data: mySounds } = await supabase.from('sounds').select('*').eq('user_id', session?.user.id).order('created_at', { ascending: false });
-  const { data: featuredProducers } = await supabase.from('profiles').select('*').neq('id', session?.user.id).limit(3);
+  if (!session) {
+    redirect('/signin');
+  }
 
-  // Profile completeness tracking calculation
-  const metrics = [profile?.avatar_url, profile?.bio, profile?.instagram_url || profile?.youtube_url, profile?.genres?.length];
-  const completionPercentage = Math.round((metrics.filter(Boolean).length / metrics.length) * 100);
+  // 2. Safely read the handle metadata we captured from our signup form
+  const username = session.user.user_metadata?.username || 'Producer';
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-[#1E1E1E] p-6 sm:p-10">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif', backgroundColor: '#f9f9f9' }}>
+      
+      {/* Sidebar Navigation Panel */}
+      <aside style={{ width: '260px', backgroundColor: '#ffffff', borderRight: '1px solid #eaeaea', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <button style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '14px', borderRadius: '10px', border: 'none', backgroundColor: '#0f2416', color: '#ffffff', fontWeight: '600', cursor: 'pointer' }}>
+          🎛️ Producer Dashboard
+        </button>
+        <button style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '14px', borderRadius: '10px', border: 'none', backgroundColor: 'transparent', color: '#444', fontWeight: '500', cursor: 'pointer', textAlign: 'left' }}>
+          🌐 Global Library
+        </button>
+      </aside>
+
+      {/* Main UI Station */}
+      <main style={{ flex: 1, padding: '40px' }}>
         
-        {/* Welcome Dashboard Block */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-8 bg-white border border-[#EAE6DA] rounded-2xl shadow-sm">
-          <div>
-            <h1 className="text-3xl font-serif font-bold text-neutral-900">Welcome back, {profile?.display_name || 'Creator'}</h1>
-            <p className="text-sm text-neutral-500 mt-1">@{profile?.username} • {profile?.account_type}</p>
-          </div>
-          <Link href="/dashboard/upload" className="flex items-center justify-center gap-2 px-5 py-3 bg-[#1E1E1E] text-white font-medium rounded-xl hover:bg-neutral-800 transition shadow-sm">
-            <UploadCloud className="w-5 h-5 text-[#D4AF37]" />
-            <span>Upload Track Asset</span>
-          </Link>
-        </div>
+        {/* Dynamic User Onboarding Header */}
+        <header style={{ backgroundColor: '#ffffff', padding: '24px 32px', borderRadius: '16px', border: '1px solid #eaeaea', marginBottom: '32px' }}>
+          <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '500' }}>
+            Welcome back, <span style={{ color: '#16a34a', fontWeight: '700' }}>@{username}</span>
+          </h1>
+          <p style={{ margin: '8px 0 0 0', color: '#666', fontSize: '14px' }}>With your dashboard configured, your layout is locked down.</p>
+        </header>
 
-        {/* Modular Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Action Widgets */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
           
-          {/* Main Feed Column */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white border border-[#EAE6DA] rounded-2xl p-6 shadow-sm">
-              <h2 className="text-xl font-serif font-bold mb-4 flex items-center gap-2">
-                <Music className="w-5 h-5 text-[#D4AF37]" /> My Released Assets
-              </h2>
-              {mySounds && mySounds.length > 0 ? (
-                <div className="divide-y divide-[#FAF9F5]">
-                  {mySounds.map(sound => (
-                    <div key={sound.id} className="py-4 flex justify-between items-center">
-                      <div>
-                        <p className="font-semibold text-neutral-900">{sound.title}</p>
-                        <p className="text-xs text-neutral-400 mt-0.5">{sound.genre} • {sound.bpm || 'N/A'} BPM • {sound.musical_key || 'No Key'}</p>
-                      </div>
-                      <span className="text-xs text-neutral-400">{new Date(sound.created_at).toLocaleDateString()}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 border border-dashed border-[#EAE6DA] rounded-xl bg-[#FAF9F5]">
-                  <Disc className="w-8 h-8 text-neutral-300 mx-auto mb-2 animate-spin-slow" />
-                  <p className="text-sm text-neutral-400">No audio files deployed to public library yet.</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Sidebar Analytics Column */}
-          <div className="space-y-6">
+          {/* Audio Upload Form Container */}
+          <section style={{ backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', border: '1px solid #eaeaea' }}>
+            <h3 style={{ margin: '0 0 24px 0', fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>📤 Upload New Audio</h3>
             
-            {/* Completion Matrix Card */}
-            <div className="bg-white border border-[#EAE6DA] rounded-2xl p-6 shadow-sm">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-2">Network Profile Strength</h3>
-              <div className="flex items-end gap-3">
-                <span className="text-4xl font-serif font-black text-[#D4AF37]">{completionPercentage}%</span>
-                <span className="text-xs text-neutral-400 mb-1">Optimized Discoverability</span>
+            <form style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', marginBottom: '8px', color: '#444', textTransform: 'uppercase' }}>Audio File (MP3/WAV) *</label>
+                <input type="file" accept=".mp3,.wav" style={{ width: '100%', padding: '12px', border: '1px dashed #cccccc', borderRadius: '8px' }} />
               </div>
-              <div className="w-full bg-[#FAF9F5] h-2 rounded-full mt-3 overflow-hidden border border-[#EAE6DA]">
-                <div className="bg-[#D4AF37] h-full transition-all duration-500" style={{ width: `${completionPercentage}%` }}></div>
-              </div>
-            </div>
 
-            {/* Network Peer Suggestion Card */}
-            <div className="bg-white border border-[#EAE6DA] rounded-2xl p-6 shadow-sm space-y-4">
-              <h3 className="text-md font-serif font-bold flex items-center gap-2">
-                <Users className="w-4 h-4 text-[#D4AF37]" /> Community Spotlight
-              </h3>
-              <div className="space-y-3">
-                {featuredProducers && featuredProducers.length > 0 ? (
-                  featuredProducers.map(prod => (
-                    <Link href={`/@${prod.username}`} key={prod.id} className="flex items-center gap-3 p-2 hover:bg-[#FAF9F5] rounded-xl transition group">
-                      <div className="w-10 h-10 rounded-full bg-neutral-200 overflow-hidden border border-[#EAE6DA]">
-                        {prod.avatar_url && <img src={prod.avatar_url} className="w-full h-full object-cover" alt="" />}
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold group-hover:text-[#D4AF37] transition">{prod.display_name}</p>
-                        <p className="text-xs text-neutral-400">{prod.account_type}</p>
-                      </div>
-                    </Link>
-                  ))
-                ) : (
-                  <p className="text-xs text-neutral-400">Expanding network nodes...</p>
-                )}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', marginBottom: '8px', color: '#444', textTransform: 'uppercase' }}>Title</label>
+                <input type="text" placeholder="Track Title" style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', boxSizing: 'border-box' }} />
               </div>
-            </div>
 
-          </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', marginBottom: '8px', color: '#444', textTransform: 'uppercase' }}>BPM</label>
+                  <input type="number" placeholder="120" style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', boxSizing: 'border-box' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', marginBottom: '8px', color: '#444', textTransform: 'uppercase' }}>Key</label>
+                  <input type="text" placeholder="e.g., C Min" style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', boxSizing: 'border-box' }} />
+                </div>
+              </div>
+
+              <button type="button" style={{ marginTop: '12px', width: '100%', padding: '14px', border: 'none', borderRadius: '8px', backgroundColor: '#e2e8f0', color: '#666', fontWeight: '600', cursor: 'not-allowed' }}>
+                Uploading Engine Active...
+              </button>
+            </form>
+          </section>
+
+          {/* Empty State View */}
+          <section style={{ backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', border: '1px solid #eaeaea', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', color: '#888', textAlign: 'center' }}>
+            <div style={{ fontSize: '32px', marginBottom: '12px' }}>📦</div>
+            <p style={{ margin: '0 0 8px 0', fontWeight: '600', color: '#333' }}>No audio files tracked yet.</p>
+            <p style={{ margin: '0 0 16px 0', fontSize: '14px' }}>Submit your first one to populate your dashboard.</p>
+            <span style={{ fontSize: '12px', color: '#16a34a', fontWeight: '600' }}>🎵 WAITING ON FIRST DROP</span>
+          </section>
+
         </div>
-      </div>
+      </main>
+
     </div>
   );
 }

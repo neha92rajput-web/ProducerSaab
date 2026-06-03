@@ -111,13 +111,13 @@ export default function Home() {
               </div>
             </div>
 
-            {/* UPDATED: Increased top padding from pt-8 to pt-16 and added mt-4 to drop the dot indicators comfortably downward */}
+            {/* Feature row border line and columns with the test exclamation mark added below */}
             <div className="pt-16 mt-4 grid grid-cols-3 gap-6 max-w-xl text-left border-t border-[#1C1B1A]/10">
               <div className="space-y-1">
                 <h4 className="text-xs font-bold tracking-wide text-[#1C1B1A] flex items-center gap-1.5">
                   <span className="text-[#3F5A3A]">●</span> Upload Your Audio
                 </h4>
-                <p className="text-[11px] text-[#5A5550] font-medium">Share your best work</p>
+                <p className="text-[11px] text-[#5A5550] font-medium">Share your best work!</p>
               </div>
               <div className="space-y-1">
                 <h4 className="text-xs font-bold tracking-wide text-[#1C1B1A] flex items-center gap-1.5">
