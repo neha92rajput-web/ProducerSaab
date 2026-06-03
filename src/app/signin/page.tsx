@@ -10,7 +10,6 @@ const database = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function SignInPage() {
   const router = useRouter();
-  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -18,8 +17,8 @@ export default function SignInPage() {
   const [statusMessage, setStatusMessage] = useState('');
   const [isError, setIsError] = useState(false);
 
-  async function handleSignIn(event: React.FormEvent) {
-    event.preventDefault();
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
     setStatusMessage('');
     setIsError(false);
@@ -29,24 +28,22 @@ export default function SignInPage() {
         email: email.trim().toLowerCase(),
         password: password,
       });
-
       if (error) throw error;
-
       router.push('/dashboard');
     } catch (err: any) {
       setIsError(true);
-      setStatusMessage(`❌ Login Failed: ${err.message || 'Invalid credentials.'}`);
+      setStatusMessage(`❌ ${err.message || 'Invalid email or password.'}`);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', width: '100vw', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FAF8F5', fontFamily: 'sans-serif', color: '#111111', padding: '40px 20px', boxSizing: 'border-box' }}>
-      <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '440px', margin: '0 auto', padding: '40px', borderRadius: '24px', border: '1px solid #E8E2D9', boxShadow: '0 4px 25px rgba(0,0,0,0.03)', boxSizing: 'border-box' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', width: '100vw', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FAF8F5', fontFamily: 'sans-serif', color: '#111111', padding: '20px', boxSizing: 'border-box' }}>
+      <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '440px', padding: '40px', borderRadius: '24px', border: '1px solid #E8E2D9', boxShadow: '0 4px 25px rgba(0,0,0,0.03)', boxSizing: 'border-box' }}>
         
         <header style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <h1 style={{ margin: '0 0 8px 0', fontSize: '32px', fontWeight: '800', letterSpacing: '-0.5px' }}>Producer Saab</h1>
+          <h1 style={{ margin: '0 0 8px 0', fontSize: '32px', fontWeight: '800' }}>Producer Saab</h1>
           <p style={{ margin: 0, color: '#777777', fontSize: '14px' }}>Access your workstation studio suite</p>
         </header>
 
@@ -58,19 +55,19 @@ export default function SignInPage() {
 
         <form onSubmit={handleSignIn} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Email Address</label>
-            <input type="email" placeholder="name@domain.com" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} required />
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Email Address</label>
+            <input type="email" placeholder="name@domain.com" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }} required />
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Password</label>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Password</label>
             <div style={{ position: 'relative', width: '100%' }}>
-              <input type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} style={{ width: '100%', padding: '14px 60px 14px 14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} required />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#C5A880', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>{showPassword ? 'Hide' : 'Show'}</button>
+              <input type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} style={{ width: '100%', padding: '14px 60px 14px 14px', border: '1px solid #E8E2D9', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }} required />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#C5A880', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>{showPassword ? 'Hide' : 'Show'}</button>
             </div>
           </div>
 
-          <button type="submit" disabled={loading} style={{ width: '100%', padding: '16px', borderRadius: '30px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer' }}>
+          <button type="submit" disabled={loading} style={{ width: '100%', padding: '16px', borderRadius: '30px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
             {loading ? 'Processing...' : 'Sign In to Studio'}
           </button>
         </form>
@@ -84,7 +81,7 @@ export default function SignInPage() {
         <button type="button" style={{ width: '100%', padding: '12px 16px', borderRadius: '30px', border: '1px solid #E8E2D9', backgroundColor: '#ffffff', color: '#444444', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>Continue with Google</button>
 
         <footer style={{ marginTop: '32px', textAlign: 'center', fontSize: '13px', color: '#666666' }}>
-          New to the community? <button type="button" onClick={() => router.push('/signup')} style={{ background: 'none', border: 'none', color: '#C5A880', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Join now</button>
+          New to the community? <button type="button" onClick={() => router.push('/signup')} style={{ background: 'none', border: 'none', color: '#C5A880', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline' }}>Join now</button>
         </footer>
       </div>
     </div>
