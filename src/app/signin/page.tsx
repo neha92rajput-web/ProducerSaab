@@ -11,13 +11,12 @@ const database = createClient(supabaseUrl, supabaseAnonKey);
 export default function AuthPage() {
   const router = useRouter();
   
-  const [view, setView] = useState('signup'); // 'signup' (Agree & Join) or 'signin' (Sign in to Studio)
-  const [username, setUsername] = useState(''); // Core User Identity Handle
+  const [view, setView] = useState('signup');
+  const [username, setUsername] = useState(''); 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   
-  // Visibility Eye States
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
@@ -31,14 +30,13 @@ export default function AuthPage() {
     setStatusMessage('');
     setIsError(false);
 
-    // 1. Client-side validation checks
     if (view === 'signup') {
       const cleanHandle = username.trim().toLowerCase();
       
       if (!cleanHandle) {
         setLoading(false);
         setIsError(true);
-        setStatusMessage('❌ Please establish a unique handle identity to join.');
+        setStatusMessage('❌ Please create a username handle identity to join.');
         return;
       }
 
@@ -50,7 +48,7 @@ export default function AuthPage() {
       }
 
       try {
-        // 2. Query Supabase profiles table to check if the username identity already exists
+        // Double check duplicate handle manually
         const { data: existingUser } = await database
           .from('profiles') 
           .select('username')
@@ -60,16 +58,15 @@ export default function AuthPage() {
         if (existingUser) {
           setLoading(false);
           setIsError(true);
-          setStatusMessage(`❌ The username handle @${cleanHandle} is already taken! Please try a different identity.`);
+          setStatusMessage(`❌ The handle @${cleanHandle} is already taken!`);
           return;
         }
 
-        // 3. Register Account with Email + Password + Username Metadata Identity
+        // SignUp execution block
         const { data, error } = await database.auth.signUp({
           email: email.trim(),
           password: password,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
             data: {
               username: cleanHandle,
             }
@@ -78,18 +75,25 @@ export default function AuthPage() {
 
         if (error) throw error;
 
-        setIsError(false);
-        setStatusMessage('✉️ A one-time confirmation link has been sent to your email! Verify it to claim your username identity.');
-        setUsername('');
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
+        // If your Supabase dashboard has "Confirm Email" turned OFF, they are auto-logged in here!
+        if (data?.session) {
+          setIsError(false);
+          setStatusMessage('🎉 Account created successfully! Entering dashboard...');
+          setTimeout(function() {
+            router.push('/dashboard');
+          }, 1000);
+        } else {
+          setIsError(false);
+          setStatusMessage('✉️ A confirmation request was dispatched. If you do not see it shortly, try turning off "User Enumeration Protection" in your Supabase Auth settings console!');
+        }
 
       } catch (err: any) {
         setIsError(true);
         let visualError = err.message || 'Action failed';
-        if (visualError.includes('already registered') || visualError.includes('Email already in use')) {
-          visualError = 'This email address is already linked to an existing account. Try Signing In instead!';
+        
+        // Custom trap catch if user enumeration settings are disabled
+        if (visualError.includes('already registered') || visualError.includes('already in use') || err.status === 422) {
+          visualError = 'This email address is already linked to an existing account! Try switching below to Sign In.';
         }
         setStatusMessage(`❌ ${visualError}`);
       } finally {
@@ -97,7 +101,7 @@ export default function AuthPage() {
       }
 
     } else {
-      // Real-Data Sign In Block
+      // Sign In Flow
       try {
         const { data, error } = await database.auth.signInWithPassword({
           email: email.trim(),
@@ -108,7 +112,7 @@ export default function AuthPage() {
         router.push('/dashboard');
       } catch (err: any) {
         setIsError(true);
-        setStatusMessage(`❌ ${err.message || 'Invalid Sign In credentials'}`);
+        setStatusMessage(`❌ ${err.message || 'Invalid login details'}`);
       } finally {
         setLoading(false);
       }
@@ -164,7 +168,6 @@ export default function AuthPage() {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
-          {/* CORE IDENTITY USERNAME FIELD (Visible only during Agree & Join Sign Up) */}
           {view === 'signup' && (
             <div>
               <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Create Unique Handle Username</label>
@@ -228,8 +231,8 @@ export default function AuthPage() {
             </div>
           )}
 
-          <button type="submit" disabled={loading} style={{ width: '100%', padding: '16px', borderRadius: '30px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
-            {loading ? 'Securing Registration...' : view === 'signup' ? 'Agree & Join' : 'Sign In to Studio'}
+          <button type="submit" disabled={loading} style={{ width: '100%', padding: '16px', borderRadius: '30px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '4px' }}>
+            {loading ? 'Processing...' : view === 'signup' ? 'Agree & Join' : 'Sign In to Studio'}
           </button>
         </form>
 
@@ -241,17 +244,7 @@ export default function AuthPage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <button type="button" disabled={loading} onClick={function() { handleSocialLogin('google'); }} style={{ width: '100%', padding: '12px 16px', borderRadius: '30px', border: '1px solid #E8E2D9', backgroundColor: '#ffffff', color: '#444444', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxSizing: 'border-box' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" style={{ display: 'block' }}>
-              <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l3.227-3.107C18.292 1.694 15.486 1 12.24 1M24 12.25c0-.825-.075-1.636-.214-2.429H12.24v4.607h6.6c-.286 1.532-1.147 2.825-2.44 3.693L20.01 21.2C22.34 19.05 24 15.943 24 12.25" />
-            </svg>
             Continue with Google
-          </button>
-
-          <button type="button" disabled={loading} onClick={function() { handleSocialLogin('apple'); }} style={{ width: '100%', padding: '12px 16px', borderRadius: '30px', border: '1px solid #E8E2D9', backgroundColor: '#ffffff', color: '#444444', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxSizing: 'border-box' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ display: 'block' }}>
-              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.21.67-2.93 1.49-.62.69-1.16 1.84-1.01 2.96 1.12.09 2.27-.56 2.95-1.39z"/>
-            </svg>
-            Continue with Apple
           </button>
         </div>
 
@@ -263,7 +256,7 @@ export default function AuthPage() {
             </span>
           ) : (
             <span>
-              Ready to claim your handle identity?{' '}
+              Ready to claim your handle?{' '}
               <button type="button" onClick={function() { setView('signup'); setStatusMessage(''); }} style={{ background: 'none', border: 'none', color: '#C5A880', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Join now</button>
             </span>
           )}
