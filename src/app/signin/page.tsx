@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function SignInGate() {
+function SignInContent() {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
@@ -13,6 +14,20 @@ export default function SignInGate() {
   const [errorMsg, setErrorMsg] = useState('');
   
   const supabase = createClientComponentClient();
+  const searchParams = useSearchParams();
+
+  // Explicitly listen to URL query changes to force view switches dynamically
+  useEffect(() => {
+    const view = searchParams.get('view');
+    if (view === 'signup') {
+      setIsSignUp(true);
+    } else {
+      setIsSignUp(false);
+    }
+    // Clear out residual alerts on toggle
+    setErrorMsg('');
+    setMessage('');
+  }, [searchParams]);
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,5 +140,17 @@ export default function SignInGate() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignInGate() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#FAF9F5] flex items-center justify-center text-xs font-bold text-neutral-400 tracking-widest uppercase">
+        Loading Portal...
+      </div>
+    }>
+      <SignInContent />
+    </Suspense>
   );
 }
