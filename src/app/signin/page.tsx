@@ -49,7 +49,7 @@ export default function AuthPage() {
       }
 
       try {
-        // 1. STRICT MANUAL PRE-CHECK: SCAN FOR DUPLICATE USERNAME HANDLES
+        // 1. DUPLICATE USERNAME CHECK
         const { data: existingUserByHandle } = await database
           .from('profiles') 
           .select('username')
@@ -63,29 +63,29 @@ export default function AuthPage() {
           return;
         }
 
-        // 2. STRICT MANUAL PRE-CHECK: SCAN FOR DUPLICATE EMAIL ADDRESSES
-        // Looks inside the public profiles table mapping to catch identical emails instantly
-        const { data: existingUserByEmail } = await database
-          .from('profiles')
-          .select('email')
-          .eq('email', cleanEmail)
-          .maybeSingle();
+        // 2. STAGE-TWO EMAIL REGISTER CHECK
+        // Using Supabase RPC or direct sign-in trial to check if the email has an active record 
+        const { error: emailCheckError } = await database.auth.signInWithPassword({
+          email: cleanEmail,
+          password: 'this-is-a-dummy-password-to-probe-the-account-status-9988',
+        });
 
-        if (existingUserByEmail) {
+        // If the error message is "Invalid login credentials", it means the email EXISTS in auth.users!
+        if (emailCheckError && emailCheckError.message.toLowerCase().includes('invalid login credentials')) {
           setLoading(false);
           setIsError(true);
-          setStatusMessage('❌ This email address is already linked to an existing account! Try signing in instead.');
+          setStatusMessage('❌ This email address is already linked to an existing account! Try switching below to Sign In.');
           return;
         }
 
-        // 3. SECURE CORE SIGN UP TERMINAL EXECUTION
+        // 3. CLEAN REGISTRATION ATTEMPT
         const { data, error } = await database.auth.signUp({
           email: cleanEmail,
           password: password,
           options: {
             data: {
               username: cleanHandle,
-              email: cleanEmail // Storing the text email inside the metadata mapping array
+              email: cleanEmail
             }
           },
         });
@@ -115,7 +115,7 @@ export default function AuthPage() {
       }
 
     } else {
-      // Sign In Pipeline
+      // Sign In Flow
       try {
         const { data, error } = await database.auth.signInWithPassword({
           email: cleanEmail,
