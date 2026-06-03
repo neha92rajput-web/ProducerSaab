@@ -52,16 +52,16 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#F6F1EA] text-[#5A5550] font-sans antialiased selection:bg-[#E7DED3] selection:text-[#1C1B1A]">
       
-      {/* 1. PREMIUM MINIMALIST NAVIGATION HEADER */}
+      {/* 1. NAVIGATION HEADER */}
       <header className="sticky top-0 z-50 bg-[#F6F1EA]/80 backdrop-blur-md border-b border-[#E7DED3] px-8 py-4 transition-all">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          {/* Logo / Brandmark with subtle warm gold typography emblem */}
+          {/* Logo */}
           <Link href="/" className="flex items-center gap-2 font-sans font-black tracking-[0.2em] text-sm text-[#1C1B1A] uppercase transition hover:opacity-80">
             <span className="text-base font-light tracking-tighter text-[#C89B6D]">川</span>
             Producer Saab
           </Link>
 
-          {/* Symmetrical Apple-like Navigation Center Links */}
+          {/* Navigation Center Links */}
           <nav className="hidden md:flex items-center gap-10 text-[11px] font-bold uppercase tracking-widest text-[#5A5550]">
             <Link href="/library" className="hover:text-[#1C1B1A] transition-colors duration-200">Discover</Link>
             <Link href="/library" className="hover:text-[#1C1B1A] transition-colors duration-200">Sounds</Link>
@@ -70,8 +70,9 @@ export default function Home() {
 
           {/* Right Authentication Hub Splitters */}
           <div className="flex items-center gap-6">
+            {/* Updated link matching image_11c3dd.png position */}
             <Link href="/signin" className="text-xs font-bold text-[#1C1B1A] hover:text-[#5A5550] transition-colors duration-200">
-              Sign In
+              Sign in to you Studio
             </Link>
             <div className="h-3 w-[1px] bg-[#D8CBBE] hidden sm:block" />
             <Link 
@@ -86,10 +87,7 @@ export default function Home() {
 
       {/* 2. LUXURY STUDIO INTUITIVE HERO CONTAINER */}
       <main className="relative min-h-[520px] flex items-center bg-[#2B2A27] overflow-hidden">
-        {/* Soft atmospheric gradient mimicking a dim, cozy recording space */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#2B2A27] via-[#3A352F] to-[#2B2A27] opacity-90" />
-        
-        {/* Fine geometric layout decoration */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#FFFFFF_1px,transparent_1px)] [background-size:16px_16px]" />
 
         <div className="max-w-6xl mx-auto w-full px-8 pt-20 pb-20 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -112,7 +110,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Micro Interaction Action Triggers */}
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <Link href="/signin?view=signup" className="px-6 py-3 bg-[#FFFFFF] hover:bg-[#E7DED3] text-[#111111] text-xs font-bold rounded-full transition-all duration-300 shadow-md">
                 Join the Community →
@@ -122,7 +119,6 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Fine Sub-Line Feature Row */}
             <div className="pt-8 grid grid-cols-3 gap-6 max-w-xl text-left border-t border-[#D8CBBE]/10">
               <div className="space-y-1">
                 <h4 className="text-xs font-bold tracking-wide text-[#FFFFFF] flex items-center gap-1.5">
@@ -149,7 +145,6 @@ export default function Home() {
           <div className="lg:col-span-5 w-full flex justify-center lg:justify-end">
             <div className="w-full max-w-sm bg-[#F6F1EA] border border-[#E7DED3] rounded-2xl p-5 shadow-[0_24px_60px_-15px_rgba(28,27,26,0.12)] flex items-center justify-between gap-4 transition-all duration-500 hover:translate-y-[-4px]">
               <div className="flex items-center gap-3.5 truncate">
-                {/* Custom Studio Green Record Badge */}
                 <div className="w-11 h-11 rounded-xl bg-[#2B2A27] flex flex-col justify-center items-center font-bold text-[9px] text-[#C89B6D] tracking-wider shrink-0 shadow-inner">
                   WAV
                 </div>
@@ -187,7 +182,7 @@ export default function Home() {
         </h2>
       </section>
 
-      {/* 4. FOUR-COLUMN VALUE PROPOSITIONS (Clean border aesthetics) */}
+      {/* 4. FOUR-COLUMN VALUE PROPOSITIONS */}
       <section className="max-w-6xl mx-auto pb-24 px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="border border-[#E7DED3] rounded-2xl p-6 space-y-4 hover:border-[#D8CBBE] transition-colors duration-300">
@@ -250,7 +245,7 @@ export default function Home() {
         ) : (
           <div className="text-center py-12 border border-dashed border-[#D8CBBE] rounded-2xl">
             <p className="text-xs text-[#5A5550] font-medium">
-              🎵 No audio assets uploaded yet. Be the first to publish a track!
+              🎵 No audio files uploaded yet. Be the first to publish a track!
             </p>
           </div>
         )}
@@ -292,7 +287,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* 7. PRE-FOOTER APERITIF INVITATION BANNER */}
+      {/* 7. PRE-FOOTER INVITATION BANNER */}
       <section className="max-w-6xl mx-auto px-8 pb-20 pt-6">
         <div className="bg-[#E7DED3]/40 border border-[#E7DED3] rounded-[2rem] p-12 text-center space-y-6">
           <div className="max-w-md mx-auto space-y-2">
