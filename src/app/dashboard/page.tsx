@@ -88,7 +88,7 @@ export default function DashboardPage() {
     }
   };
 
-  const handleAddCustomGenre = (event: React.MouseEvent) => {
+  const handleAddCustomGenre = (event: any) => {
     event.preventDefault();
     const clean = customGenreInput.trim();
     if (clean && !customGenresList.includes(clean) && !DEFAULT_GENRES.includes(clean)) {
@@ -98,7 +98,7 @@ export default function DashboardPage() {
     }
   };
 
-  const handleOnboardingSubmit = async (e: React.FormEvent) => {
+  const handleOnboardingSubmit = async (e: any) => {
     e.preventDefault();
     setAppLoading(true);
     try {
@@ -130,14 +130,14 @@ export default function DashboardPage() {
     }
   };
 
-  const handleLocalAudioFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLocalAudioFile = (event: any) => {
     if (event.target.files && event.target.files.length > 0) {
       const file = event.target.files[0];
       setAudioUrl(URL.createObjectURL(file));
     }
   };
 
-  const executeAudioDropPublish = (e: React.FormEvent) => {
+  const executeAudioDropPublish = (e: any) => {
     e.preventDefault();
     setUploadStatus('Progress');
     setTimeout(() => {
@@ -170,7 +170,7 @@ export default function DashboardPage() {
             <p style={{ margin: 0, color: '#777777', fontSize: '14px' }}>Customize your professional trade details to activate your LinkedIn-style dashboard.</p>
           </header>
 
-          {/* Specialty Trade Role Form Block */}
+          {/* Specialty Trade Role Option Area */}
           <div style={{ backgroundColor: '#ffffff', padding: '28px', borderRadius: '24px', border: '1px solid #E8E2D9' }}>
             <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '800' }}>1. Select Your Primary Specialty Trade</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -196,4 +196,184 @@ export default function DashboardPage() {
             <p style={{ margin: '0 0 16px 0', color: '#777777', fontSize: '13px' }}>Where can the network find your active tracks?</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <input type="url" placeholder="📸 Instagram URL Link" value={formInstagram} onChange={(e) => setFormInstagram(e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} />
-              <input type="url" placeholder="🎵 Spotify Artist Profile URL" value={form
+              <input type="url" placeholder="🎵 Spotify Artist Profile URL" value={formSpotify} onChange={(e) => setFormSpotify(e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} />
+              <input type="url" placeholder="☁️ SoundCloud URL Link" value={formSoundcloud} onChange={(e) => setFormSoundcloud(e.target.value)} style={{ width: '100%', padding: '12px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} />
+            </div>
+          </div>
+
+          {/* Style Signature Genres Tags Row */}
+          <div style={{ backgroundColor: '#ffffff', padding: '28px', borderRadius: '24px', border: '1px solid #E8E2D9' }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '800' }}>3. Select Signature Style Genres</h3>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+              {DEFAULT_GENRES.concat(customGenresList).map((g) => {
+                const active = formGenres.includes(g);
+                return (
+                  <button key={g} type="button" onClick={() => toggleFormGenre(g)} style={{ padding: '8px 16px', borderRadius: '30px', border: '1px solid', borderColor: active ? '#C5A880' : '#E8E2D9', backgroundColor: active ? '#C5A880' : '#ffffff', color: active ? '#ffffff' : '#555555', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}>
+                    {g} {active ? '✓' : '+'}
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <input type="text" placeholder="Add custom style tag..." value={customGenreInput} onChange={(e) => setCustomGenreInput(e.target.value)} style={{ flex: 1, padding: '12px', border: '1px solid #E8E2D9', borderRadius: '8px', fontSize: '14px' }} />
+              <button type="button" onClick={handleAddCustomGenre} style={{ padding: '0 20px', borderRadius: '8px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>+ Add</button>
+            </div>
+          </div>
+
+          <button onClick={handleOnboardingSubmit} disabled={!isFormValid} style={{ width: '100%', padding: '16px', borderRadius: '35px', border: 'none', backgroundColor: isFormValid ? '#111111' : '#E8E2D9', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: isFormValid ? 'pointer' : 'not-allowed', marginBottom: '20px' }}>
+            Initialize Dashboard Profile Portfolio
+          </button>
+
+        </div>
+      </div>
+    );
+  }
+
+  // --- PREMIUM LINKEDIN-STYLE STUDIO DASHBOARD HUB VIEW ---
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif', backgroundColor: '#FAF8F5', color: '#111111' }}>
+      
+      {/* SIDEBAR NAVIGATION PANEL */}
+      <aside style={{ width: '260px', backgroundColor: '#ffffff', borderRight: '1px solid #E8E2D9', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px', boxSizing: 'border-box' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', fontWeight: 'bold', fontSize: '14px', letterSpacing: '0.15em', textTransform: 'uppercase' }}>🎵 Producer Saab</div>
+        <button style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '14px', borderRadius: '10px', border: 'none', backgroundColor: '#C5A880', color: '#ffffff', fontWeight: '600', cursor: 'pointer', textAlign: 'left' }}>🎛️ Studio Hub</button>
+        <Link href="/feed" style={{ textDecoration: 'none', width: '100%' }}>
+          <button style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '14px', borderRadius: '10px', border: 'none', backgroundColor: 'transparent', color: '#444', fontWeight: '500', cursor: 'pointer', textAlign: 'left' }}>🌐 Global Library</button>
+        </Link>
+      </aside>
+
+      {/* REEL GRID DASHBOARD INTERFACE */}
+      <main style={{ flex: 1, padding: '40px 60px', display: 'flex', justifyContent: 'center' }}>
+        <div style={{ width: '100%', maxWidth: '980px', display: 'grid', gridTemplateColumns: '1.4fr 0.6fr', gap: '40px', alignItems: 'start' }}>
+          
+          {/* PROFILE LEFT CANVAS VIEW PANEL */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+            
+            <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', border: '1px solid #E8E2D9', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.01)' }}>
+              <div style={{ height: '140px', backgroundColor: '#C5A880', backgroundImage: 'linear-gradient(45deg, #C5A880, #E8E2D9)' }} />
+              <div style={{ padding: '32px', position: 'relative', marginTop: '-60px' }}>
+                <div style={{ width: '100px', height: '100px', borderRadius: '50px', backgroundColor: '#111111', border: '4px solid #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', color: '#ffffff' }}>👑</div>
+                <div style={{ marginTop: '20px' }}>
+                  <h1 style={{ margin: '0 0 4px 0', fontSize: '28px', fontWeight: '900', letterSpacing: '-0.5px' }}>@{userHandle} Studio</h1>
+                  <p style={{ margin: '0 0 12px 0', color: '#C5A880', fontWeight: '700', fontSize: '15px' }}>{producerRole} • Verified Creator</p>
+                </div>
+                <p style={{ margin: '12px 0 20px 0', color: '#666666', fontSize: '14px', lineHeight: '1.6' }}>Welcome back to your central audio drops processing terminal. Here you can showcase your bio details, distribute samples, and catalog dynamic loop layers.</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', borderTop: '1px solid #FAF8F5', paddingTop: '20px' }}>
+                  {selectedGenres.map((genre) => (
+                    <span key={genre} style={{ backgroundColor: '#FAF6F0', color: '#C5A880', fontSize: '12px', fontWeight: 'bold', padding: '6px 14px', borderRadius: '20px', border: '1px solid rgba(197, 168, 128, 0.2)' }}>🎵 {genre}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* FEATURED TRACKS REEL LIST */}
+            <div style={{ backgroundColor: '#ffffff', padding: '32px', borderRadius: '24px', border: '1px solid #E8E2D9' }}>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '800' }}>Featured Tracks & Audio Drops</h3>
+              <p style={{ margin: '0 0 24px 0', color: '#777777', fontSize: '13px' }}>Your published sound stems appearing on the global public wall layout.</p>
+
+              {trackTitle ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px', backgroundColor: '#FAF8F5', borderRadius: '16px', border: '1px solid #E8E2D9' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ width: '48px', height: '48px', backgroundColor: '#111111', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>💿</div>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '700' }}>{trackTitle}</h4>
+                      <p style={{ margin: 0, fontSize: '12px', color: '#666' }}>{selectedTrackGenre} • {trackBpm} BPM • {trackKey} • {instrumentType}</p>
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#16a34a', fontWeight: 'bold', backgroundColor: '#f0fdf4', padding: '4px 10px', borderRadius: '12px' }}>Live</span>
+                  </div>
+                  {audioUrl && (
+                    <div style={{ width: '100%', marginTop: '4px', borderTop: '1px solid #E8E2D9', paddingTop: '12px' }}>
+                      <audio controls src={audioUrl} style={{ width: '100%', accentColor: '#C5A880' }}>Your browser does not support audio element.</audio>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#999', border: '2px dashed #FAF8F5', borderRadius: '16px' }}>
+                  <p style={{ margin: '0 0 4px 0', fontWeight: '600', color: '#555' }}>No active audio assets cataloged yet.</p>
+                  <p style={{ margin: 0, fontSize: '13px' }}>Click the action control card on the right row to deploy your first loop file.</p>
+                </div>
+              )}
+            </div>
+
+          </div>
+
+          {/* ACTION CONTROL PANEL CARD */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <section style={{ backgroundColor: '#ffffff', padding: '28px', borderRadius: '24px', border: '1px solid #E8E2D9' }}>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '800' }}>Studio Control Rack</h4>
+              <p style={{ margin: '0 0 20px 0', color: '#666666', fontSize: '13px', lineHeight: '1.5' }}>Ready to distribute an instrument layer or loop block straight to the community pipeline?</p>
+              <button style={{ width: '100%', padding: '16px', borderRadius: '30px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }} onClick={() => { setShowUploadModal(true); setUploadStatus('Idle'); }}>📤 Upload Audio File</button>
+            </section>
+          </div>
+
+        </div>
+      </main>
+
+      {/* POP-OUT MODAL OVERLAY FOR LIVE AUDIO STEMS UPLOAD INTAKE */}
+      {showUploadModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '520px', borderRadius: '24px', padding: '36px', border: '1px solid #E8E2D9', position: 'relative', boxSizing: 'border-box', maxHeight: '90vh', overflowY: 'auto' }}>
+            <button style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#999' }} onClick={() => setShowUploadModal(false)}>✕</button>
+            <h3 style={{ margin: '0 0 4px 0', fontSize: '20px', fontWeight: '800' }}>📤 Upload Audio Project Drop</h3>
+            <p style={{ margin: '0 0 24px 0', color: '#777777', fontSize: '13px' }}>Publish custom sound stems directly to the network feed database.</p>
+
+            <form onSubmit={executeAudioDropPublish} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>AUDIO FILE TRACK (.MP3 OR .WAV) *</label>
+                <input type="file" accept=".mp3,.wav" onChange={handleLocalAudioFile} style={{ width: '100%', padding: '12px', border: '2px dashed #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', backgroundColor: '#FAF8F5' }} required />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>TRACK / SAMPLE TITLE *</label>
+                <input type="text" placeholder="e.g., midnight" value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '13px' }} required />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>AUDIO GENRE CLASSIFICATION *</label>
+                <select value={selectedTrackGenre} onChange={(e) => setSelectedTrackGenre(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', fontSize: '13px', backgroundColor: '#ffffff' }} required>
+                  <option value="">-- Choose Genre --</option>
+                  {selectedGenres.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>TEMPO BPM *</label>
+                  <input type="number" placeholder="90" value={trackBpm} onChange={(e) => setTrackBpm(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '13px' }} required />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>SIGNATURE KEY SCALE *</label>
+                  <select value={trackKey} onChange={(e) => setTrackKey(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', fontSize: '13px', backgroundColor: '#ffffff' }} required>
+                    <option value="">-- Select Key --</option>
+                    <option value="F# Minor">F# Minor</option>
+                    <option value="C Major">C Major</option>
+                    <option value="A Minor">A Minor</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>INSTRUMENT STEM / SAMPLE LAYER SOURCE *</label>
+                <select value={instrumentType} onChange={(e) => setInstrumentType(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', fontSize: '13px', backgroundColor: '#ffffff' }} required>
+                  <option value="">-- Choose Base Loop Element --</option>
+                  <option value="Guitar Loop / Sample">Guitar Loop / Sample</option>
+                  <option value="Piano / Keys Loop">Piano / Keys Loop</option>
+                  <option value="Synth Loop">Synth Loop</option>
+                </select>
+              </div>
+
+              {uploadStatus === 'Idle' && (
+                <button type="submit" style={{ marginTop: '10px', width: '100%', padding: '16px', border: 'none', borderRadius: '30px', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>Publish Stems to Global Library Feed</button>
+              )}
+              {uploadStatus === 'Progress' && (
+                <button type="button" style={{ marginTop: '10px', width: '100%', padding: '16px', border: 'none', borderRadius: '30px', backgroundColor: '#F0EBE3', color: '#C5A880', fontWeight: 'bold', fontSize: '14px', cursor: 'not-allowed' }}>⚡ Syncing audio array blocks...</button>
+              )}
+              {uploadStatus === 'Success' && (
+                <div style={{ marginTop: '10px', textAlign: 'center', backgroundColor: '#FAF6F0', border: '1px solid #C5A880', borderRadius: '12px', padding: '14px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#B8986E' }}>🎉 Project uploaded securely onto feed!</span>
+                  <button type="button" onClick={() => setShowUploadModal(false)} style={{ display: 'block', margin: '8px auto 0 auto', background: 'none', border: 'none', color: '#111111', fontSize: '12px', fontWeight: 'bold', textDecoration: 'underline', cursor: 'pointer' }}>Return to Studio Feed</button>
+                </div>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
