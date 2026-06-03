@@ -6,31 +6,33 @@ import type { NextRequest } from 'next/server';
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
-  
-  // FIX: Look for the '?next=' parameter we sent from the sign-up page, default to /dashboard if empty
-  const nextTarget = requestUrl.searchParams.get('next') || '/dashboard';
 
   if (code) {
     const cookieStore = cookies();
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     
-    // 1. Exchange the one-time email token for an active user session login
+    // 1. Exchange code for a live authentication session
     const { data } = await supabase.auth.exchangeCodeForSession(code);
     
-    // 2. Generate their profile workspace row if they are brand new
     if (data?.user) {
-      const metadataUsername = data.user.user_metadata?.username || `user_${data.user.id.substring(0, 5)}`;
-      const metadataEmail = data.user.email || '';
+      // 2. Fetch the user's current profile onboarding status
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarded')
+        .eq('id', data.user.id)
+        .maybeSingle(); // Prevents throwing errors if the profile row is still provisioning
+
+      // 3. INTELLIGENT ROUTING: 
+      // If they haven't finished setting up their profile data, send them to the dashboard wizard
+      if (!profile || profile.onboarded === false) {
+        return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
+      }
       
-      await supabase.from('profiles').upsert({
-        id: data.user.id,
-        username: metadataUsername.toLowerCase().trim(),
-        email: metadataEmail.toLowerCase().trim(),
-        onboarded: false // Keeps them flagged for the profile setup wizard card
-      });
+      // If they are an existing, fully set-up user, send them directly to your main activity feed!
+      return NextResponse.redirect(`${requestUrl.origin}/feed`);
     }
   }
 
-  // 3. DYNAMIC REDIRECT: Safely routes them to the exact nextTarget path requested!
-  return NextResponse.redirect(`${requestUrl.origin}${nextTarget}`);
+  // Fallback safe redirect if something goes wrong with the code processing token loop
+  return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
 }
