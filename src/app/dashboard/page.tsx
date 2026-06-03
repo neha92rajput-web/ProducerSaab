@@ -1,6 +1,7 @@
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 
 export default async function DashboardPage() {
   const cookieStore = cookies();
@@ -23,9 +24,13 @@ export default async function DashboardPage() {
         <button style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '14px', borderRadius: '10px', border: 'none', backgroundColor: '#0f2416', color: '#ffffff', fontWeight: '600', cursor: 'pointer' }}>
           🎛️ Producer Dashboard
         </button>
-        <button style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '14px', borderRadius: '10px', border: 'none', backgroundColor: 'transparent', color: '#444', fontWeight: '500', cursor: 'pointer', textAlign: 'left' }}>
-          🌐 Global Library
-        </button>
+        
+        {/* Clickable Global Library Link */}
+        <Link href="/feed" style={{ textDecoration: 'none', width: '100%' }}>
+          <button style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '14px', borderRadius: '10px', border: 'none', backgroundColor: 'transparent', color: '#444', fontWeight: '500', cursor: 'pointer', textAlign: 'left' }}>
+            🌐 Global Library
+          </button>
+        </Link>
       </aside>
 
       {/* Main UI Station */}
@@ -84,7 +89,6 @@ export default async function DashboardPage() {
 
         </div>
       </main>
-
     </div>
   );
 }
