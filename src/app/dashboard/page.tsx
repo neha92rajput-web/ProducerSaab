@@ -46,10 +46,10 @@ export default function DashboardPage() {
     'Drum Kit / Percussion Loop', 'Vocal Chop / Phrase', 'Bass / Sub Loop', 'Full Composition Melody'
   ];
 
-  // Handlers for profile collection tags using safe traditional functions
+  // Handlers for profile collection tags using clean Next.js functions
   function toggleGenre(genreName) {
     if (selectedGenres.includes(genreName)) {
-      setSelectedGenres(selectedGenres.filter(g => g !== genreName));
+      setSelectedGenres(selectedGenres.filter(function(g) { return g !== genreName; }));
     } else {
       setSelectedGenres([...selectedGenres, genreName]);
     }
@@ -64,6 +64,20 @@ export default function DashboardPage() {
       setCustomGenre('');
     }
   }
+
+  // Handle the file input event safely
+  function handleFileChange(event) {
+    if (event.target.files && event.target.files.length > 0) {
+      setAudioFile(event.target.files[0]);
+    }
+  }
+
+  // Handle dropdown value changes safely
+  function handleTrackGenreChange(event) { setSelectedTrackGenre(event.target.value); }
+  function handleTrackBpmChange(event) { setTrackBpm(event.target.value); }
+  function handleTrackKeyChange(event) { setTrackKey(event.target.value); }
+  function handleInstrumentTypeChange(event) { setInstrumentType(event.target.value); }
+  function handleTrackTitleChange(event) { setTrackTitle(event.target.value); }
 
   // Mock Username extracted or built based on entries
   const cleanHandle = instagramUrl.includes('instagram.com/') 
@@ -80,7 +94,7 @@ export default function DashboardPage() {
   function simulateAudioUpload(event) {
     event.preventDefault();
     setUploadStatus('Progress');
-    setTimeout(() => {
+    setTimeout(function() {
       setUploadStatus('Success');
     }, 2000);
   }
@@ -93,7 +107,7 @@ export default function DashboardPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', fontWeight: 'bold', fontSize: '14px', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
           🎵 Producer Saab
         </div>
-        <button style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '14px', borderRadius: '10px', border: 'none', backgroundColor: !isSubmitted ? '#C5A880' : 'transparent', color: !isSubmitted ? '#ffffff' : '#444', fontWeight: '600', cursor: 'pointer', textAlign: 'left' }} onClick={() => setIsSubmitted(false)}>
+        <button style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '14px', borderRadius: '10px', border: 'none', backgroundColor: !isSubmitted ? '#C5A880' : 'transparent', color: !isSubmitted ? '#ffffff' : '#444', fontWeight: '600', cursor: 'pointer', textAlign: 'left' }} onClick={function() { setIsSubmitted(false); }}>
           🎛️ {isSubmitted ? 'Edit Profile' : 'Studio Profile Creator'}
         </button>
         <Link href="/feed" style={{ textDecoration: 'none', width: '100%' }}>
@@ -121,18 +135,20 @@ export default function DashboardPage() {
                 <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '800' }}>1. Select Your Primary Trade Role</h3>
                 <p style={{ margin: '0 0 20px 0', color: '#777777', fontSize: '13px' }}>Choose your specialty:</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {['Music Producer', 'Beatmaker', 'Lyricist / Songwriter', 'Audio Engineer', 'Vocalist'].map((role) => (
-                    <label key={role} style={{ display: 'flex', alignItems: 'center', padding: '16px', border: producerRole === role ? '2px solid #C5A880' : '1px solid #E8E2D9', borderRadius: '12px', cursor: 'pointer', backgroundColor: producerRole === role ? '#FAF6F0' : 'transparent' }}>
-                      <span style={{ fontSize: '14px', fontWeight: '600' }}>{role}</span>
-                      <input type="radio" name="role" checked={producerRole === role} onChange={() => { setProducerRole(role); setShowCustomRoleInput(false); }} style={{ marginLeft: 'auto', accentColor: '#C5A880' }} />
-                    </label>
-                  ))}
+                  {['Music Producer', 'Beatmaker', 'Lyricist / Songwriter', 'Audio Engineer', 'Vocalist'].map(function(role) {
+                    return (
+                      <label key={role} style={{ display: 'flex', alignItems: 'center', padding: '16px', border: producerRole === role ? '2px solid #C5A880' : '1px solid #E8E2D9', borderRadius: '12px', cursor: 'pointer', backgroundColor: producerRole === role ? '#FAF6F0' : 'transparent' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '600' }}>{role}</span>
+                        <input type="radio" name="role" checked={producerRole === role} onChange={function() { setProducerRole(role); setShowCustomRoleInput(false); }} style={{ marginLeft: 'auto', accentColor: '#C5A880' }} />
+                      </label>
+                    );
+                  })}
                   <label style={{ display: 'flex', alignItems: 'center', padding: '16px', border: producerRole === 'Other' ? '2px solid #C5A880' : '1px solid #E8E2D9', borderRadius: '12px', cursor: 'pointer', backgroundColor: producerRole === 'Other' ? '#FAF6F0' : 'transparent' }}>
                     <span style={{ fontSize: '14px', fontWeight: '600' }}>Custom Trade Input Option</span>
-                    <input type="radio" name="role" checked={producerRole === 'Other'} onChange={() => { setProducerRole('Other'); setShowCustomRoleInput(true); }} style={{ marginLeft: 'auto', accentColor: '#C5A880' }} />
+                    <input type="radio" name="role" checked={producerRole === 'Other'} onChange={function() { setProducerRole('Other'); setShowCustomRoleInput(true); }} style={{ marginLeft: 'auto', accentColor: '#C5A880' }} />
                   </label>
                   {showCustomRoleInput && (
-                    <input type="text" placeholder="Type custom role title..." value={customRole} onChange={(e) => setCustomRole(e.target.value)} style={{ width: '100%', marginTop: '4px', padding: '14px', border: '1px solid #C5A880', borderRadius: '8px', boxSizing: 'border-box' }} />
+                    <input type="text" placeholder="Type custom role title..." value={customRole} onChange={function(e) { setCustomRole(e.target.value); }} style={{ width: '100%', marginTop: '4px', padding: '14px', border: '1px solid #C5A880', borderRadius: '8px', boxSizing: 'border-box' }} />
                   )}
                 </div>
               </section>
@@ -142,9 +158,9 @@ export default function DashboardPage() {
                 <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '800' }}>2. Link Your Portfolios (Minimum 1 Required)</h3>
                 <p style={{ margin: '0 0 20px 0', color: '#777777', fontSize: '13px' }}>Where can the platform find your music handles?</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <input type="url" placeholder="📸 Instagram profile handle or URL link" value={instagramUrl} onChange={(e) => setInstagramUrl(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box' }} />
-                  <input type="url" placeholder="🎵 Spotify Artist URL" value={spotifyUrl} onChange={(e) => setSpotifyUrl(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box' }} />
-                  <input type="url" placeholder="☁️ SoundCloud URL" value={soundcloudUrl} onChange={(e) => setSoundcloudUrl(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box' }} />
+                  <input type="url" placeholder="📸 Instagram profile handle or URL link" value={instagramUrl} onChange={function(e) { setInstagramUrl(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box' }} />
+                  <input type="url" placeholder="🎵 Spotify Artist URL" value={spotifyUrl} onChange={function(e) { setSpotifyUrl(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box' }} />
+                  <input type="url" placeholder="☁️ SoundCloud URL" value={soundcloudUrl} onChange={function(e) { setSoundcloudUrl(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box' }} />
                 </div>
               </section>
 
@@ -153,22 +169,22 @@ export default function DashboardPage() {
                 <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '800' }}>3. Profile Style Tags</h3>
                 <p style={{ margin: '0 0 20px 0', color: '#777777', fontSize: '13px' }}>Select signature styles for your account view:</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
-                  {DEFAULT_GENRES.concat(customGenresList).map((g) => {
+                  {DEFAULT_GENRES.concat(customGenresList).map(function(g) {
                     const active = selectedGenres.includes(g);
                     return (
-                      <button key={g} type="button" onClick={() => toggleGenre(g)} style={{ padding: '10px 18px', borderRadius: '30px', border: '1px solid', borderColor: active ? '#C5A880' : '#E8E2D9', backgroundColor: active ? '#C5A880' : '#ffffff', color: active ? '#ffffff' : '#555555', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}>
+                      <button key={g} type="button" onClick={function() { toggleGenre(g); }} style={{ padding: '10px 18px', borderRadius: '30px', border: '1px solid', borderColor: active ? '#C5A880' : '#E8E2D9', backgroundColor: active ? '#C5A880' : '#ffffff', color: active ? '#ffffff' : '#555555', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}>
                         {g} {active ? '✓' : '+'}
                       </button>
                     );
                   })}
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
-                  <input type="text" placeholder="Type and add unlisted styles manually..." value={customGenre} onChange={(e) => setCustomGenre(e.target.value)} style={{ flex: 1, padding: '12px', border: '1px solid #E8E2D9', borderRadius: '8px' }} />
+                  <input type="text" placeholder="Type and add unlisted styles manually..." value={customGenre} onChange={function(e) { setCustomGenre(e.target.value); }} style={{ flex: 1, padding: '12px', border: '1px solid #E8E2D9', borderRadius: '8px' }} />
                   <button type="button" onClick={handleAddCustomGenre} style={{ padding: '0 20px', borderRadius: '8px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', cursor: 'pointer' }}>+ Add</button>
                 </div>
               </section>
 
-              <button disabled={!isProfileValid} onClick={() => setIsSubmitted(true)} style={{ width: '100%', padding: '18px', borderRadius: '35px', border: 'none', backgroundColor: isProfileValid ? '#0f2416' : '#E8E2D9', color: '#ffffff', fontWeight: 'bold', cursor: isProfileValid ? 'pointer' : 'not-allowed', marginBottom: '40px' }}>
+              <button disabled={!isProfileValid} onClick={function() { setIsSubmitted(true); }} style={{ width: '100%', padding: '18px', borderRadius: '35px', border: 'none', backgroundColor: isProfileValid ? '#0f2416' : '#E8E2D9', color: '#ffffff', fontWeight: 'bold', cursor: isProfileValid ? 'pointer' : 'not-allowed', marginBottom: '40px' }}>
                 Initialize Studio Workspace Dashboard →
               </button>
             </div>
@@ -202,23 +218,23 @@ export default function DashboardPage() {
                     {/* FILE SELECTOR CONTAINER */}
                     <div>
                       <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Audio file track (.mp3 or .wav) *</label>
-                      <input type="file" accept=".mp3,.wav" onChange={(e) => setAudioFile(e.target.files ? e.target.files[0] : null)} style={{ width: '100%', padding: '14px', border: '2px dashed #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', backgroundColor: '#FAF8F5' }} required />
+                      <input type="file" accept=".mp3,.wav" onChange={handleFileChange} style={{ width: '100%', padding: '14px', border: '2px dashed #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', backgroundColor: '#FAF8F5' }} required />
                     </div>
 
                     {/* TRACK TITLE INPUT */}
                     <div>
                       <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Track / Sample Title *</label>
-                      <input type="text" placeholder="e.g., Midnight Vibes Loop" value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '13px' }} required />
+                      <input type="text" placeholder="e.g., Midnight Vibes Loop" value={trackTitle} onChange={handleTrackTitleChange} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '13px' }} required />
                     </div>
 
                     {/* DYNAMIC GENRE SELECTION DROPBOX */}
                     <div>
                       <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Audio Genre Classification *</label>
-                      <select value={selectedTrackGenre} onChange={(e) => setSelectedTrackGenre(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', fontSize: '13px', backgroundColor: '#ffffff' }} required>
+                      <select value={selectedTrackGenre} onChange={handleTrackGenreChange} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', fontSize: '13px', backgroundColor: '#ffffff' }} required>
                         <option value="">-- Choose Target Track Genre --</option>
-                        {selectedGenres.map((genre) => (
-                          <option key={genre} value={genre}>{genre}</option>
-                        ))}
+                        {selectedGenres.map(function(genre) {
+                          return <option key={genre} value={genre}>{genre}</option>;
+                        })}
                       </select>
                     </div>
 
@@ -226,17 +242,17 @@ export default function DashboardPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Tempo BPM *</label>
-                        <input type="number" placeholder="e.g., 140" value={trackBpm} onChange={(e) => setTrackBpm(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '13px' }} required />
+                        <input type="number" placeholder="e.g., 140" value={trackBpm} onChange={handleTrackBpmChange} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '13px' }} required />
                       </div>
                       
                       {/* COMPULSORY SELECT SYSTEM FOR ALL 24 ROOT SCALES */}
                       <div>
                         <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Signature Key Scale *</label>
-                        <select value={trackKey} onChange={(e) => setTrackKey(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', fontSize: '13px', backgroundColor: '#ffffff' }} required>
+                        <select value={trackKey} onChange={handleTrackKeyChange} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', fontSize: '13px', backgroundColor: '#ffffff' }} required>
                           <option value="">-- Select Dropdown Scale --</option>
-                          {MUSICAL_KEYS.map((scale) => (
-                            <option key={scale} value={scale}>{scale}</option>
-                          ))}
+                          {MUSICAL_KEYS.map(function(scale) {
+                            return <option key={scale} value={scale}>{scale}</option>;
+                          })}
                         </select>
                       </div>
                     </div>
@@ -244,11 +260,11 @@ export default function DashboardPage() {
                     {/* INSTRUMENT CLASSIFICATION SYSTEM CONTAINER */}
                     <div>
                       <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Instrument Stem / Sample Layer Source *</label>
-                      <select value={instrumentType} onChange={(e) => setInstrumentType(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', fontSize: '13px', backgroundColor: '#ffffff' }} required>
+                      <select value={instrumentType} onChange={handleInstrumentTypeChange} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', fontSize: '13px', backgroundColor: '#ffffff' }} required>
                         <option value="">-- Choose Loop Instrument Base Layer --</option>
-                        {INSTRUMENTS.map((inst) => (
-                          <option key={inst} value={inst}>{inst}</option>
-                        ))}
+                        {INSTRUMENTS.map(function(inst) {
+                          return <option key={inst} value={inst}>{inst}</option>;
+                        })}
                       </select>
                     </div>
 
@@ -268,7 +284,7 @@ export default function DashboardPage() {
                     {uploadStatus === 'Success' && (
                       <div style={{ marginTop: '10px', textAlign: 'center', backgroundColor: '#FAF6F0', border: '1px solid #C5A880', borderRadius: '12px', padding: '14px' }}>
                         <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#B8986E' }}>🎉 Project audio drop uploaded securely onto live library node successfully!</span>
-                        <button type="button" onClick={() => { setUploadStatus('Idle'); setTrackTitle(''); setAudioFile(null); }} style={{ display: 'block', margin: '8px auto 0 auto', background: 'none', border: 'none', color: '#111111', fontSize: '12px', fontWeight: 'bold', textDecoration: 'underline', cursor: 'pointer' }}>Upload Another stems file</button>
+                        <button type="button" onClick={function() { setUploadStatus('Idle'); setTrackTitle(''); setAudioFile(null); }} style={{ display: 'block', margin: '8px auto 0 auto', background: 'none', border: 'none', color: '#111111', fontSize: '12px', fontWeight: 'bold', textDecoration: 'underline', cursor: 'pointer' }}>Upload Another stems file</button>
                       </div>
                     )}
 
