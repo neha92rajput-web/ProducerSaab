@@ -76,4 +76,19 @@ export default function SignInPage() {
           </button>
         </form>
 
-        <div style={{ display: '
+        <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0', color: '#777777', fontSize: '13px' }}>
+          <div style={{ flex: 1, height: '1px', backgroundColor: '#E8E2D9' }} />
+          <span style={{ padding: '0 16px' }}>or</span>
+          <div style={{ flex: 1, height: '1px', backgroundColor: '#E8E2D9' }} />
+        </div>
+
+        <button type="button" style={{ width: '100%', padding: '12px 16px', borderRadius: '30px', border: '1px solid #E8E2D9', backgroundColor: '#ffffff', color: '#444444', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>Continue with Google</button>
+
+        <footer style={{ marginTop: '32px', textAlign: 'center', fontSize: '13px', color: '#666666' }}>
+          New to the community? <button type="button" onClick={() => router.push('/signup')} style={{ background: 'none', border: 'none', color: '#C5A880', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Join now</button>
+        </footer>
+
+      </div>
+    </div>
+  );
+}
