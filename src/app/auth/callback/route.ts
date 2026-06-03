@@ -5,18 +5,29 @@ import type { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
-  // Extract the verification token code sent from the email link click
   const code = requestUrl.searchParams.get('code');
 
   if (code) {
     const cookieStore = cookies();
-    // Initialize server-side database client to verify token exchange natively
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     
-    // Exchange the one-time code for an authentic user session
-    await supabase.auth.exchangeCodeForSession(code);
+    // 1. Authenticate and confirm token validation code on the server side
+    const { data } = await supabase.auth.exchangeCodeForSession(code);
+    
+    // 2. Profile Generation happens ONLY now after successful validation verification
+    if (data?.user) {
+      const metadataUsername = data.user.user_metadata?.username || `user_${data.user.id.substring(0, 5)}`;
+      const metadataEmail = data.user.email || '';
+      
+      await supabase.from('profiles').upsert({
+        id: data.user.id,
+        username: metadataUsername.toLowerCase().trim(),
+        email: metadataEmail.toLowerCase().trim(),
+        onboarded: false // Flags them to fill out their trade options on the dashboard card
+      });
+    }
   }
 
-  // Once securely verified, seamlessly route the user right into the dashboard profile workspace!
+  // Redirect to their studio space
   return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
 }
