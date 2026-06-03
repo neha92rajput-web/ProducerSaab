@@ -7,83 +7,67 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 export default function Home() {
   const supabase = createClientComponentClient();
 
-  // State holding our network graph data
-  const [stats, setStats] = useState({ producers: 0, sounds: 0, countries: 0 });
-  const [trendingSounds, setTrendingSounds] = useState<any[]>([]);
-  const [featuredProducers, setFeaturedProducers] = useState<any[]>([]);
+  const [producersCount, setProducersCount] = useState(0);
+  const [soundsCount, setSoundsCount] = useState(0);
+  const [countriesCount, setCountriesCount] = useState(0);
+  const [recentUploads, setRecentUploads] = useState<any[]>([]);
+  const [networkProfiles, setNetworkProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchNetworkData() {
+    async function loadNetworkData() {
       try {
-        // 1. Fetch dynamic counts
-        const { count: producersCount } = await supabase
+        const { count: pCount } = await supabase
           .from('profiles')
           .select('*', { count: 'exact', head: true });
+        if (pCount) setProducersCount(pCount);
 
-        const { count: soundsCount } = await supabase
+        const { count: sCount } = await supabase
           .from('sounds')
           .select('*', { count: 'exact', head: true });
+        if (sCount) setSoundsCount(sCount);
 
         const { data: countryData } = await supabase
           .from('profiles')
           .select('country')
           .not('country', 'is', null);
         
-        const uniqueCountriesCount = countryData 
-          ? new Set(countryData.map(p => p.country?.toLowerCase().trim())).size 
-          : 0;
+        if (countryData) {
+          const distinct = new Set(countryData.map(item => String(item.country || '').toLowerCase().trim()));
+          setCountriesCount(distinct.size);
+        }
 
-        setStats({
-          producers: producersCount || 0,
-          sounds: soundsCount || 0,
-          countries: uniqueCountriesCount || 0
-        });
-
-        // 2. Fetch audio uploads
-        const { data: sounds } = await supabase
+        const { data: soundRecords } = await supabase
           .from('sounds')
-          .select(`
-            id,
-            title,
-            genre,
-            audio_url,
-            profiles (
-              username
-            )
-          `)
+          .select('id, title, genre, audio_url')
           .order('created_at', { ascending: false })
           .limit(4);
-        
-        if (sounds) setTrendingSounds(sounds);
+        if (soundRecords) setRecentUploads(soundRecords);
 
-        // 3. Fetch registered profiles
-        const { data: prods } = await supabase
+        const { data: profileRecords } = await supabase
           .from('profiles')
           .select('id, username, display_name, account_type')
           .limit(3);
-        
-        if (prods) setFeaturedProducers(prods);
+        if (profileRecords) setNetworkProfiles(profileRecords);
 
       } catch (err) {
-        console.error('Network graph fetch error:', err);
+        console.error('Data loading failure:', err);
       } finally {
         setLoading(false);
       }
     }
-
-    fetchNetworkData();
+    loadNetworkData();
   }, []);
 
   return (
     <div className="min-h-screen bg-[#FAF9F5] text-[#1E1E1E] font-sans antialiased">
       
-      {/* NAVBAR */}
+      {/* BRAND HEADER */}
       <header className="sticky top-0 z-50 bg-[#FAF9F5] border-b border-[#EAE6DA] px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-1.5 font-sans font-black tracking-widest text-lg text-neutral-900">
+          <Link href="/" className="flex items-center gap-1.5 font-sans font-black tracking-widest text-lg text-neutral-900 uppercase">
             <span className="text-xl font-light tracking-tighter text-neutral-800 mr-0.5">川</span>
-            SAAB
+            Producer Saab
           </Link>
           <div className="text-xs font-semibold text-neutral-500 hover:text-black transition">
             <Link href="/signin">Sign in to your Dashboard</Link>
@@ -99,7 +83,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* HERO SECTION */}
+      {/* HERO TITLE BLOCK */}
       <main className="max-w-4xl mx-auto pt-14 pb-12 px-4 text-left space-y-6">
         <div className="space-y-3">
           <p className="text-[10px] font-bold text-[#C5A880] uppercase tracking-widest">WELCOME TO PRODUCER SAAB</p>
@@ -120,56 +104,55 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* METRICS PANEL */}
+        {/* METRICS */}
         <div className="pt-6 grid grid-cols-3 gap-2 max-w-md text-left">
           <div className="flex items-center gap-2">
             <span className="text-neutral-400 text-sm">👥</span>
             <div>
-              <p className="text-sm font-serif font-black text-neutral-900 leading-none">{stats.producers}</p>
+              <p className="text-sm font-serif font-black text-neutral-900 leading-none">{producersCount}</p>
               <p className="text-[10px] text-neutral-400 font-medium">Producers</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-neutral-400 text-sm">🎵</span>
             <div>
-              <p className="text-sm font-serif font-black text-neutral-900 leading-none">{stats.sounds}</p>
+              <p className="text-sm font-serif font-black text-neutral-900 leading-none">{soundsCount}</p>
               <p className="text-[10px] text-neutral-400 font-medium">Sounds</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-neutral-400 text-sm">🌐</span>
             <div>
-              <p className="text-sm font-serif font-black text-neutral-900 leading-none">{stats.countries}</p>
+              <p className="text-sm font-serif font-black text-neutral-900 leading-none">{countriesCount}</p>
               <p className="text-[10px] text-neutral-400 font-medium">Countries</p>
             </div>
           </div>
         </div>
 
-        {/* WORKSPACE PREVIEW IMAGE */}
+        {/* SCREEN PREVIEW CONTAINER */}
         <div className="pt-4">
           <div className="rounded-2xl overflow-hidden border border-[#EAE6DA] shadow-sm bg-neutral-100 aspect-[16/10]">
-            <img src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1200&auto=format&fit=crop&q=80" className="w-full h-full object-cover" alt="Studio Setup Workspace Layout" />
+            <img src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1200&auto=format&fit=crop&q=80" className="w-full h-full object-cover" alt="Studio Setup" />
           </div>
         </div>
 
-        {/* AUDIO RACK DISPLAY */}
+        {/* RECENT AUDIO RACK MODULE */}
         <div className="pt-12 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-serif font-black text-neutral-900">🔥 Recent Uploads</h2>
           </div>
 
           {loading ? (
-            <p className="text-xs text-neutral-400 font-medium">Polling studio assets...</p>
-          ) : trendingSounds.length > 0 ? (
+            <p className="text-xs text-neutral-400">Loading tracks...</p>
+          ) : recentUploads.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {trendingSounds.map((sound: any) => (
-                <div key={sound.id} className="bg-white border border-[#EAE6DA] rounded-xl p-4 flex items-center justify-between gap-4 shadow-sm">
+              {recentUploads.map((track) => (
+                <div key={track.id} className="bg-white border border-[#EAE6DA] rounded-xl p-4 flex items-center justify-between gap-4 shadow-sm">
                   <div className="truncate">
-                    <span className="px-1.5 py-0.5 bg-black text-white text-[8px] font-black rounded tracking-wide uppercase mr-2">{sound.genre || 'Loop'}</span>
-                    <h4 className="font-bold text-xs text-neutral-900 truncate inline-block">{sound.title}</h4>
-                    <p className="text-[10px] text-neutral-400 truncate">by @{sound.profiles?.username || 'producer'}</p>
+                    <span className="px-1.5 py-0.5 bg-black text-white text-[8px] font-black rounded tracking-wide uppercase mr-2">{track.genre || 'Loop'}</span>
+                    <h4 className="font-bold text-xs text-neutral-900 truncate inline-block">{track.title}</h4>
                   </div>
-                  <audio controls src={sound.audio_url} className="h-7 w-40 accent-[#1E1E1E]" />
+                  <audio controls src={track.audio_url} className="h-7 w-40 accent-[#1E1E1E]" />
                 </div>
               ))}
             </div>
@@ -180,27 +163,27 @@ export default function Home() {
           )}
         </div>
 
-        {/* PRODUCERS HIGHLIGHT CARDS CONTAINER */}
+        {/* FEATURED PRODUCERS CARD ROW */}
         <div className="pt-12 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-serif font-black text-neutral-900">⭐ Featured Producers</h2>
           </div>
 
           {loading ? (
-            <p className="text-xs text-neutral-400 font-medium">Scanning network handles...</p>
-          ) : featuredProducers.length > 0 ? (
+            <p className="text-xs text-neutral-400">Scanning network profiles...</p>
+          ) : networkProfiles.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {featuredProducers.map((prod: any) => (
-                <div key={prod.id} className="bg-white border border-[#EAE6DA] rounded-xl p-4 text-center space-y-2 shadow-sm">
+              {networkProfiles.map((userCard) => (
+                <div key={userCard.id} className="bg-white border border-[#EAE6DA] rounded-xl p-4 text-center space-y-2 shadow-sm">
                   <div className="w-10 h-10 bg-neutral-900 text-white font-serif font-black text-sm rounded-full flex items-center justify-center mx-auto shadow-sm uppercase">
-                    {prod.display_name?.charAt(0) || prod.username?.charAt(0) || 'P'}
+                    {String(userCard.display_name || userCard.username || 'P').charAt(0)}
                   </div>
                   <div>
-                    <h3 className="font-bold text-xs text-neutral-900">@{prod.username}</h3>
-                    <p className="text-[9px] text-neutral-400 uppercase tracking-wider font-semibold">{prod.account_type || 'Producer'}</p>
+                    <h3 className="font-bold text-xs text-neutral-900">@{userCard.username || 'producer'}</h3>
+                    <p className="text-[9px] text-neutral-400 uppercase tracking-wider font-semibold">{userCard.account_type || 'Producer'}</p>
                   </div>
                   <Link 
-                    href={`/${prod.username}`}
+                    href={`/${userCard.username || ''}`}
                     className="block w-full py-1.5 text-center bg-[#FAF9F5] hover:bg-neutral-100 text-neutral-800 border border-[#EAE6DA] rounded-lg text-[10px] font-bold transition"
                   >
                     View Profile
@@ -213,7 +196,8 @@ export default function Home() {
           )}
         </div>
 
-        <footer className="pt-10 pb-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] font-medium text-neutral-400 border-t border-[#EAE6DA]/40">
+        {/* METADATA FOOTER LAYER */}
+        <footer className="pt-10 pb-4 text-[10px] text-neutral-400 border-t border-[#EAE6DA]/40">
           <p>© 2026 Producer Saab. All rights reserved.</p>
         </footer>
 
