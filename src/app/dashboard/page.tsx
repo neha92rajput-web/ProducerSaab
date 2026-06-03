@@ -14,12 +14,14 @@ export default function DashboardPage() {
   const [instagramUrl, setInstagramUrl] = useState('');
   const [spotifyUrl, setSpotifyUrl] = useState('');
   const [soundcloudUrl, setSoundcloudUrl] = useState('');
-  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  
+  // FIXED: Removed the diamond brackets so the compiler doesn't get confused
+  const [selectedGenres, setSelectedGenres] = useState([]);
   const [customGenre, setCustomGenre] = useState('');
-  const [customGenresList, setCustomGenresList] = useState<string[]>([]);
+  const [customGenresList, setCustomGenresList] = useState([]);
 
   // 2. Audio Upload State Variables (Inside @username Studio)
-  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [audioFile, setAudioFile] = useState(null);
   const [trackTitle, setTrackTitle] = useState('');
   const [selectedTrackGenre, setSelectedTrackGenre] = useState('');
   const [trackBpm, setTrackBpm] = useState('');
@@ -47,7 +49,7 @@ export default function DashboardPage() {
   ];
 
   // Handlers for profile collection tags
-  const toggleGenre = (genre: string) => {
+  const toggleGenre = (genre) => {
     if (selectedGenres.includes(genre)) {
       setSelectedGenres(selectedGenres.filter(g => g !== genre));
     } else {
@@ -55,7 +57,7 @@ export default function DashboardPage() {
     }
   };
 
-  const handleAddCustomGenre = (e: React.FormEvent) => {
+  const handleAddCustomGenre = (e) => {
     e.preventDefault();
     const cleanGenre = customGenre.trim();
     if (cleanGenre && !customGenresList.includes(cleanGenre) && !DEFAULT_GENRES.includes(cleanGenre)) {
@@ -77,7 +79,7 @@ export default function DashboardPage() {
 
   const isUploadFormValid = audioFile && trackTitle.trim() && selectedTrackGenre && trackBpm && trackKey && instrumentType;
 
-  const simulateAudioUpload = (e: React.FormEvent) => {
+  const simulateAudioUpload = (e) => {
     e.preventDefault();
     setUploadStatus('Progress');
     setTimeout(() => {
@@ -153,7 +155,7 @@ export default function DashboardPage() {
                 <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '800' }}>3. Profile Style Tags</h3>
                 <p style={{ margin: '0 0 20px 0', color: '#777777', fontSize: '13px' }}>Select signature styles for your account view:</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
-                  {[...DEFAULT_GENRES, ...customGenresList].map((g) => {
+                  {DEFAULT_GENRES.concat(customGenresList).map((g) => {
                     const active = selectedGenres.includes(g);
                     return (
                       <button key={g} type="button" onClick={() => toggleGenre(g)} style={{ padding: '10px 18px', borderRadius: '30px', border: '1px solid', borderColor: active ? '#C5A880' : '#E8E2D9', backgroundColor: active ? '#C5A880' : '#ffffff', color: active ? '#ffffff' : '#555555', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}>
