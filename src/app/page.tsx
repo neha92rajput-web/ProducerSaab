@@ -39,16 +39,28 @@ export default function Home() {
           setCountriesCount(`${distinct.size}+`);
         }
 
+        // 1. Pick sounds ONLY if they belong to a real user profile (Inner Join)
         const { data: soundRecords } = await supabase
           .from('sounds')
-          .select('id, title, genre, audio_url')
+          .select(`
+            id, 
+            title, 
+            genre, 
+            audio_url,
+            profiles!inner (
+              username,
+              display_name
+            )
+          `)
           .order('created_at', { ascending: false })
           .limit(3);
         if (soundRecords) setRecentUploads(soundRecords);
 
+        // 2. Pick only real producer profiles that have joined
         const { data: profileRecords } = await supabase
           .from('profiles')
           .select('id, username, display_name, account_type')
+          .order('created_at', { ascending: false })
           .limit(2);
         if (profileRecords) setNetworkProfiles(profileRecords);
 
@@ -64,7 +76,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#EFECE2] text-[#1E1E1E] font-sans antialiased">
       
-      {/* BRAND HEADER (Adjusted to deeper warm dark beige layout) */}
+      {/* BRAND HEADER */}
       <header className="sticky top-0 z-50 bg-[#EFECE2]/95 backdrop-blur-sm border-b border-[#DCD8CD] px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-1.5 font-sans font-black tracking-widest text-lg text-neutral-900 uppercase">
@@ -85,7 +97,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* HERO SECTION WITH BALANCED LINEAR FADE OVERLAY */}
+      {/* HERO SECTION */}
       <main 
         className="relative bg-[#EFECE2] bg-cover bg-center bg-no-repeat"
         style={{ 
@@ -196,7 +208,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TRENDING SOUNDS PACK CARD SYSTEM */}
+      {/* TRENDING SOUNDS MODULE DECK (Cleared of hardcoded placeholders) */}
       <section className="max-w-6xl mx-auto py-12 px-6 space-y-6 border-t border-[#DCD8CD]/60">
         <h2 className="text-xl font-serif font-black text-neutral-900">🔥 Trending Sounds</h2>
 
@@ -206,40 +218,28 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {recentUploads.map((track) => (
               <div key={track.id} className="bg-[#E5E1D4] border border-[#DCD8CD] rounded-2xl p-4 space-y-4 shadow-sm">
-                <div className="truncate">
+                <div>
                   <span className="px-1.5 py-0.5 bg-black text-white text-[8px] font-black rounded tracking-wide uppercase mr-2">{track.genre || 'Loop'}</span>
                   <h4 className="font-bold text-xs text-neutral-900 truncate inline-block">{track.title}</h4>
+                  <p className="text-[10px] text-neutral-500 mt-1">By @{(track.profiles as any)?.username || 'artist'}</p>
                 </div>
                 <audio controls src={track.audio_url} className="w-full h-7 accent-[#1E1E1E]" />
               </div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-[#E5E1D4] border border-[#DCD8CD] rounded-2xl p-5 space-y-2 shadow-sm">
-              <span className="px-1.5 py-0.5 bg-black text-white text-[8px] font-black rounded uppercase">TRAP</span>
-              <h4 className="font-black text-sm text-neutral-900 pt-1">Dark Trap Melody</h4>
-              <p className="text-[11px] text-neutral-500 font-medium">Waiting for your first upload</p>
-            </div>
-            <div className="bg-[#E5E1D4] border border-[#DCD8CD] rounded-2xl p-5 space-y-2 shadow-sm">
-              <span className="px-1.5 py-0.5 bg-black text-white text-[8px] font-black rounded uppercase">DRILL</span>
-              <h4 className="font-black text-sm text-neutral-900 pt-1">UK Drill Loop</h4>
-              <p className="text-[11px] text-neutral-500 font-medium">Waiting for your first upload</p>
-            </div>
-            <div className="bg-[#E5E1D4] border border-[#DCD8CD] rounded-2xl p-5 space-y-2 shadow-sm">
-              <span className="px-1.5 py-0.5 bg-black text-white text-[8px] font-black rounded uppercase">R&B</span>
-              <h4 className="font-black text-sm text-neutral-900 pt-1">R&B Piano Chords</h4>
-              <p className="text-[11px] text-neutral-500 font-medium">Waiting for your first upload</p>
-            </div>
+          /* Elegant clean empty state if no files exist */
+          <div className="text-center py-10 border border-dashed border-[#DCD8CD] rounded-2xl bg-[#E5E1D4]/40">
+            <p className="text-xs text-neutral-400 font-bold tracking-wide">
+              🎵 No audio files uploaded yet. Be the first to publish a sound!
+            </p>
           </div>
         )}
       </section>
 
-      {/* FEATURED CREATORS SECTION */}
+      {/* FEATURED CREATORS SECTION (Cleared of hardcoded placeholders) */}
       <section className="max-w-6xl mx-auto pb-16 px-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-serif font-black text-neutral-900 flex items-center gap-1.5">⭐ Featured Producers</h2>
-        </div>
+        <h2 className="text-xl font-serif font-black text-neutral-900">⭐ Featured Producers</h2>
 
         {loading ? (
           <p className="text-xs text-neutral-400">Scanning network profiles...</p>
@@ -253,7 +253,7 @@ export default function Home() {
                   </div>
                   <div>
                     <h3 className="font-bold text-sm text-neutral-900">@{userCard.username || 'producer'}</h3>
-                    <p className="text-[10px] text-neutral-500 uppercase tracking-wider font-semibold">{userCard.account_type || 'Producer'}</p>
+                    <p className="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold">{userCard.account_type || 'Producer'}</p>
                   </div>
                 </div>
                 <Link 
@@ -266,7 +266,8 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 border border-dashed border-[#DCD8CD] rounded-2xl bg-[#E5E1D4]/40">
+          /* Elegant clean empty state if no profiles exist */
+          <div className="text-center py-10 border border-dashed border-[#DCD8CD] rounded-2xl bg-[#E5E1D4]/40">
             <p className="text-xs text-neutral-400 font-bold tracking-wide">
               🌱 The community is warming up. Be the first to establish a handle!
             </p>
@@ -274,7 +275,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* SUMMER LIGHT PRE-FOOTER INTERACTIVE ACCENT CARD */}
+      {/* SUMMER LIGHT PRE-FOOTER CARD */}
       <section className="max-w-6xl mx-auto px-6 pb-12">
         <div className="bg-[#E2DDD0] rounded-[2.5rem] p-10 sm:p-14 text-center space-y-5 border border-[#D0C9BA]">
           <div className="max-w-md mx-auto space-y-2">
