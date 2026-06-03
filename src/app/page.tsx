@@ -59,9 +59,8 @@ export default function Home() {
             Producer Saab
           </Link>
 
-          {/* Navigation Center Links */}
+          {/* Navigation Center Links - "Discover" has been cleanly removed from here */}
           <nav className="hidden md:flex items-center gap-10 text-[11px] font-bold uppercase tracking-widest text-[#5A5550]">
-            <Link href="/library" className="hover:text-[#1C1B1A] transition-colors duration-200">Discover</Link>
             <Link href="/library" className="hover:text-[#1C1B1A] transition-colors duration-200">Sounds</Link>
             <Link href="/signin" className="hover:text-[#1C1B1A] transition-colors duration-200">Community</Link>
           </nav>
@@ -82,7 +81,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 2. RE-BALANCED HERO CONTAINER (Buttons removed for an ultra-clean studio backdrop view) */}
+      {/* 2. HERO CONTAINER */}
       <main 
         className="relative min-h-[500px] flex items-center bg-[#E7DED3] bg-cover bg-center bg-no-repeat overflow-hidden"
         style={{ 
@@ -111,8 +110,6 @@ export default function Home() {
                 </p>
               </div>
             </div>
-
-            {/* The old row container holding "Join the Community" and "Discover Sounds" has been cleanly removed from here */}
 
             {/* Feature row border line and columns */}
             <div className="pt-8 grid grid-cols-3 gap-6 max-w-xl text-left border-t border-[#1C1B1A]/10">
