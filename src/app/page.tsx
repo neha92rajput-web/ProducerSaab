@@ -57,7 +57,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 font-sans font-black tracking-[0.2em] text-sm text-[#1C1B1A] uppercase transition hover:opacity-80">
-            <span className="text-base font-light tracking-tighter text-[#C89B6D]">川</span>
+            <span className="text-xl font-light tracking-tighter text-[#C89B6D]">川</span>
             Producer Saab
           </Link>
 
@@ -70,7 +70,6 @@ export default function Home() {
 
           {/* Right Authentication Hub Splitters */}
           <div className="flex items-center gap-6">
-            {/* Updated link matching image_11c3dd.png position */}
             <Link href="/signin" className="text-xs font-bold text-[#1C1B1A] hover:text-[#5A5550] transition-colors duration-200">
               Sign in to you Studio
             </Link>
@@ -85,19 +84,21 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 2. LUXURY STUDIO INTUITIVE HERO CONTAINER */}
+      {/* 2. LUXURY STUDIO HERO CONTAINER */}
       <main className="relative min-h-[520px] flex items-center bg-[#2B2A27] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#2B2A27] via-[#3A352F] to-[#2B2A27] opacity-90" />
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#FFFFFF_1px,transparent_1px)] [background-size:16px_16px]" />
 
         <div className="max-w-6xl mx-auto w-full px-8 pt-20 pb-20 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
-          {/* Left Editorial Copy Area */}
-          <div className="lg:col-span-7 space-y-8 text-left">
+          {/* Left Content Column */}
+          <div className="lg:col-span-8 space-y-8 text-left">
             <div className="space-y-4">
               <p className="text-[10px] font-bold text-[#C89B6D] uppercase tracking-[0.25em] bg-white/5 px-2.5 py-1 rounded w-max backdrop-blur-sm">WELCOME TO PRODUCER SAAB</p>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-normal tracking-tight text-[#FFFFFF] leading-[1.1]">
-                The Home for <br />Music Producers<span className="text-[#C89B6D]">.</span>
+              
+              {/* UPDATED: Clear layout whitespace break classes removed to force continuous 1-line view, no trailing full stop */}
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-normal tracking-tight text-[#FFFFFF] whitespace-nowrap">
+                The Home for Music Producers
               </h1>
               
               <div className="max-w-xl space-y-4">
@@ -142,7 +143,7 @@ export default function Home() {
           </div>
 
           {/* Right Floating Minimalist WAV Monitor Card */}
-          <div className="lg:col-span-5 w-full flex justify-center lg:justify-end">
+          <div className="lg:col-span-4 w-full flex justify-center lg:justify-end">
             <div className="w-full max-w-sm bg-[#F6F1EA] border border-[#E7DED3] rounded-2xl p-5 shadow-[0_24px_60px_-15px_rgba(28,27,26,0.12)] flex items-center justify-between gap-4 transition-all duration-500 hover:translate-y-[-4px]">
               <div className="flex items-center gap-3.5 truncate">
                 <div className="w-11 h-11 rounded-xl bg-[#2B2A27] flex flex-col justify-center items-center font-bold text-[9px] text-[#C89B6D] tracking-wider shrink-0 shadow-inner">
@@ -292,7 +293,7 @@ export default function Home() {
         <div className="bg-[#E7DED3]/40 border border-[#E7DED3] rounded-[2rem] p-12 text-center space-y-6">
           <div className="max-w-md mx-auto space-y-2">
             <h2 className="text-xl sm:text-2xl font-serif font-normal text-[#1C1B1A] tracking-tight">Ready to share your sound?</h2>
-            <p className="text-xs text-[#5A5550] leading-relaxed max-w-sm mx-auto">
+            <p className="text-xs text-[#5A5550] leading-relaxed max-sm mx-auto">
               Join thousands of producers uploading loops, building audiences, and collaborating across the globe.
             </p>
           </div>
