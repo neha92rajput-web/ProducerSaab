@@ -81,15 +81,11 @@ export default function Home() {
         </div>
       </header>
 
-      {/* HERO SECTION WITH PERFECT GRADIENT OVERLAY OVER STUDIO IMAGE */}
-      <main 
-        className="relative min-h-[540px] flex items-center overflow-hidden"
-        style={{ 
-          backgroundImage: `linear-gradient(to right, rgba(43, 42, 39, 0.96) 25%, rgba(58, 53, 47, 0.7) 60%, rgba(43, 42, 39, 0.2) 100%), url('https://images.unsplash.com/photo-1552422535-c45813c61732?w=1800&auto=format&fit=crop&q=80')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
-      >
+      {/* 🎹 PIANO REMOVED: Swapped background url for a clean, rich, solid studio brown canvas (#2B2A27) */}
+      <main className="relative min-h-[500px] flex items-center overflow-hidden bg-[#2B2A27]">
+        {/* Subtle decorative atmosphere layer matching your palette theme */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-[#2B2A27] via-[#3A352F]/70 to-transparent opacity-60" />
+        
         <div className="max-w-7xl mx-auto w-full px-8 pt-16 pb-20 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
           
           {/* Hero Left Content Column */}
@@ -120,7 +116,7 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Inline Sub-Features indicators matching image_122cc0.jpg */}
+            {/* Inline Sub-Features indicators */}
             <div className="pt-8 grid grid-cols-3 gap-6 max-w-xl text-left border-t border-white/10">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-white">
