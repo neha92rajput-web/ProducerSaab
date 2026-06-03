@@ -84,9 +84,8 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 2. RE-COLORIZED STUDIO HERO CONTAINER (Swapped to a light brown background #D8CBBE with Black fonts #1C1B1A) */}
+      {/* 2. LUXURY STUDIO HERO CONTAINER */}
       <main className="relative min-h-[520px] flex items-center bg-[#D8CBBE] overflow-hidden">
-        {/* Subtle studio glow layout overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#D8CBBE] via-[#E7DED3]/40 to-[#D8CBBE] opacity-90" />
         <div className="absolute inset-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#1C1B1A_1px,transparent_1px)] [background-size:16px_16px]" />
 
@@ -97,7 +96,6 @@ export default function Home() {
             <div className="space-y-4">
               <p className="text-[10px] font-bold text-[#1C1B1A] uppercase tracking-[0.25em] bg-[#1C1B1A]/5 px-2.5 py-1 rounded w-max backdrop-blur-sm">WELCOME TO PRODUCER SAAB</p>
               
-              {/* All headline, description and sub-quote text colors are now shifted to black (#1C1B1A) */}
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-normal tracking-tight text-[#1C1B1A] whitespace-nowrap">
                 The Home for Music Producers
               </h1>
@@ -112,7 +110,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Flipped CTA buttons for crisp separation against light brown */}
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <Link href="/signin?view=signup" className="px-6 py-3 bg-[#111111] hover:bg-[#2B2A27] text-white text-xs font-bold rounded-full transition-all duration-300 shadow-md">
                 Join the Community →
@@ -122,7 +119,6 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Feature row text colors switched to near-black */}
             <div className="pt-8 grid grid-cols-3 gap-6 max-w-xl text-left border-t border-[#1C1B1A]/10">
               <div className="space-y-1">
                 <h4 className="text-xs font-bold tracking-wide text-[#1C1B1A] flex items-center gap-1.5">
@@ -179,58 +175,46 @@ export default function Home() {
       </main>
 
       {/* 3. BRAND MANIFESTO HEADER */}
-      <section className="max-w-6xl mx-auto pt-24 pb-16 px-8 text-center space-y-2">
-        <p className="text-[9px] font-bold text-[#C89B6D] uppercase tracking-[0.3em]">WHY JOIN PRODUCER SAAB?</p>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-normal tracking-tight text-[#1C1B1A]">
+      <section className="max-w-6xl mx-auto pt-24 pb-12 px-8 text-center space-y-3">
+        <p className="text-[10px] font-bold text-[#C89B6D] uppercase tracking-[0.25em] font-sans">WHY JOIN PRODUCER SAAB?</p>
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-normal tracking-tight text-[#1C1B1A]">
           Everything you need to grow as a creator<span className="text-[#C89B6D]">.</span>
         </h2>
       </section>
 
-      {/* 4. FOUR-COLUMN VALUE PROPOSITIONS */}
-      <section className="max-w-6xl mx-auto pb-24 px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="border border-[#E7DED3] rounded-2xl p-6 space-y-4 hover:border-[#D8CBBE] transition-colors duration-300">
-            <div className="w-10 h-10 bg-[#E7DED3]/40 rounded-xl flex items-center justify-center text-sm text-[#3F5A3A]">🎧</div>
-            <div className="space-y-1">
-              <h3 className="font-sans font-bold text-xs uppercase tracking-wider text-[#1C1B1A]">Showcase Your Sound</h3>
-              <p className="text-[11px] text-[#5A5550] leading-relaxed">Upload your loops, melodies, MIDI, and samples.</p>
-            </div>
+      {/* 4. FOUR-COLUMN VALUE PROPOSITIONS (Restored exactly to image_115721.png style) */}
+      <section className="max-w-4xl mx-auto pb-20 px-8 text-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-y-12 gap-x-16 max-w-2xl mx-auto">
+          <div className="flex flex-col items-center space-y-3">
+            <div className="w-14 h-14 bg-[#E7DED3] rounded-2xl flex items-center justify-center shadow-sm text-base text-[#C89B6D]">🎧</div>
+            <h3 className="font-sans font-bold text-xs text-[#1C1B1A]">Showcase Your Sound</h3>
+            <p className="text-[11px] text-[#5A5550] font-medium leading-relaxed max-w-xs">Upload your loops, melodies, MIDI, and samples.</p>
           </div>
-          <div className="border border-[#E7DED3] rounded-2xl p-6 space-y-4 hover:border-[#D8CBBE] transition-colors duration-300">
-            <div className="w-10 h-10 bg-[#E7DED3]/40 rounded-xl flex items-center justify-center text-sm text-[#3F5A3A]">👤</div>
-            <div className="space-y-1">
-              <h3 className="font-sans font-bold text-xs uppercase tracking-wider text-[#1C1B1A]">Build Your Audience</h3>
-              <p className="text-[11px] text-[#5A5550] leading-relaxed">Gain followers and grow your producer profile.</p>
-            </div>
+          <div className="flex flex-col items-center space-y-3">
+            <div className="w-14 h-14 bg-[#E7DED3] rounded-2xl flex items-center justify-center shadow-sm text-base text-[#C89B6D]">👤</div>
+            <h3 className="font-sans font-bold text-xs text-[#1C1B1A]">Build Your Audience</h3>
+            <p className="text-[11px] text-[#5A5550] font-medium leading-relaxed max-w-xs">Gain followers and grow your producer profile.</p>
           </div>
-          <div className="border border-[#E7DED3] rounded-2xl p-6 space-y-4 hover:border-[#D8CBBE] transition-colors duration-300">
-            <div className="w-10 h-10 bg-[#E7DED3]/40 rounded-xl flex items-center justify-center text-sm text-[#3F5A3A]">✨</div>
-            <div className="space-y-1">
-              <h3 className="font-sans font-bold text-xs uppercase tracking-wider text-[#1C1B1A]">Discover Talent</h3>
-              <p className="text-[11px] text-[#5A5550] leading-relaxed">Find and connect with producers worldwide.</p>
-            </div>
+          <div className="flex flex-col items-center space-y-3">
+            <div className="w-14 h-14 bg-[#E7DED3] rounded-2xl flex items-center justify-center shadow-sm text-base text-[#C89B6D]">✨</div>
+            <h3 className="font-sans font-bold text-xs text-[#1C1B1A]">Discover Talent</h3>
+            <p className="text-[11px] text-[#5A5550] font-medium leading-relaxed max-w-xs">Find and connect with producers worldwide.</p>
           </div>
-          <div className="border border-[#E7DED3] rounded-2xl p-6 space-y-4 hover:border-[#D8CBBE] transition-colors duration-300">
-            <div className="w-10 h-10 bg-[#E7DED3]/40 rounded-xl flex items-center justify-center text-sm text-[#3F5A3A]">⏱️</div>
-            <div className="space-y-1">
-              <h3 className="font-sans font-bold text-xs uppercase tracking-wider text-[#1C1B1A]">Collaborate & Grow</h3>
-              <p className="text-[11px] text-[#5A5550] leading-relaxed">Find collaborators, learn, and create opportunities.</p>
-            </div>
+          <div className="flex flex-col items-center space-y-3">
+            <div className="w-14 h-14 bg-[#E7DED3] rounded-2xl flex items-center justify-center shadow-sm text-base text-[#C89B6D]">⏱️</div>
+            <h3 className="font-sans font-bold text-xs text-[#1C1B1A]">Collaborate & Grow</h3>
+            <p className="text-[11px] text-[#5A5550] font-medium leading-relaxed max-w-xs">Find collaborators, learn, and create opportunities.</p>
           </div>
         </div>
       </section>
 
       {/* 5. TRENDING SOUNDS MODULE */}
-      <section className="max-w-6xl mx-auto py-12 px-8 space-y-6 border-t border-[#E7DED3]">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-[#1C1B1A] flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#3F5A3A]" /> Trending Sounds
-          </h3>
-          <Link href="/library" className="text-[11px] font-bold text-[#5A5550] hover:text-[#1C1B1A] transition-colors">View Library →</Link>
-        </div>
-
+      <section className="max-w-4xl mx-auto py-10 px-8 space-y-4 border-t border-[#E7DED3]">
+        <h3 className="text-xs font-bold uppercase tracking-widest text-[#1C1B1A] flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#3F5A3A]" /> Trending Sounds
+        </h3>
         {loading ? (
-          <p className="text-xs text-[#5A5550] italic">Loading soundboards...</p>
+          <p className="text-[11px] text-[#5A5550]">Loading tracks...</p>
         ) : recentUploads.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {recentUploads.map((track) => (
@@ -247,22 +231,21 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 border border-dashed border-[#D8CBBE] rounded-2xl">
-            <p className="text-xs text-[#5A5550] font-medium">
-              🎵 No audio files uploaded yet. Be the first to publish a track!
+          <div className="text-center py-6 border border-dashed border-[#E7DED3] rounded-2xl bg-[#E7DED3]/30">
+            <p className="text-[11px] text-[#5A5550] font-semibold flex items-center justify-center gap-1.5">
+              🎵 No audio files uploaded yet. Be the first to publish a sound!
             </p>
           </div>
         )}
       </section>
 
-      {/* 6. FEATURED CREATORS DIRECTORY */}
-      <section className="max-w-6xl mx-auto py-12 px-8 space-y-6">
+      {/* 6. FEATURED PRODUCERS MODULE */}
+      <section className="max-w-4xl mx-auto py-10 px-8 space-y-4">
         <h3 className="text-xs font-bold uppercase tracking-widest text-[#1C1B1A] flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-[#3F5A3A]" /> Featured Producers
         </h3>
-
         {loading ? (
-          <p className="text-xs text-[#5A5550] italic">Scanning network map...</p>
+          <p className="text-[11px] text-[#5A5550]">Scanning creators...</p>
         ) : networkProfiles.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {networkProfiles.map((userCard) => (
@@ -283,8 +266,8 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 border border-dashed border-[#D8CBBE] rounded-2xl">
-            <p className="text-xs text-[#5A5550] font-medium">
+          <div className="text-center py-6 border border-dashed border-[#E7DED3] rounded-2xl bg-[#E7DED3]/30">
+            <p className="text-[11px] text-[#5A5550] font-semibold flex items-center justify-center gap-1.5">
               🌱 The community is warming up. Be the first to establish a handle!
             </p>
           </div>
@@ -292,7 +275,7 @@ export default function Home() {
       </section>
 
       {/* 7. PRE-FOOTER INVITATION BANNER */}
-      <section className="max-w-6xl mx-auto px-8 pb-20 pt-6">
+      <section className="max-w-4xl mx-auto px-8 pb-16 pt-6">
         <div className="bg-[#E7DED3]/40 border border-[#E7DED3] rounded-[2rem] p-12 text-center space-y-6">
           <div className="max-w-md mx-auto space-y-2">
             <h2 className="text-xl sm:text-2xl font-serif font-normal text-[#1C1B1A] tracking-tight">Ready to share your sound?</h2>
@@ -311,8 +294,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 8. MINIMAL FOOTER SIGNATURE */}
-      <footer className="max-w-6xl mx-auto pb-12 px-8 text-[10px] uppercase tracking-widest text-[#5A5550] border-t border-[#E7DED3]/40 pt-8 text-center font-semibold">
+      {/* FOOTER */}
+      <footer className="max-w-4xl mx-auto pb-8 px-8 text-[10px] uppercase tracking-widest text-[#5A5550] border-t border-[#E7DED3]/40 pt-8 text-center font-semibold">
         <p>© 2026 Producer Saab. All rights reserved.</p>
       </footer>
 
