@@ -7,10 +7,10 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 export default function Home() {
   const supabase = createClientComponentClient();
 
-  // Dynamic database fallback counters
-  const [producersCount, setProducersCount] = useState('12K+');
-  const [soundsCount, setSoundsCount] = useState('120K+');
-  const [countriesCount, setCountriesCount] = useState('50+');
+  // Resetting metrics strictly to 0 initially
+  const [producersCount, setProducersCount] = useState<number>(0);
+  const [soundsCount, setSoundsCount] = useState<number>(0);
+  const [countriesCount, setCountriesCount] = useState<number>(0);
   
   const [recentUploads, setRecentUploads] = useState<any[]>([]);
   const [networkProfiles, setNetworkProfiles] = useState<any[]>([]);
@@ -19,16 +19,19 @@ export default function Home() {
   useEffect(() => {
     async function loadNetworkData() {
       try {
+        // 1. Fetch real producer count from database
         const { count: pCount } = await supabase
           .from('profiles')
           .select('*', { count: 'exact', head: true });
-        if (pCount && pCount > 0) setProducersCount(`${pCount}+`);
+        if (pCount) setProducersCount(pCount);
 
+        // 2. Fetch real sound count from database
         const { count: sCount } = await supabase
           .from('sounds')
           .select('*', { count: 'exact', head: true });
-        if (sCount && sCount > 0) setSoundsCount(`${sCount}+`);
+        if (sCount) setSoundsCount(sCount);
 
+        // 3. Fetch real distinct countries count from database
         const { data: countryData } = await supabase
           .from('profiles')
           .select('country')
@@ -36,10 +39,10 @@ export default function Home() {
         
         if (countryData && countryData.length > 0) {
           const distinct = new Set(countryData.map(item => String(item.country || '').toLowerCase().trim()));
-          setCountriesCount(`${distinct.size}+`);
+          setCountriesCount(distinct.size);
         }
 
-        // 1. Pick sounds ONLY if they belong to a real user profile (Inner Join)
+        // 4. Fetch sounds dynamically linked to a real profile
         const { data: soundRecords } = await supabase
           .from('sounds')
           .select(`
@@ -56,7 +59,7 @@ export default function Home() {
           .limit(3);
         if (soundRecords) setRecentUploads(soundRecords);
 
-        // 2. Pick only real producer profiles that have joined
+        // 5. Fetch genuine registered creators
         const { data: profileRecords } = await supabase
           .from('profiles')
           .select('id, username, display_name, account_type')
@@ -126,7 +129,7 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* METRICS */}
+          {/* METRICS (Now displaying purely 0 if database is empty) */}
           <div className="pt-8 grid grid-cols-3 gap-6 max-w-sm mx-auto sm:mx-0 text-left border-t border-[#DCD8CD]">
             <div className="flex items-center gap-2">
               <span className="text-neutral-400 text-sm">👥</span>
@@ -162,7 +165,6 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-y-12 gap-x-16 max-w-2xl mx-auto">
-          {/* Item 1 */}
           <div className="flex flex-col items-center text-center space-y-3">
             <div className="w-16 h-16 bg-[#E5E1D4] rounded-2xl flex items-center justify-center shadow-sm">
               <svg className="w-6 h-6 text-[#C5A880]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -173,7 +175,6 @@ export default function Home() {
             <p className="text-xs text-neutral-500 font-medium leading-relaxed max-w-xs">Upload your loops, melodies, MIDI, and samples.</p>
           </div>
 
-          {/* Item 2 */}
           <div className="flex flex-col items-center text-center space-y-3">
             <div className="w-16 h-16 bg-[#E5E1D4] rounded-2xl flex items-center justify-center shadow-sm">
               <svg className="w-6 h-6 text-[#C5A880]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -184,7 +185,6 @@ export default function Home() {
             <p className="text-xs text-neutral-500 font-medium leading-relaxed max-w-xs">Gain followers and grow your producer profile.</p>
           </div>
 
-          {/* Item 3 */}
           <div className="flex flex-col items-center text-center space-y-3">
             <div className="w-16 h-16 bg-[#E5E1D4] rounded-2xl flex items-center justify-center shadow-sm">
               <svg className="w-6 h-6 text-[#C5A880]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -195,7 +195,6 @@ export default function Home() {
             <p className="text-xs text-neutral-500 font-medium leading-relaxed max-w-xs">Find and connect with producers worldwide.</p>
           </div>
 
-          {/* Item 4 */}
           <div className="flex flex-col items-center text-center space-y-3">
             <div className="w-16 h-16 bg-[#E5E1D4] rounded-2xl flex items-center justify-center shadow-sm">
               <svg className="w-6 h-6 text-[#C5A880]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -208,7 +207,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TRENDING SOUNDS MODULE DECK (Cleared of hardcoded placeholders) */}
+      {/* TRENDING SOUNDS MODULE DECK */}
       <section className="max-w-6xl mx-auto py-12 px-6 space-y-6 border-t border-[#DCD8CD]/60">
         <h2 className="text-xl font-serif font-black text-neutral-900">🔥 Trending Sounds</h2>
 
@@ -228,7 +227,6 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          /* Elegant clean empty state if no files exist */
           <div className="text-center py-10 border border-dashed border-[#DCD8CD] rounded-2xl bg-[#E5E1D4]/40">
             <p className="text-xs text-neutral-400 font-bold tracking-wide">
               🎵 No audio files uploaded yet. Be the first to publish a sound!
@@ -237,7 +235,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* FEATURED CREATORS SECTION (Cleared of hardcoded placeholders) */}
+      {/* FEATURED CREATORS SECTION */}
       <section className="max-w-6xl mx-auto pb-16 px-6 space-y-6">
         <h2 className="text-xl font-serif font-black text-neutral-900">⭐ Featured Producers</h2>
 
@@ -266,8 +264,7 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          /* Elegant clean empty state if no profiles exist */
-          <div className="text-center py-10 border border-dashed border-[#DCD8CD] rounded-2xl bg-[#E5E1D4]/40">
+          <div className="text-center py-12 border border-dashed border-[#DCD8CD] rounded-2xl bg-[#E5E1D4]/40">
             <p className="text-xs text-neutral-400 font-bold tracking-wide">
               🌱 The community is warming up. Be the first to establish a handle!
             </p>
