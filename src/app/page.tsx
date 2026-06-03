@@ -174,9 +174,9 @@ export default function Home() {
         </div>
       </main>
 
-      {/* 3. UPDATED MANIFESTO HEADER (Verbatim text update, period dropped, scale reduced 2 sizes down) */}
+      {/* 3. BRAND MANIFESTO HEADER (WHY JOIN label is now 2 sizes larger) */}
       <section className="max-w-6xl mx-auto pt-24 pb-12 px-8 text-center space-y-3">
-        <p className="text-[10px] font-bold text-[#C89B6D] uppercase tracking-[0.25em] font-sans">WHY JOIN PRODUCER SAAB?</p>
+        <p className="text-xs sm:text-sm font-bold text-[#C89B6D] uppercase tracking-[0.25em] font-sans">WHY JOIN PRODUCER SAAB?</p>
         <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-normal tracking-tight text-[#1C1B1A]">
           Everything you need to grow as a Music creator
         </h2>
@@ -239,7 +239,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* 6. FEATURED CREATORS MODULE */}
+      {/* 6. FEATURED PRODUCERS MODULE */}
       <section className="max-w-4xl mx-auto py-10 px-8 space-y-4">
         <h3 className="text-xs font-bold uppercase tracking-widest text-[#1C1B1A] flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-[#3F5A3A]" /> Featured Producers
