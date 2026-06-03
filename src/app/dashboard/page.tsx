@@ -4,30 +4,29 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 
 export default function DashboardPage() {
-  // Page toggle state
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  // Navigation & UI States
+  const [isProfileSetupSubmitted, setIsProfileSetupSubmitted] = useState(true); // Default to true since you already built your profile!
+  const [showUploadModal, setShowUploadModal] = useState(false); // Controls the upload form overlay
 
-  // Profile setup inputs state
-  const [producerRole, setProducerRole] = useState('');
-  const [customRole, setCustomRole] = useState('');
-  const [showCustomRoleInput, setShowCustomRoleInput] = useState(false);
-  const [instagramUrl, setInstagramUrl] = useState('');
+  // Profile Setup Mock Data (Pulled from your entries)
+  const [producerRole, setProducerRole] = useState('Music Producer');
+  const [instagramUrl, setInstagramUrl] = useState('https://instagram.com/chaotic_stone');
   const [spotifyUrl, setSpotifyUrl] = useState('');
   const [soundcloudUrl, setSoundcloudUrl] = useState('');
-  const [selectedGenres, setSelectedGenres] = useState([]);
+  const [selectedGenres, setSelectedGenres] = useState(['Coke Studio', 'Hip Hop', 'Ambient']);
   const [customGenre, setCustomGenre] = useState('');
-  const [customGenresList, setCustomGenresList] = useState([]);
+  const [customGenresList, setCustomGenresList] = useState(['Coke Studio']);
 
-  // Workstation drop form state
+  // Audio Upload Form State Variables
   const [audioFile, setAudioFile] = useState(null);
   const [trackTitle, setTrackTitle] = useState('');
   const [selectedTrackGenre, setSelectedTrackGenre] = useState('');
   const [trackBpm, setTrackBpm] = useState('');
   const [trackKey, setTrackKey] = useState('');
   const [instrumentType, setInstrumentType] = useState('');
-  const [uploadStatus, setUploadStatus] = useState('Idle');
+  const [uploadStatus, setUploadStatus] = useState('Idle'); // Idle, Progress, Success
 
-  // Hardcoded selection lists
+  // Static Configuration Lists
   const DEFAULT_GENRES = [
     'Hip Hop', 'Trap', 'Drill', 'R&B', 'Electronic / EDM', 
     'Pop', 'Rock / Metal', 'Lo-Fi / Jazz', 'Boom Bap', 'Afrobeats', 'Ambient'
@@ -45,7 +44,7 @@ export default function DashboardPage() {
     'Drum Kit / Percussion Loop', 'Vocal Chop / Phrase', 'Bass / Sub Loop', 'Full Composition Melody'
   ];
 
-  // Helper actions
+  // Helper Functions
   function toggleGenre(genreName) {
     if (selectedGenres.includes(genreName)) {
       setSelectedGenres(selectedGenres.filter(function(g) { return g !== genreName; }));
@@ -57,7 +56,7 @@ export default function DashboardPage() {
   function handleAddCustomGenre(event) {
     event.preventDefault();
     const cleanGenre = customGenre.trim();
-    if (cleanGenre && !customGenresList.includes(cleanGenre) && !DEFAULT_GENRES.includes(cleanGenre)) {
+    if (cleanGenre && !customGenresList.includes(cleanGenre)) {
       setCustomGenresList([...customGenresList, cleanGenre]);
       setSelectedGenres([...selectedGenres, cleanGenre]);
       setCustomGenre('');
@@ -65,15 +64,10 @@ export default function DashboardPage() {
   }
 
   const cleanHandle = instagramUrl.includes('instagram.com/') 
-    ? instagramUrl.split('instagram.com/')[1]?.split('/')[0] || 'Producer'
-    : instagramUrl || 'Producer';
+    ? instagramUrl.split('instagram.com/')[1]?.split('/')[0] || 'chaotic_stone'
+    : instagramUrl || 'chaotic_stone';
 
-  const isProfileValid = 
-    (producerRole === 'Other' ? customRole.trim() !== '' : producerRole !== '') &&
-    (instagramUrl.trim() !== '' || spotifyUrl.trim() !== '' || soundcloudUrl.trim() !== '') &&
-    selectedGenres.length > 0;
-
-  const isUploadFormValid = audioFile && trackTitle.trim() && selectedTrackGenre && trackBpm && trackKey && instrumentType;
+  const isUploadFormValid = trackTitle.trim() && selectedTrackGenre && trackBpm && trackKey && instrumentType;
 
   function simulateAudioUpload(event) {
     event.preventDefault();
@@ -83,208 +77,125 @@ export default function DashboardPage() {
     }, 2000);
   }
 
-  // --- SUB-LAYOUT 1: THE INITIAL PROFILE SETUP SHEET ---
-  const profileSetupView = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      <header style={{ backgroundColor: '#ffffff', padding: '32px', borderRadius: '24px', border: '1px solid #E8E2D9' }}>
-        <span style={{ color: '#C5A880', fontSize: '10px', fontWeight: 'bold', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Onboarding Launch</span>
-        <h1 style={{ margin: '4px 0 8px 0', fontSize: '32px', fontWeight: '800', letterSpacing: '-0.5px' }}>Welcome Producer Saab</h1>
-        <p style={{ margin: 0, color: '#777777', fontSize: '14px' }}>Fill out your profile layout below to spin up your personalized workstation station link.</p>
-      </header>
-
-      <section style={{ backgroundColor: '#ffffff', padding: '32px', borderRadius: '24px', border: '1px solid #E8E2D9' }}>
-        <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '800' }}>1. Select Your Primary Trade Role</h3>
-        <p style={{ margin: '0 0 20px 0', color: '#777777', fontSize: '13px' }}>Choose your specialty:</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {['Music Producer', 'Beatmaker', 'Lyricist / Songwriter', 'Audio Engineer', 'Vocalist'].map(function(role) {
-            return (
-              <label key={role} style={{ display: 'flex', alignItems: 'center', padding: '16px', border: producerRole === role ? '2px solid #C5A880' : '1px solid #E8E2D9', borderRadius: '12px', cursor: 'pointer', backgroundColor: producerRole === role ? '#FAF6F0' : 'transparent' }}>
-                <span style={{ fontSize: '14px', fontWeight: '600' }}>{role}</span>
-                <input type="radio" name="role" checked={producerRole === role} onChange={function() { setProducerRole(role); setShowCustomRoleInput(false); }} style={{ marginLeft: 'auto', accentColor: '#C5A880' }} />
-              </label>
-            );
-          })}
-          <label style={{ display: 'flex', alignItems: 'center', padding: '16px', border: producerRole === 'Other' ? '2px solid #C5A880' : '1px solid #E8E2D9', borderRadius: '12px', cursor: 'pointer', backgroundColor: producerRole === 'Other' ? '#FAF6F0' : 'transparent' }}>
-            <span style={{ fontSize: '14px', fontWeight: '600' }}>Custom Trade Input Option</span>
-            <input type="radio" name="role" checked={producerRole === 'Other'} onChange={function() { setProducerRole('Other'); setShowCustomRoleInput(true); }} style={{ marginLeft: 'auto', accentColor: '#C5A880' }} />
-          </label>
-          {showCustomRoleInput && (
-            <input type="text" placeholder="Type custom role title..." value={customRole} onChange={function(e) { setCustomRole(e.target.value); }} style={{ width: '100%', marginTop: '4px', padding: '14px', border: '1px solid #C5A880', borderRadius: '8px', boxSizing: 'border-box' }} />
-          )}
-        </div>
-      </section>
-
-      <section style={{ backgroundColor: '#ffffff', padding: '32px', borderRadius: '24px', border: '1px solid #E8E2D9' }}>
-        <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '800' }}>2. Link Your Portfolios (Minimum 1 Required)</h3>
-        <p style={{ margin: '0 0 20px 0', color: '#777777', fontSize: '13px' }}>Where can the platform find your music handles?</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <input type="url" placeholder="📸 Instagram profile handle or URL link" value={instagramUrl} onChange={function(e) { setInstagramUrl(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box' }} />
-          <input type="url" placeholder="🎵 Spotify Artist URL" value={spotifyUrl} onChange={function(e) { setSpotifyUrl(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box' }} />
-          <input type="url" placeholder="☁️ SoundCloud URL" value={soundcloudUrl} onChange={function(e) { setSoundcloudUrl(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box' }} />
-        </div>
-      </section>
-
-      <section style={{ backgroundColor: '#ffffff', padding: '32px', borderRadius: '24px', border: '1px solid #E8E2D9' }}>
-        <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '800' }}>3. Profile Style Tags</h3>
-        <p style={{ margin: '0 0 20px 0', color: '#777777', fontSize: '13px' }}>Select signature styles for your account view:</p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
-          {DEFAULT_GENRES.concat(customGenresList).map(function(g) {
-            const active = selectedGenres.includes(g);
-            return (
-              <button key={g} type="button" onClick={function() { toggleGenre(g); }} style={{ padding: '10px 18px', borderRadius: '30px', border: '1px solid', borderColor: active ? '#C5A880' : '#E8E2D9', backgroundColor: active ? '#C5A880' : '#ffffff', color: active ? '#ffffff' : '#555555', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}>
-                {g} {active ? '✓' : '+'}
-              </button>
-            );
-          })}
-        </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <input type="text" placeholder="Type and add unlisted styles manually..." value={customGenre} onChange={function(e) { setCustomGenre(e.target.value); }} style={{ flex: 1, padding: '12px', border: '1px solid #E8E2D9', borderRadius: '8px' }} />
-          <button type="button" onClick={handleAddCustomGenre} style={{ padding: '0 20px', borderRadius: '8px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', cursor: 'pointer' }}>+ Add</button>
-        </div>
-      </section>
-
-      <button disabled={!isProfileValid} onClick={function() { setIsSubmitted(true); }} style={{ width: '100%', padding: '18px', borderRadius: '35px', border: 'none', backgroundColor: isProfileValid ? '#0f2416' : '#E8E2D9', color: '#ffffff', fontWeight: 'bold', cursor: isProfileValid ? 'pointer' : 'not-allowed', marginBottom: '40px' }}>
-        Initialize Studio Workspace Dashboard →
-      </button>
-    </div>
-  );
-
-  // --- SUB-LAYOUT 2: THE ACTIVE CREATOR PORTAL STUDIO ---
-  const studioWorkspaceView = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      <header style={{ backgroundColor: '#ffffff', padding: '32px', borderRadius: '24px', border: '1px solid #E8E2D9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 25px rgba(0,0,0,0.02)' }}>
-        <div>
-          <span style={{ color: '#C5A880', fontSize: '10px', fontWeight: 'bold', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Live Production Suite</span>
-          <h1 style={{ margin: '4px 0 4px 0', fontSize: '32px', fontWeight: '900', letterSpacing: '-0.5px' }}>@{cleanHandle} Studio</h1>
-          <p style={{ margin: 0, color: '#777777', fontSize: '14px' }}>Welcome back to your central audio drops processing terminal.</p>
-        </div>
-        <span style={{ backgroundColor: '#FAF6F0', border: '1px solid #C5A880', color: '#C5A880', fontSize: '11px', fontWeight: 'bold', padding: '8px 16px', borderRadius: '30px' }}>
-          ✨ {producerRole === 'Other' ? customRole : producerRole}
-        </span>
-      </header>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '30px', alignItems: 'start' }}>
-        <section style={{ backgroundColor: '#ffffff', padding: '32px', borderRadius: '24px', border: '1px solid #E8E2D9' }}>
-          <h3 style={{ margin: '0 0 6px 0', fontSize: '18px', fontWeight: '800' }}>📤 Upload Audio Project Drop</h3>
-          <p style={{ margin: '0 0 24px 0', color: '#777777', fontSize: '13px' }}>Publish custom sound stems directly to the network feed database.</p>
-          
-          <form onSubmit={simulateAudioUpload} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Audio file track (.mp3 or .wav) *</label>
-              <input type="file" accept=".mp3,.wav" onChange={function(e) { if (e.target.files && e.target.files.length > 0) { setAudioFile(e.target.files[0]); } }} style={{ width: '100%', padding: '14px', border: '2px dashed #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', backgroundColor: '#FAF8F5' }} required />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Track / Sample Title *</label>
-              <input type="text" placeholder="e.g., Midnight Vibes Loop" value={trackTitle} onChange={function(e) { setTrackTitle(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '13px' }} required />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Audio Genre Classification *</label>
-              <select value={selectedTrackGenre} onChange={function(e) { setSelectedTrackGenre(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', fontSize: '13px', backgroundColor: '#ffffff' }} required>
-                <option value="">-- Choose Target Track Genre --</option>
-                {selectedGenres.map(function(genre) {
-                  return <option key={genre} value={genre}>{genre}</option>;
-                })}
-              </select>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Tempo BPM *</label>
-                <input type="number" placeholder="e.g., 140" value={trackBpm} onChange={function(e) { setTrackBpm(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '13px' }} required />
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Signature Key Scale *</label>
-                <select value={trackKey} onChange={function(e) { setTrackKey(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', fontSize: '13px', backgroundColor: '#ffffff' }} required>
-                  <option value="">-- Select Dropdown Scale --</option>
-                  {MUSICAL_KEYS.map(function(scale) {
-                    return <option key={scale} value={scale}>{scale}</option>;
-                  })}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Instrument Stem / Sample Layer Source *</label>
-              <select value={instrumentType} onChange={function(e) { setInstrumentType(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', fontSize: '13px', backgroundColor: '#ffffff' }} required>
-                <option value="">-- Choose Loop Instrument Base Layer --</option>
-                {INSTRUMENTS.map(function(inst) {
-                  return <option key={inst} value={inst}>{inst}</option>;
-                })}
-              </select>
-            </div>
-
-            {uploadStatus === 'Idle' && (
-              <button type="submit" disabled={!isUploadFormValid} style={{ marginTop: '10px', width: '100%', padding: '16px', border: 'none', borderRadius: '30px', backgroundColor: isUploadFormValid ? '#C5A880' : '#E8E2D9', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: isUploadFormValid ? 'pointer' : 'not-allowed' }}>
-                Publish Stems to Global Library Feed
-              </button>
-            )}
-
-            {uploadStatus === 'Progress' && (
-              <button type="button" style={{ marginTop: '10px', width: '100%', padding: '16px', border: 'none', borderRadius: '30px', backgroundColor: '#F0EBE3', color: '#C5A880', fontWeight: 'bold', fontSize: '14px', cursor: 'not-allowed' }}>
-                ⚡ Syncing audio array blocks to network storage node...
-              </button>
-            )}
-
-            {uploadStatus === 'Success' && (
-              <div style={{ marginTop: '10px', textAlign: 'center', backgroundColor: '#FAF6F0', border: '1px solid #C5A880', borderRadius: '12px', padding: '14px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#B8986E' }}>🎉 Project audio drop uploaded securely onto live library node successfully!</span>
-                <button type="button" onClick={function() { setUploadStatus('Idle'); setTrackTitle(''); setAudioFile(null); }} style={{ display: 'block', margin: '8px auto 0 auto', background: 'none', border: 'none', color: '#111111', fontSize: '12px', fontWeight: 'bold', textDecoration: 'underline', cursor: 'pointer' }}>Upload Another stems file</button>
-              </div>
-            )}
-          </form>
-        </section>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <section style={{ backgroundColor: '#ffffff', padding: '24px', borderRadius: '20px', border: '1px solid #E8E2D9' }}>
-            <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#C5A880' }}>Studio Dashboard Profile</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
-              {instagramUrl && <div style={{ textOverflow: 'ellipsis', overflow: 'hidden' }}><strong>Insta:</strong> {instagramUrl}</div>}
-              {spotifyUrl && <div style={{ textOverflow: 'ellipsis', overflow: 'hidden' }}><strong>Spotify:</strong> {spotifyUrl}</div>}
-              {soundcloudUrl && <div style={{ textOverflow: 'ellipsis', overflow: 'hidden' }}><strong>SoundCloud:</strong> {soundcloudUrl}</div>}
-              <div style={{ borderTop: '1px dashed #E8E2D9', marginTop: '8px', paddingTop: '8px', color: '#666', fontSize: '12px' }}>
-                <strong>Authorized Styles:</strong><br /> {selectedGenres.join(', ')}
-              </div>
-            </div>
-          </section>
-
-          <Link href="/feed" style={{ textDecoration: 'none' }}>
-            <section style={{ backgroundColor: '#111111', color: '#ffffff', padding: '24px', borderRadius: '20px', textAlign: 'center', cursor: 'pointer' }}>
-              <p style={{ margin: '0 0 4px 0', fontWeight: 'bold', fontSize: '15px' }}>Explore Network Feed 🌍</p>
-              <p style={{ margin: 0, color: '#999999', fontSize: '12px' }}>Enter the global public community workspace wall</p>
-            </section>
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-
-  // --- ABSOLUTE STANDARD UNINTERRUPTED MASTER RETURN BLOCK ---
   return (
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif', backgroundColor: '#FAF8F5', color: '#111111' }}>
       
+      {/* SIDEBAR NAVIGATION */}
       <aside style={{ width: '260px', backgroundColor: '#ffffff', borderRight: '1px solid #E8E2D9', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px', position: 'sticky', top: 0, height: '100vh', boxSizing: 'border-box' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', fontWeight: 'bold', fontSize: '14px', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
           🎵 Producer Saab
         </div>
-        <button style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '14px', borderRadius: '10px', border: 'none', backgroundColor: !isSubmitted ? '#C5A880' : 'transparent', color: !isSubmitted ? '#ffffff' : '#444', fontWeight: '600', cursor: 'pointer', textAlign: 'left' }} onClick={function() { setIsSubmitted(false); }}>
-          🎛️ Studio Profile Creator
+        <button style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '14px', borderRadius: '10px', border: 'none', backgroundColor: '#C5A880', color: '#ffffff', fontWeight: '600', cursor: 'pointer', textAlign: 'left' }} onClick={function() { setIsProfileSetupSubmitted(true); }}>
+          🎛️ Studio Hub
         </button>
         <Link href="/feed" style={{ textDecoration: 'none', width: '100%' }}>
-          <button style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '14px', borderRadius: '10px', border: 'none', backgroundColor: isSubmitted ? '#111111' : 'transparent', color: isSubmitted ? '#ffffff' : '#444', fontWeight: '500', cursor: 'pointer', textAlign: 'left' }}>
+          <button style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '14px', borderRadius: '10px', border: 'none', backgroundColor: 'transparent', color: '#444', fontWeight: '500', cursor: 'pointer', textAlign: 'left' }}>
             🌐 Global Library
           </button>
         </Link>
       </aside>
 
+      {/* MAIN HUB INTERFACE */}
       <main style={{ flex: 1, padding: '40px 60px', display: 'flex', justifyContent: 'center' }}>
-        <div style={{ width: '100%', maxWidth: '720px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          {isSubmitted ? studioWorkspaceView : profileSetupView}
+        <div style={{ width: '100%', maxWidth: '980px', display: 'grid', gridTemplateColumns: '1.4fr 0.6fr', gap: '40px', alignItems: 'start' }}>
+          
+          {/* LEFT COLUMN: LINKEDIN STYLE PROFILE AREA */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+            
+            {/* LINKEDIN HERO COVER & CARD PACK */}
+            <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', border: '1px solid #E8E2D9', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.01)' }}>
+              {/* Cover Banner */}
+              <div style={{ height: '140px', backgroundColor: '#C5A880', backgroundImage: 'linear-gradient(45deg, #C5A880, #E8E2D9)' }} />
+              
+              {/* Profile Details Container */}
+              <div style={{ padding: '32px', position: 'relative', marginTop: '-60px' }}>
+                {/* Profile Picture Avatar Avatar */}
+                <div style={{ width: '100px', height: '100px', borderRadius: '50px', backgroundColor: '#111111', border: '4px solid #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', color: '#ffffff', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+                  👑
+                </div>
+
+                <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <h1 style={{ margin: '0 0 4px 0', fontSize: '28px', fontWeight: '900', letterSpacing: '-0.5px' }}>@{cleanHandle}</h1>
+                    <p style={{ margin: '0 0 12px 0', color: '#C5A880', fontWeight: '700', fontSize: '15px' }}>{producerRole} • Verified Creator</p>
+                  </div>
+                  <button style={{ padding: '8px 20px', borderRadius: '20px', border: '1px solid #E8E2D9', backgroundColor: '#ffffff', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }} onClick={function() { alert('Profile editing module unlocked!'); }}>
+                    Edit Info
+                  </button>
+                </div>
+
+                <p style={{ margin: '12px 0 20px 0', color: '#666666', fontSize: '14px', lineHeight: '1.6' }}>
+                  Welcome back to your central audio node interface. Here you can track, manage, and distribute your sonic assets across the Producer Saab ecosystem.
+                </p>
+
+                {/* Sub-Badges style links layout */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', borderTop: '1px solid #FAF8F5', paddingTop: '20px' }}>
+                  {selectedGenres.map(function(genre) {
+                    return (
+                      <span key={genre} style={{ backgroundColor: '#FAF6F0', color: '#C5A880', fontSize: '12px', fontWeight: 'bold', padding: '6px 14px', borderRadius: '20px', border: '1px solid rgba(197, 168, 128, 0.2)' }}>
+                        🎵 {genre}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* ARTIST PORTFOLIO GRID (LINKEDIN EXPERIENCE SECTION) */}
+            <div style={{ backgroundColor: '#ffffff', padding: '32px', borderRadius: '24px', border: '1px solid #E8E2D9' }}>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '800' }}>Featured Tracks & Audio Drops</h3>
+              <p style={{ margin: '0 0 24px 0', color: '#777777', fontSize: '13px' }}>Your published sounds appearing on the community feed panel.</p>
+
+              {trackTitle ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', backgroundColor: '#FAF8F5', borderRadius: '16px', border: '1px solid #E8E2D9' }}>
+                  <div style={{ width: '48px', height: '48px', backgroundColor: '#111111', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>💿</div>
+                  <div style={{ flex: 1 }}>
+                    <h4 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: '700' }}>{trackTitle}</h4>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#666' }}>{selectedTrackGenre} • {trackBpm} BPM • {trackKey} • {instrumentType}</p>
+                  </div>
+                  <span style={{ fontSize: '12px', color: '#16a34a', fontWeight: 'bold', backgroundColor: '#f0fdf4', padding: '4px 10px', borderRadius: '12px' }}>Live</span>
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#999', border: '2px dashed #FAF8F5', borderRadius: '16px' }}>
+                  <p style={{ margin: '0 0 4px 0', fontWeight: '600', color: '#555' }}>No active audio files cataloged</p>
+                  <p style={{ margin: 0, fontSize: '13px' }}>Click the launch controller button on the right to place your first drop track file.</p>
+                </div>
+              )}
+            </div>
+
+          </div>
+
+          {/* RIGHT COLUMN: LINKEDIN ACTION CONTROL CONTROLLERS */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'sticky', top: '40px' }}>
+            
+            {/* ACTION CARD TRIGGER PANEL */}
+            <section style={{ backgroundColor: '#ffffff', padding: '28px', borderRadius: '24px', border: '1px solid #E8E2D9', boxShadow: '0 4px 20px rgba(197, 168, 128, 0.03)' }}>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '800' }}>Studio Control Rack</h4>
+              <p style={{ margin: '0 0 20px 0', color: '#666666', fontSize: '13px', lineHeight: '1.5' }}>Ready to send a loop layer or master sample block to the community pool?</p>
+              
+              <button style={{ width: '100%', padding: '16px', borderRadius: '30px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} onClick={function() { setShowUploadModal(true); setUploadStatus('Idle'); }}>
+                <span>📤</span> Upload Audio File
+              </button>
+            </section>
+
+            {/* QUICK STATS INSIGHTS BADGE */}
+            <section style={{ backgroundColor: '#ffffff', padding: '24px', borderRadius: '20px', border: '1px solid #E8E2D9', fontSize: '13px' }}>
+              <h5 style={{ margin: '0 0 12px 0', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', color: '#C5A880', letterSpacing: '0.05em' }}>Studio Metrics</h5>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Profile Views:</span><strong>124</strong></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Feed Sync Drops:</span><strong>{trackTitle ? '1' : '0'}</strong></div>
+              </div>
+            </section>
+
+          </div>
+
         </div>
       </main>
 
-    </div>
-  );
-}
+      {/* INTERACTIVE MODAL OVERLAY (THE AUDIO INTAKE DRAWERS CONTROLLER) */}
+      {showUploadModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(15, 12, 10, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '540px', borderRadius: '24px', padding: '36px', border: '1px solid #E8E2D9', boxShadow: '0 10px 40px rgba(0,0,0,0.15)', position: 'relative', boxSizing: 'border-box', maxHeight: '90vh', overflowY: 'auto' }}>
+            
+            {/* Close Button Anchor */}
+            <button style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#999' }} onClick={
