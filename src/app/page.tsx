@@ -103,17 +103,23 @@ export default function Home() {
         }}
       >
         <div className="max-w-6xl mx-auto pt-24 pb-24 px-6 space-y-8 relative z-10 text-center sm:text-left">
-          <div className="space-y-4">
+          <div className="space-y-5">
             <p className="text-[10px] font-bold text-[#C79A6D] uppercase tracking-widest">WELCOME TO PRODUCER SAAB</p>
             
             <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif font-black tracking-tight text-[#191919] leading-none truncate block">
               The Home for Music Producers<span className="text-[#C79A6D]">.</span>
             </h1>
             
-            {/* UPDATED USER CUSTOM QUOTE */}
-            <p className="text-sm font-medium text-[#6F6F6F] max-w-2xl leading-relaxed mx-auto sm:mx-0 pt-2">
-              Join a community of music creators sharing tracks, loops, melodies, samples, and beats. Upload your audio, connect with collaborators, get discovered. Build your Studio and grow your audience.
-            </p>
+            {/* HERO DESCRIPTION PARAGRAPH BLOCKS */}
+            <div className="max-w-2xl text-[#6F6F6F] mx-auto sm:mx-0 pt-1 space-y-4 font-medium">
+              <p className="text-sm leading-relaxed">
+                Join a community of music creators sharing tracks, loops, melodies, samples, and beats. Upload your audio, connect with collaborators, get discovered.
+              </p>
+              {/* This line is now exactly 2 font sizes up (text-lg instead of text-sm) */}
+              <p className="text-lg text-[#191919] font-bold tracking-tight">
+                Build your Studio and grow your audience.
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center justify-center sm:justify-start gap-3 pt-2">
