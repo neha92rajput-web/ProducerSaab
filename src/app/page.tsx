@@ -47,6 +47,8 @@ export default function Home() {
     loadNetworkData();
   }, []);
 
+  const latestTrack = recentUploads[0];
+
   return (
     <div className="min-h-screen bg-[#F6F1EA] text-[#5A5550] font-sans antialiased selection:bg-[#E7DED3] selection:text-[#1C1B1A]">
       
@@ -82,22 +84,19 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 2. RE-BALANCED HERO CONTAINER (Audio Widget Removed to Expose Studio Desk & Piano Workspace on Right) */}
-      <main 
-        className="relative min-h-[540px] flex items-center bg-[#E7DED3] bg-cover bg-center bg-no-repeat overflow-hidden"
-        style={{ 
-          backgroundImage: `linear-gradient(to right, rgba(246, 241, 234, 0.96) 35%, rgba(246, 241, 234, 0.82) 65%, rgba(246, 241, 234, 0.4) 100%), url('https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1800&auto=format&fit=crop&q=80')` 
-        }}
-      >
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#1C1B1A_1px,transparent_1px)] [background-size:16px_16px]" />
+      {/* 2. LUXURY STUDIO HERO CONTAINER */}
+      <main className="relative min-h-[520px] flex items-center bg-[#D8CBBE] overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#D8CBBE] via-[#E7DED3]/40 to-[#D8CBBE] opacity-90" />
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#1C1B1A_1px,transparent_1px)] [background-size:16px_16px]" />
 
         <div className="max-w-6xl mx-auto w-full px-8 pt-20 pb-20 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
-          {/* Left Text Block expanded elegantly across columns to breathe nicely over the left-to-right gradient masking */}
-          <div className="lg:col-span-9 xl:col-span-8 space-y-8 text-left">
+          {/* Left Content Column */}
+          <div className="lg:col-span-8 space-y-8 text-left">
             <div className="space-y-4">
               <p className="text-[10px] font-bold text-[#1C1B1A] uppercase tracking-[0.25em] bg-[#1C1B1A]/5 px-2.5 py-1 rounded w-max backdrop-blur-sm">WELCOME TO PRODUCER SAAB</p>
               
+              {/* UPDATED: font-normal changed to font-bold to make "The Home for Music Producers" look beautifully thicker */}
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold tracking-tight text-[#1C1B1A] whitespace-nowrap">
                 The Home for Music Producers
               </h1>
@@ -113,10 +112,10 @@ export default function Home() {
             </div>
 
             <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Link href="/signin?view=signup" className="px-6 py-3 bg-[#111111] hover:bg-[#2B2A27] text-white text-xs font-bold rounded-full transition-all duration-300 transform active:scale-95 shadow-md">
+              <Link href="/signin?view=signup" className="px-6 py-3 bg-[#111111] hover:bg-[#2B2A27] text-white text-xs font-bold rounded-full transition-all duration-300 shadow-md">
                 Join the Community →
               </Link>
-              <Link href="/library" className="px-6 py-3 bg-transparent border border-[#1C1B1A]/20 hover:border-[#1C1B1A] text-[#1C1B1A] text-xs font-bold rounded-full transition-all duration-300">
+              <Link href="/library" className="px-6 py-3 bg-transparent border border-[#1C1B1A]/30 hover:border-[#1C1B1A] text-[#1C1B1A] text-xs font-bold rounded-full transition-all duration-300">
                 Discover Sounds
               </Link>
             </div>
@@ -126,25 +125,52 @@ export default function Home() {
                 <h4 className="text-xs font-bold tracking-wide text-[#1C1B1A] flex items-center gap-1.5">
                   <span className="text-[#3F5A3A]">●</span> Upload Your Audio
                 </h4>
-                <p className="text-[11px] text-[#5A5550] font-medium">Share your best work</p>
+                <p className="text-[11px] text-[#1C1B1A]/70 font-medium">Share your best work</p>
               </div>
               <div className="space-y-1">
                 <h4 className="text-xs font-bold tracking-wide text-[#1C1B1A] flex items-center gap-1.5">
                   <span className="text-[#3F5A3A]">●</span> Connect & Collaborate
                 </h4>
-                <p className="text-[11px] text-[#5A5550] font-medium">Work with creators</p>
+                <p className="text-[11px] text-[#1C1B1A]/70 font-medium">Work with creators</p>
               </div>
               <div className="space-y-1">
                 <h4 className="text-xs font-bold tracking-wide text-[#1C1B1A] flex items-center gap-1.5">
                   <span className="text-[#3F5A3A]">●</span> Build Your Studio
                 </h4>
-                <p className="text-[11px] text-[#5A5550] font-medium">Grow your audience</p>
+                <p className="text-[11px] text-[#1C1B1A]/70 font-medium">Grow your audience</p>
               </div>
             </div>
           </div>
 
-          {/* Right Column Left Blank Intentionally to Uncover the Studio Environment Background */}
-          <div className="hidden lg:block lg:col-span-3 xl:col-span-4" />
+          {/* Right Floating Minimalist WAV Monitor Card */}
+          <div className="lg:col-span-4 w-full flex justify-center lg:justify-end">
+            <div className="w-full max-w-sm bg-[#F6F1EA] border border-[#E7DED3] rounded-2xl p-5 shadow-[0_24px_60px_-15px_rgba(28,27,26,0.12)] flex items-center justify-between gap-4 transition-all duration-500 hover:translate-y-[-4px]">
+              <div className="flex items-center gap-3.5 truncate">
+                <div className="w-11 h-11 rounded-xl bg-[#2B2A27] flex flex-col justify-center items-center font-bold text-[9px] text-[#C89B6D] tracking-wider shrink-0 shadow-inner">
+                  WAV
+                </div>
+                <div className="truncate">
+                  <span className="inline-flex items-center gap-1 text-[9px] font-black text-[#3F5A3A] uppercase tracking-widest mb-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#6E8B5B] animate-pulse" /> Latest Upload
+                  </span>
+                  <h4 className="font-sans font-bold text-xs text-[#1C1B1A] truncate">
+                    {latestTrack ? latestTrack.title : 'Late Night Bounce'}
+                  </h4>
+                  <p className="text-[10px] text-[#5A5550] tracking-tight truncate">
+                    by {latestTrack ? `@${latestTrack.profiles?.username}` : 'Ocean Run'}
+                  </p>
+                </div>
+              </div>
+              
+              {latestTrack?.audio_url ? (
+                <audio controls src={latestTrack.audio_url} className="h-7 w-28 accent-[#111111]" />
+              ) : (
+                <div className="flex items-center justify-center w-8 h-8 bg-[#111111] hover:bg-[#3F5A3A] text-[#FFFFFF] rounded-full transition-colors duration-300 shadow shrink-0">
+                  <span className="text-[10px] ml-0.5">▶</span>
+                </div>
+              )}
+            </div>
+          </div>
 
         </div>
       </main>
@@ -214,7 +240,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* 6. FEATURED CREATORS MODULE */}
+      {/* 6. FEATURED PRODUCERS MODULE */}
       <section className="max-w-4xl mx-auto py-10 px-8 space-y-4">
         <h3 className="text-xs font-bold uppercase tracking-widest text-[#1C1B1A] flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-[#3F5A3A]" /> Featured Producers
