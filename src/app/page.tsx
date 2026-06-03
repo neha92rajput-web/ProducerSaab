@@ -96,7 +96,8 @@ export default function Home() {
             <div className="space-y-4">
               <p className="text-[10px] font-bold text-[#1C1B1A] uppercase tracking-[0.25em] bg-[#1C1B1A]/5 px-2.5 py-1 rounded w-max backdrop-blur-sm">WELCOME TO PRODUCER SAAB</p>
               
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-normal tracking-tight text-[#1C1B1A] whitespace-nowrap">
+              {/* UPDATED: font-normal changed to font-bold to make "The Home for Music Producers" look beautifully thicker */}
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold tracking-tight text-[#1C1B1A] whitespace-nowrap">
                 The Home for Music Producers
               </h1>
               
@@ -174,7 +175,7 @@ export default function Home() {
         </div>
       </main>
 
-      {/* 3. BRAND MANIFESTO HEADER (WHY JOIN label is now 2 sizes larger) */}
+      {/* 3. BRAND MANIFESTO HEADER */}
       <section className="max-w-6xl mx-auto pt-24 pb-12 px-8 text-center space-y-3">
         <p className="text-xs sm:text-sm font-bold text-[#C89B6D] uppercase tracking-[0.25em] font-sans">WHY JOIN PRODUCER SAAB?</p>
         <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-normal tracking-tight text-[#1C1B1A]">
