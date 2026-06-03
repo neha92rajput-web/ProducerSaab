@@ -14,8 +14,6 @@ export default function DashboardPage() {
   const [instagramUrl, setInstagramUrl] = useState('');
   const [spotifyUrl, setSpotifyUrl] = useState('');
   const [soundcloudUrl, setSoundcloudUrl] = useState('');
-  
-  // FIXED: Removed the diamond brackets so the compiler doesn't get confused
   const [selectedGenres, setSelectedGenres] = useState([]);
   const [customGenre, setCustomGenre] = useState('');
   const [customGenresList, setCustomGenresList] = useState([]);
@@ -48,24 +46,24 @@ export default function DashboardPage() {
     'Drum Kit / Percussion Loop', 'Vocal Chop / Phrase', 'Bass / Sub Loop', 'Full Composition Melody'
   ];
 
-  // Handlers for profile collection tags
-  const toggleGenre = (genre) => {
-    if (selectedGenres.includes(genre)) {
-      setSelectedGenres(selectedGenres.filter(g => g !== genre));
+  // Handlers for profile collection tags using safe traditional functions
+  function toggleGenre(genreName) {
+    if (selectedGenres.includes(genreName)) {
+      setSelectedGenres(selectedGenres.filter(g => g !== genreName));
     } else {
-      setSelectedGenres([...selectedGenres, genre]);
+      setSelectedGenres([...selectedGenres, genreName]);
     }
-  };
+  }
 
-  const handleAddCustomGenre = (e) => {
-    e.preventDefault();
+  function handleAddCustomGenre(event) {
+    event.preventDefault();
     const cleanGenre = customGenre.trim();
     if (cleanGenre && !customGenresList.includes(cleanGenre) && !DEFAULT_GENRES.includes(cleanGenre)) {
       setCustomGenresList([...customGenresList, cleanGenre]);
       setSelectedGenres([...selectedGenres, cleanGenre]);
       setCustomGenre('');
     }
-  };
+  }
 
   // Mock Username extracted or built based on entries
   const cleanHandle = instagramUrl.includes('instagram.com/') 
@@ -79,13 +77,13 @@ export default function DashboardPage() {
 
   const isUploadFormValid = audioFile && trackTitle.trim() && selectedTrackGenre && trackBpm && trackKey && instrumentType;
 
-  const simulateAudioUpload = (e) => {
-    e.preventDefault();
+  function simulateAudioUpload(event) {
+    event.preventDefault();
     setUploadStatus('Progress');
     setTimeout(() => {
       setUploadStatus('Success');
     }, 2000);
-  };
+  }
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif', backgroundColor: '#FAF8F5', color: '#111111' }}>
