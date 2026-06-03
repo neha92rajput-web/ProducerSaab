@@ -59,10 +59,10 @@ export default function Home() {
             Producer Saab
           </Link>
 
-          {/* Navigation Center Links - "Discover" has been cleanly removed from here */}
+          {/* Navigation Center Links - Verbatim updates matching image_10c802.jpg replacement request */}
           <nav className="hidden md:flex items-center gap-10 text-[11px] font-bold uppercase tracking-widest text-[#5A5550]">
-            <Link href="/library" className="hover:text-[#1C1B1A] transition-colors duration-200">Sounds</Link>
-            <Link href="/signin" className="hover:text-[#1C1B1A] transition-colors duration-200">Community</Link>
+            <Link href="/library" className="hover:text-[#1C1B1A] transition-colors duration-200">Sound Library</Link>
+            <Link href="/signin" className="hover:text-[#1C1B1A] transition-colors duration-200">Producer Community</Link>
           </nav>
 
           {/* Right Authentication Hub Splitters */}
