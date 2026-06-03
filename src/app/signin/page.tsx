@@ -43,9 +43,8 @@ function SignInContent() {
         });
 
         if (error) {
-          setErrorMsg(error.message); // Displays "User already registered" directly from Supabase
+          setErrorMsg(error.message);
         } else if (data?.user && data.user.identities?.length === 0) {
-          // Supabase security quirk: if email exists, it returns an empty identities array
           setErrorMsg('This email address is already registered. Try signing in!');
         } else {
           alert('Check your email inbox to verify your network handle profile!');
@@ -61,7 +60,7 @@ function SignInContent() {
         }
       }
     } catch (err) {
-      setErrorMsg('Connection error. Please try again.');
+      setErrorMsg('Database connection error. Check your API configuration.');
     } finally {
       setLoading(false);
     }
@@ -70,8 +69,8 @@ function SignInContent() {
   return (
     <div className="min-h-screen bg-[#FAF9F5] text-[#1E1E1E] font-sans flex flex-col justify-center py-12 px-6">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-4">
-        <Link href="/" className="font-sans font-black tracking-widest text-xl uppercase inline-block">
-          <span className="text-2xl font-light tracking-tighter text-neutral-500 mr-0.5">川</span> SAAB
+        <Link href="/" className="font-sans font-black tracking-widest text-xl inline-block text-neutral-900">
+          <span className="text-2xl font-light tracking-tighter text-neutral-500 mr-1">川</span> Producer Saab
         </Link>
         <h2 className="text-2xl font-serif font-black tracking-tight text-neutral-900">
           {isSignUp ? 'Establish your music handle' : 'Sign in to your Dashboard'}
@@ -144,7 +143,7 @@ function SignInContent() {
               }}
               className="text-xs font-bold text-neutral-500 hover:text-black transition"
             >
-              {isSignUp ? 'Already registered? Sign in here' : 'New to SAAB? Join the community network'}
+              {isSignUp ? 'Already registered? Sign in here' : 'New to Producer Saab? Join the network'}
             </button>
           </div>
         </div>
