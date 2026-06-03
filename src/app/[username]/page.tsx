@@ -1,87 +1,153 @@
-export const dynamic = 'force-dynamic';
+'use client';
 
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { notFound } from 'next/navigation';
-import { Globe, Instagram, Youtube, Music, MapPin } from 'lucide-react';
+import React, { useState } from 'react';
+import Link from 'next/link';
 
-interface Props { params: { username: string } }
+export default function PublicProfilePage({ params }) {
+  // Safe extraction of the profile handle from the URL route
+  const rawUsername = params?.username || 'Producer';
+  const displayHandle = rawUsername.toLowerCase();
 
-export default async function PublicProfile({ params }: Props) {
-  // Strip out any accidental "@" symbols from the URL parameter automatically
-  const cleanUsername = decodeURIComponent(params.username).replace('@', '').toLowerCase();
-  const supabase = createServerComponentClient({ cookies });
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('username', cleanUsername)
-    .single();
-
-  if (!profile) notFound();
-
-  const { data: sounds } = await supabase
-    .from('sounds')
-    .select('*')
-    .eq('user_id', profile.id)
-    .order('created_at', { ascending: false });
+  // Mock Data aligned with your profile setup (@chaotic_stone / @nthakur styles)
+  const [producerRole] = useState('Music Producer');
+  const [selectedGenres] = useState(['Coke Studio', 'Hip Hop', 'Ambient']);
+  
+  // Audio tracking for live playback element
+  const [trackTitle] = useState('midnight');
+  const [trackGenre] = useState('Coke Studio');
+  const [trackBpm] = useState('90');
+  const [trackKey] = useState('F# Minor');
+  const [instrumentType] = useState('Guitar Loop / Sample');
+  
+  // Standard background preview track stream (You can drop an asset URL here later!)
+  const [audioUrl] = useState('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-[#1E1E1E] py-12 px-4 sm:px-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif', backgroundColor: '#FAF8F5', color: '#111111' }}>
+      
+      {/* PUBLIC NAVBAR SIDE PANEL */}
+      <aside style={{ width: '260px', backgroundColor: '#ffffff', borderRight: '1px solid #E8E2D9', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px', position: 'sticky', top: 0, height: '100vh', boxSizing: 'border-box' }}>
+        <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', fontWeight: 'bold', fontSize: '14px', letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer' }}>
+            🎵 Producer Saab
+          </div>
+        </Link>
         
-        {/* Profile Card Summary */}
-        <div className="bg-white border border-[#EAE6DA] rounded-3xl p-8 flex flex-col md:flex-row items-center md:items-start gap-6 shadow-sm">
-          <div className="w-24 h-24 bg-neutral-100 rounded-full border border-neutral-300 overflow-hidden shadow-inner flex-shrink-0">
-            {profile.avatar_url && <img src={profile.avatar_url} className="w-full h-full object-cover" alt="" />}
-          </div>
-          <div className="space-y-3 text-center md:text-left flex-grow">
-            <div>
-              <h1 className="text-3xl font-serif font-black tracking-tight text-neutral-900">{profile.display_name}</h1>
-              <p className="text-sm font-medium text-[#D4AF37]">@{profile.username} • {profile.account_type}</p>
-            </div>
-            <div className="flex flex-wrap justify-center md:justify-start gap-2 items-center text-xs text-neutral-500">
-              <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {profile.city}, {profile.country}</span>
-            </div>
-            <p className="text-sm text-neutral-700 max-w-2xl leading-relaxed">{profile.bio}</p>
-            <div className="flex flex-wrap justify-center md:justify-start gap-2 pt-1">
-              {profile.genres?.map((g: string) => (
-                <span key={g} className="px-2.5 py-1 bg-[#FAF9F5] border border-[#EAE6DA] text-neutral-600 rounded-md text-xs font-semibold">{g}</span>
-              ))}
-            </div>
-          </div>
-
-          {/* Social Array Module */}
-          <div className="flex md:flex-col gap-2 justify-center pt-2 md:pt-0">
-            {profile.instagram_url && <a href={profile.instagram_url} target="_blank" rel="noreferrer" className="p-2 bg-[#FAF9F5] border border-[#EAE6DA] rounded-xl hover:text-[#D4AF37] transition"><Instagram className="w-4 h-4" /></a>}
-            {profile.youtube_url && <a href={profile.youtube_url} target="_blank" rel="noreferrer" className="p-2 bg-[#FAF9F5] border border-[#EAE6DA] rounded-xl hover:text-[#D4AF37] transition"><Youtube className="w-4 h-4" /></a>}
-            {profile.website_url && <a href={profile.website_url} target="_blank" rel="noreferrer" className="p-2 bg-[#FAF9F5] border border-[#EAE6DA] rounded-xl hover:text-[#D4AF37] transition"><Globe className="w-4 h-4" /></a>}
-          </div>
+        <div style={{ padding: '14px 0', borderBottom: '1px solid #FAF8F5', marginBottom: '10px' }}>
+          <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#C5A880', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Browsing Profile</span>
         </div>
 
-        {/* Catalog Showcase Segment */}
-        <div className="bg-white border border-[#EAE6DA] rounded-3xl p-8 shadow-sm">
-          <h2 className="text-xl font-serif font-bold text-neutral-900 mb-6 flex items-center gap-2">
-            <Music className="w-5 h-5 text-[#D4AF37]" /> Sound Portfolio
-          </h2>
-          {sounds && sounds.length > 0 ? (
-            <div className="space-y-4">
-              {sounds.map(track => (
-                <div key={track.id} className="p-4 bg-[#FAF9F5] border border-[#EAE6DA] rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <h4 className="font-semibold text-neutral-900">{track.title}</h4>
-                    <p className="text-xs text-neutral-400 mt-0.5">{track.genre} • {track.bpm || 'N/A'} BPM • {track.musical_key || 'No Key'}</p>
-                  </div>
-                  <audio controls src={track.audio_url} className="w-full sm:max-w-xs h-8 accent-[#1E1E1E]" />
+        <Link href="/" style={{ textDecoration: 'none', width: '100%' }}>
+          <button style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '14px', borderRadius: '10px', border: 'none', backgroundColor: 'transparent', color: '#444', fontWeight: '500', cursor: 'pointer', textAlign: 'left' }}>
+            🏠 Return Home
+          </button>
+        </Link>
+        <Link href="/feed" style={{ textDecoration: 'none', width: '100%' }}>
+          <button style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '14px', borderRadius: '10px', border: 'none', backgroundColor: 'transparent', color: '#444', fontWeight: '500', cursor: 'pointer', textAlign: 'left' }}>
+            🌐 Global Library
+          </button>
+        </Link>
+      </aside>
+
+      {/* CORE PROFILE INTERFACE */}
+      <main style={{ flex: 1, padding: '40px 60px', display: 'flex', justifyContent: 'center' }}>
+        <div style={{ width: '100%', maxWidth: '980px', display: 'grid', gridTemplateColumns: '1.4fr 0.6fr', gap: '40px', alignItems: 'start' }}>
+          
+          {/* LEFT SECTION: PROFILE CANVAS HEADER & PORTFOLIO TRACK CARD */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+            
+            {/* HERO PROFILE HEADER */}
+            <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', border: '1px solid #E8E2D9', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.01)' }}>
+              <div style={{ height: '140px', backgroundColor: '#C5A880', backgroundImage: 'linear-gradient(45deg, #C5A880, #E8E2D9)' }} />
+              
+              <div style={{ padding: '32px', position: 'relative', marginTop: '-60px' }}>
+                <div style={{ width: '100px', height: '100px', borderRadius: '50px', backgroundColor: '#111111', border: '4px solid #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', color: '#ffffff' }}>
+                  🎧
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-center text-sm text-neutral-400 py-8">No sounds uploaded to this portfolio yet.</p>
-          )}
-        </div>
 
-      </div>
+                <div style={{ marginTop: '20px' }}>
+                  <h1 style={{ margin: '0 0 4px 0', fontSize: '28px', fontWeight: '900', letterSpacing: '-0.5px' }}>@{displayHandle} Studio</h1>
+                  <p style={{ margin: '0 0 12px 0', color: '#C5A880', fontWeight: '700', fontSize: '15px' }}>{producerRole} • Verified Creator</p>
+                </div>
+
+                <p style={{ margin: '12px 0 20px 0', color: '#666666', fontSize: '14px', lineHeight: '1.6' }}>
+                  Welcome to my verified audio drops portfolio space. Stream my latest sound stems, melody lines, and instrument layers below.
+                </p>
+
+                {/* Genre Style Badges Showcase Block */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', borderTop: '1px solid #FAF8F5', paddingTop: '20px' }}>
+                  {selectedGenres.map(function(genre) {
+                    return (
+                      <span key={genre} style={{ backgroundColor: '#FAF6F0', color: '#C5A880', fontSize: '12px', fontWeight: 'bold', padding: '6px 14px', borderRadius: '20px', border: '1px solid rgba(197, 168, 128, 0.2)' }}>
+                        🎵 {genre}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* SOUND AUDIO PORTFOLIO TRACK SHOWCASE (WITH PLAYBACK SUPPORT) */}
+            <div style={{ backgroundColor: '#ffffff', padding: '32px', borderRadius: '24px', border: '1px solid #E8E2D9' }}>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '800' }}>Featured Tracks & Audio Drops</h3>
+              <p style={{ margin: '0 0 24px 0', color: '#777777', fontSize: '13px' }}>Listen to custom sound architectures directly inside the browser player.</p>
+
+              {trackTitle ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px', backgroundColor: '#FAF8F5', borderRadius: '16px', border: '1px solid #E8E2D9' }}>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ width: '48px', height: '48px', backgroundColor: '#111111', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>💿</div>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '700', textTransform: 'capitalize' }}>{trackTitle}</h4>
+                      <p style={{ margin: 0, fontSize: '12px', color: '#666' }}>{trackGenre} • {trackBpm} BPM • {trackKey} • {instrumentType}</p>
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#16a34a', fontWeight: 'bold', backgroundColor: '#f0fdf4', padding: '4px 10px', borderRadius: '12px' }}>Live</span>
+                  </div>
+
+                  {/* Integrated Public HTML5 Audio Interface Element */}
+                  {audioUrl && (
+                    <div style={{ width: '100%', marginTop: '4px', borderTop: '1px solid #E8E2D9', paddingTop: '12px' }}>
+                      <audio controls src={audioUrl} style={{ width: '100%', accentColor: '#C5A880' }}>
+                        Your browser does not support audio elements.
+                      </audio>
+                    </div>
+                  )}
+
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#999', border: '2px dashed #FAF8F5', borderRadius: '16px' }}>
+                  <p style={{ margin: 0, fontWeight: '600' }}>This artist hasn't published any files yet.</p>
+                </div>
+              )}
+            </div>
+
+          </div>
+
+          {/* RIGHT SECTION: METRIC INSIGHTS INTERFACES */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            <section style={{ backgroundColor: '#ffffff', padding: '28px', borderRadius: '24px', border: '1px solid #E8E2D9', textAlign: 'center' }}>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '800' }}>Connect with Creator</h4>
+              <p style={{ margin: '0 0 20px 0', color: '#666666', fontSize: '13px', lineHeight: '1.5' }}>Follow for network feed alerts when new loops or stems launch.</p>
+              
+              <button style={{ width: '100%', padding: '14px', borderRadius: '30px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }} onClick={function() { alert('Connected safely!'); }}>
+                ＋ Follow Artist
+              </button>
+            </section>
+
+            <section style={{ backgroundColor: '#ffffff', padding: '24px', borderRadius: '20px', border: '1px solid #E8E2D9', fontSize: '13px' }}>
+              <h5 style={{ margin: '0 0 12px 0', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', color: '#C5A880', letterSpacing: '0.05em' }}>Studio Credentials</h5>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div><strong>Handle:</strong> @{displayHandle}</div>
+                <div><strong>Trade Spec:</strong> {producerRole}</div>
+              </div>
+            </section>
+
+          </div>
+
+        </div>
+      </main>
+
     </div>
   );
 }
