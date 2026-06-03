@@ -84,60 +84,63 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 2. LUXURY STUDIO HERO CONTAINER */}
-      <main className="relative min-h-[520px] flex items-center bg-[#2B2A27] overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#2B2A27] via-[#3A352F] to-[#2B2A27] opacity-90" />
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#FFFFFF_1px,transparent_1px)] [background-size:16px_16px]" />
+      {/* 2. RE-COLORIZED STUDIO HERO CONTAINER (Swapped to a light brown background #D8CBBE with Black fonts #1C1B1A) */}
+      <main className="relative min-h-[520px] flex items-center bg-[#D8CBBE] overflow-hidden">
+        {/* Subtle studio glow layout overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#D8CBBE] via-[#E7DED3]/40 to-[#D8CBBE] opacity-90" />
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#1C1B1A_1px,transparent_1px)] [background-size:16px_16px]" />
 
         <div className="max-w-6xl mx-auto w-full px-8 pt-20 pb-20 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           {/* Left Content Column */}
           <div className="lg:col-span-8 space-y-8 text-left">
             <div className="space-y-4">
-              <p className="text-[10px] font-bold text-[#C89B6D] uppercase tracking-[0.25em] bg-white/5 px-2.5 py-1 rounded w-max backdrop-blur-sm">WELCOME TO PRODUCER SAAB</p>
+              <p className="text-[10px] font-bold text-[#1C1B1A] uppercase tracking-[0.25em] bg-[#1C1B1A]/5 px-2.5 py-1 rounded w-max backdrop-blur-sm">WELCOME TO PRODUCER SAAB</p>
               
-              {/* UPDATED: Clear layout whitespace break classes removed to force continuous 1-line view, no trailing full stop */}
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-normal tracking-tight text-[#FFFFFF] whitespace-nowrap">
+              {/* All headline, description and sub-quote text colors are now shifted to black (#1C1B1A) */}
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-normal tracking-tight text-[#1C1B1A] whitespace-nowrap">
                 The Home for Music Producers
               </h1>
               
               <div className="max-w-xl space-y-4">
-                <p className="text-sm leading-relaxed text-[#D8CBBE]">
+                <p className="text-sm leading-relaxed text-[#1C1B1A]/80 font-medium">
                   Join a community of music creators sharing tracks, loops, melodies, samples, and beats. Upload your audio, connect with collaborators, get discovered.
                 </p>
-                <p className="text-base sm:text-lg text-[#FFFFFF] font-light tracking-wide border-l-2 border-[#3F5A3A] pl-4">
+                <p className="text-base sm:text-lg text-[#1C1B1A] font-medium tracking-wide border-l-2 border-[#3F5A3A] pl-4">
                   Build your Studio and grow your audience.
                 </p>
               </div>
             </div>
 
+            {/* Flipped CTA buttons for crisp separation against light brown */}
             <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Link href="/signin?view=signup" className="px-6 py-3 bg-[#FFFFFF] hover:bg-[#E7DED3] text-[#111111] text-xs font-bold rounded-full transition-all duration-300 shadow-md">
+              <Link href="/signin?view=signup" className="px-6 py-3 bg-[#111111] hover:bg-[#2B2A27] text-white text-xs font-bold rounded-full transition-all duration-300 shadow-md">
                 Join the Community →
               </Link>
-              <Link href="/library" className="px-6 py-3 bg-transparent border border-[#D8CBBE]/40 hover:border-[#FFFFFF] text-[#FFFFFF] text-xs font-bold rounded-full transition-all duration-300">
+              <Link href="/library" className="px-6 py-3 bg-transparent border border-[#1C1B1A]/30 hover:border-[#1C1B1A] text-[#1C1B1A] text-xs font-bold rounded-full transition-all duration-300">
                 Discover Sounds
               </Link>
             </div>
 
-            <div className="pt-8 grid grid-cols-3 gap-6 max-w-xl text-left border-t border-[#D8CBBE]/10">
+            {/* Feature row text colors switched to near-black */}
+            <div className="pt-8 grid grid-cols-3 gap-6 max-w-xl text-left border-t border-[#1C1B1A]/10">
               <div className="space-y-1">
-                <h4 className="text-xs font-bold tracking-wide text-[#FFFFFF] flex items-center gap-1.5">
-                  <span className="text-[#6E8B5B]">●</span> Upload Your Audio
+                <h4 className="text-xs font-bold tracking-wide text-[#1C1B1A] flex items-center gap-1.5">
+                  <span className="text-[#3F5A3A]">●</span> Upload Your Audio
                 </h4>
-                <p className="text-[11px] text-[#D8CBBE]/70">Share your best work</p>
+                <p className="text-[11px] text-[#1C1B1A]/70 font-medium">Share your best work</p>
               </div>
               <div className="space-y-1">
-                <h4 className="text-xs font-bold tracking-wide text-[#FFFFFF] flex items-center gap-1.5">
-                  <span className="text-[#6E8B5B]">●</span> Connect & Collaborate
+                <h4 className="text-xs font-bold tracking-wide text-[#1C1B1A] flex items-center gap-1.5">
+                  <span className="text-[#3F5A3A]">●</span> Connect & Collaborate
                 </h4>
-                <p className="text-[11px] text-[#D8CBBE]/70">Work with creators</p>
+                <p className="text-[11px] text-[#1C1B1A]/70 font-medium">Work with creators</p>
               </div>
               <div className="space-y-1">
-                <h4 className="text-xs font-bold tracking-wide text-[#FFFFFF] flex items-center gap-1.5">
-                  <span className="text-[#6E8B5B]">●</span> Build Your Studio
+                <h4 className="text-xs font-bold tracking-wide text-[#1C1B1A] flex items-center gap-1.5">
+                  <span className="text-[#3F5A3A]">●</span> Build Your Studio
                 </h4>
-                <p className="text-[11px] text-[#D8CBBE]/70">Grow your audience</p>
+                <p className="text-[11px] text-[#1C1B1A]/70 font-medium">Grow your audience</p>
               </div>
             </div>
           </div>
