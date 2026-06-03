@@ -46,6 +46,7 @@ export default function Home() {
           .limit(3);
         if (soundRecords) setRecentUploads(soundRecords);
 
+        // Fetch only actual profiles from your Supabase database
         const { data: profileRecords } = await supabase
           .from('profiles')
           .select('id, username, display_name, account_type')
@@ -64,7 +65,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#F5F2EB] text-[#1E1E1E] font-sans antialiased">
       
-      {/* BRAND HEADER (Locked to Sand-Beige background matching image_1d89e3.png) */}
+      {/* BRAND HEADER */}
       <header className="sticky top-0 z-50 bg-[#F5F2EB]/95 backdrop-blur-sm border-b border-[#E3DDD0] px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-1.5 font-sans font-black tracking-widest text-lg text-neutral-900 uppercase">
@@ -196,7 +197,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TRENDING SOUNDS MODULE DECK (Uniform Sand-Beige Container styling) */}
+      {/* TRENDING SOUNDS MODULE DECK */}
       <section className="max-w-6xl mx-auto py-12 px-6 space-y-6 border-t border-[#E3DDD0]/60">
         <h2 className="text-xl font-serif font-black text-neutral-900">🔥 Trending Sounds</h2>
 
@@ -235,11 +236,10 @@ export default function Home() {
         )}
       </section>
 
-      {/* FEATURED CREATORS SECTION */}
+      {/* FEATURED CREATORS SECTION (Stripped of fake profiles as shown in image_1d85e6.png) */}
       <section className="max-w-6xl mx-auto pb-16 px-6 space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-serif font-black text-neutral-900 flex items-center gap-1.5">⭐ Featured Producers</h2>
-          <Link href="/signin" className="text-xs font-bold text-neutral-500 hover:text-black transition">View all →</Link>
         </div>
 
         {loading ? (
@@ -267,27 +267,11 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-[#EDE9DE] border border-[#E3DDD0] rounded-2xl p-5 flex items-center justify-between shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className="w-11 h-11 bg-neutral-900 text-white font-serif font-black text-sm rounded-full flex items-center justify-center">P</div>
-                <div>
-                  <h3 className="font-black text-sm text-neutral-900">ProdJay</h3>
-                  <p className="text-[10px] text-neutral-400 font-semibold">Trap Producer</p>
-                </div>
-              </div>
-              <button className="px-4 py-1.5 bg-[#F5F2EB] border border-[#E3DDD0] text-neutral-800 text-xs font-bold rounded-xl shadow-sm">Follow</button>
-            </div>
-            <div className="bg-[#EDE9DE] border border-[#E3DDD0] rounded-2xl p-5 flex items-center justify-between shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className="w-11 h-11 bg-neutral-800 text-white font-serif font-black text-sm rounded-full flex items-center justify-center">L</div>
-                <div>
-                  <h3 className="font-black text-sm text-neutral-900">LunaBeats</h3>
-                  <p className="text-[10px] text-neutral-400 font-semibold">Drill Producer</p>
-                </div>
-              </div>
-              <button className="px-4 py-1.5 bg-[#F5F2EB] border border-[#E3DDD0] text-neutral-800 text-xs font-bold rounded-xl shadow-sm">Follow</button>
-            </div>
+          /* Empty State Fallback note - completely removes the fake hardcoded profiles */
+          <div className="text-center py-10 border border-dashed border-[#E3DDD0] rounded-2xl bg-[#EDE9DE]/50">
+            <p className="text-xs text-neutral-400 font-bold tracking-wide">
+              🌱 The community is warming up. Be the first to establish a handle!
+            </p>
           </div>
         )}
       </section>
