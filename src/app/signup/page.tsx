@@ -40,7 +40,7 @@ export default function SignUpPage() {
     }
 
     try {
-      // Check profiles table to ensure username isn't taken
+      // 1. Double check profile table handle uniqueness
       const { data: existingUser } = await database
         .from('profiles')
         .select('username')
@@ -54,8 +54,8 @@ export default function SignUpPage() {
         return;
       }
 
-      // Execute signup
-      const { error } = await database.auth.signUp({
+      // 2. Perform account sign up registration
+      const { data, error } = await database.auth.signUp({
         email: cleanEmail,
         password: password,
         options: {
@@ -66,15 +66,12 @@ export default function SignUpPage() {
 
       if (error) throw error;
 
-      setIsError(false);
-      setStatusMessage('✉️ Verification link sent! Check your email inbox to activate your account.');
-      setUsername('');
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
+      // 3. Force instant dashboard landing route skip
+      router.push('/dashboard');
+      
     } catch (err: any) {
       setIsError(true);
-      setStatusMessage(`❌ Error: ${err.message || 'Registration failed.'}`);
+      setStatusMessage(`❌ Registration Error: ${err.message || 'Could not create account.'}`);
     } finally {
       setLoading(false);
     }
@@ -97,17 +94,17 @@ export default function SignUpPage() {
 
         <form onSubmit={handleSignUp} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Create Unique Handle Username</label>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Create Unique Handle Username</label>
             <input type="text" placeholder="e.g., n_thakur" value={username} onChange={(e) => setUsername(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} required />
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Email Address</label>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Email Address</label>
             <input type="email" placeholder="name@domain.com" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} required />
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Password</label>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Password</label>
             <div style={{ position: 'relative', width: '100%' }}>
               <input type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} style={{ width: '100%', padding: '14px 60px 14px 14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} required />
               <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#C5A880', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>{showPassword ? 'Hide' : 'Show'}</button>
@@ -115,14 +112,14 @@ export default function SignUpPage() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Reconfirm Password</label>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Confirm Password</label>
             <div style={{ position: 'relative', width: '100%' }}>
               <input type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} style={{ width: '100%', padding: '14px 60px 14px 14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} required />
               <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#C5A880', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>{showConfirmPassword ? 'Hide' : 'Show'}</button>
             </div>
           </div>
 
-          <button type="submit" disabled={loading} style={{ width: '100%', padding: '16px', borderRadius: '30px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer' }}>
+          <button type="submit" disabled={loading} style={{ width: '100%', padding: '16px', borderRadius: '30px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', marginTop: '4px' }}>
             {loading ? 'Processing...' : 'Agree & Join'}
           </button>
         </form>
