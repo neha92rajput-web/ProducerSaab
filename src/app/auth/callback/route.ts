@@ -1,25 +1,42 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
-  
-  // 1. Grab the one-time secure 'code' parameter that Supabase sent in the link
   const code = requestUrl.searchParams.get('code');
-
-  console.log('AUTH CALLBACK HIT - Processing Code Token...');
+  
+  // Track our target directory location (defaults directly to your studio wizard)
+  const nextTarget = requestUrl.searchParams.get('next') || '/dashboard';
 
   if (code) {
     const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     
+    // Create the modern official client that handles cookies seamlessly on custom domains
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+          set(name: string, value: string, options: any) {
+            cookieStore.set({ name, value, ...options });
+          },
+          remove(name: string, options: any) {
+            cookieStore.set({ name, value: '', ...options });
+          },
+        },
+      }
+    );
+
     try {
-      // 2. Exchange the temporary code for an active browser login session cookie
+      // 1. Exchange token code for a rock-solid active session cookie
       const { data } = await supabase.auth.exchangeCodeForSession(code);
       
-      // 3. If they are a new user, quickly provision their base profiles table row
+      // 2. Initialize their new database row safely
       if (data?.user) {
         const metadataUsername = data.user.user_metadata?.username || `user_${data.user.id.substring(0, 5)}`;
         const metadataEmail = data.user.email || '';
@@ -28,18 +45,15 @@ export async function GET(request: NextRequest) {
           id: data.user.id,
           username: metadataUsername.toLowerCase().trim(),
           email: metadataEmail.toLowerCase().trim(),
-          onboarded: false // Keeps them flagged for Stage 2 (The Setup Wizard)
+          onboarded: false // Flags them for your profile completion setup view
         });
-        
-        console.log('Session cookie saved & profile row initialized for user:', data.user.id);
       }
-    } catch (error) {
-      console.error('Database configuration error during session handshake:', error);
-      // Fallback fallback: if database connection breaks, drop them to root to avoid an infinite loop
-      return NextResponse.redirect(`${requestUrl.origin}`);
+    } catch (err) {
+      console.error('Session handshake failure:', err);
+      return NextResponse.redirect(`${requestUrl.origin}/signin?error=handshake_failed`);
     }
   }
 
-  // 4. Drop the curtain and confidently route them straight into the profile setup page!
-  return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
+  // 3. Dynamic Forwarding: Takes them directly to /dashboard beautifully!
+  return NextResponse.redirect(`${requestUrl.origin}${nextTarget}`);
 }
