@@ -11,7 +11,7 @@ const database = createClient(supabaseUrl, supabaseAnonKey);
 export default function AuthPage() {
   const router = useRouter();
   
-  const [view, setView] = useState('signup'); // 'signup' (Join the Community) or 'signin' (Sign in to Studio)
+  const [view, setView] = useState('signup'); // 'signup' or 'signin'
   const [username, setUsername] = useState(''); 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -63,20 +63,21 @@ export default function AuthPage() {
           return;
         }
 
-        // 2. Intercept duplicate emails by testing credential authentication flags
-        const { error: emailCheckError } = await database.auth.signInWithPassword({
-          email: cleanEmail,
-          password: 'dummy-verification-probe-string-9988776655',
-        });
+        // 2. Check for duplicate email directly in the profiles index
+        const { data: existingUserByEmail } = await database
+          .from('profiles')
+          .select('email')
+          .eq('email', cleanEmail)
+          .maybeSingle();
 
-        if (emailCheckError && emailCheckError.message.toLowerCase().includes('invalid login credentials')) {
+        if (existingUserByEmail) {
           setLoading(false);
           setIsError(true);
           setStatusMessage('❌ This email address is already linked to an existing account! Try switching below to Sign In.');
           return;
         }
 
-        // 3. Perform real account signup
+        // 3. Register user with native duplicate filters
         const { data, error } = await database.auth.signUp({
           email: cleanEmail,
           password: password,
@@ -89,6 +90,15 @@ export default function AuthPage() {
         });
 
         if (error) throw error;
+
+        // 4. Fallback profile insertion to make absolutely sure it is tracked for future validations
+        if (data?.user) {
+          await database.from('profiles').upsert({
+            id: data.user.id,
+            username: cleanHandle,
+            email: cleanEmail,
+          });
+        }
 
         if (data?.session) {
           setIsError(false);
@@ -261,7 +271,6 @@ export default function AuthPage() {
           </button>
         </div>
 
-        {/* --- FIXED UPDATED FOOTER CONDITION AS REQUESTED --- */}
         <footer style={{ marginTop: '32px', textAlign: 'center', fontSize: '13px', color: '#666666' }}>
           {view === 'signup' ? (
             <span>
