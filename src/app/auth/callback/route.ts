@@ -1,3 +1,6 @@
+// FORCE NEXT.JS TO USE THE STANDARD NODEJS SERVER ENVIRONMENT
+export const runtime = 'nodejs';
+
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
