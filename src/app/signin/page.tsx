@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
@@ -8,133 +8,55 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const database = createClient(supabaseUrl, supabaseAnonKey);
 
-export default function AuthPage() {
+export default function SignInPage() {
   const router = useRouter();
-  const [view, setView] = useState('signup'); 
-  const [username, setUsername] = useState(''); 
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [isError, setIsError] = useState(false);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if (window.location.pathname.includes('signin') || window.location.search.includes('view=signin')) {
-        setView('signin');
-      }
-    }
-  }, []);
-
-  async function handleSubmit(event: React.FormEvent) {
+  async function handleSignIn(event: React.FormEvent) {
     event.preventDefault();
     setLoading(true);
     setStatusMessage('');
     setIsError(false);
 
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanHandle = username.trim().toLowerCase().replace(/\s+/g, '');
+    try {
+      const { error } = await database.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password: password,
+      });
 
-    if (view === 'signup') {
-      if (!cleanHandle) {
-        setLoading(false);
-        setIsError(true);
-        setStatusMessage('❌ Please establish a unique handle identity.');
-        return;
-      }
-      if (password !== confirmPassword) {
-        setLoading(false);
-        setIsError(true);
-        setStatusMessage('❌ Passwords do not match!');
-        return;
-      }
+      if (error) throw error;
 
-      try {
-        // 1. Pre-verify username isn't taken in existing verified profiles
-        const { data: existingUser } = await database
-          .from('profiles')
-          .select('username')
-          .eq('username', cleanHandle)
-          .maybeSingle();
-
-        if (existingUser) {
-          setLoading(false);
-          setIsError(true);
-          setStatusMessage(`❌ The handle @${cleanHandle} is already taken!`);
-          return;
-        }
-
-        // 2. Sign up user purely into auth system with username metadata payload
-        const { error } = await database.auth.signUp({
-          email: cleanEmail,
-          password: password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-            data: {
-              username: cleanHandle,
-            }
-          },
-        });
-
-        if (error) throw error;
-
-        setIsError(false);
-        setStatusMessage('✉️ Verification link sent! Your profile will be officially created once you click the link in your email inbox.');
-        setUsername('');
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
-      } catch (err: any) {
-        setIsError(true);
-        setStatusMessage(`❌ Error: ${err.message || 'Registration failed.'}`);
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      // Sign In Flow
-      try {
-        const { error } = await database.auth.signInWithPassword({
-          email: cleanEmail,
-          password: password,
-        });
-        if (error) throw error;
-        router.push('/dashboard');
-      } catch (err: any) {
-        setIsError(true);
-        setStatusMessage(`❌ Login Failed: ${err.message}`);
-      } finally {
-        setLoading(false);
-      }
+      router.push('/dashboard');
+    } catch (err: any) {
+      setIsError(true);
+      setStatusMessage(`❌ Login Failed: ${err.message || 'Invalid credentials.'}`);
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', width: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FAF8F5', fontFamily: 'sans-serif', color: '#111111', padding: '40px 20px', boxSizing: 'border-box' }}>
-      <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '#444px', margin: '0 auto', padding: '40px', borderRadius: '24px', border: '1px solid #E8E2D9', boxShadow: '0 4px 25px rgba(0,0,0,0.03)', boxSizing: 'border-box' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', width: '100vw', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FAF8F5', fontFamily: 'sans-serif', color: '#111111', padding: '40px 20px', boxSizing: 'border-box' }}>
+      <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '440px', margin: '0 auto', padding: '40px', borderRadius: '24px', border: '1px solid #E8E2D9', boxShadow: '0 4px 25px rgba(0,0,0,0.03)', boxSizing: 'border-box' }}>
+        
         <header style={{ textAlign: 'center', marginBottom: '28px' }}>
           <h1 style={{ margin: '0 0 8px 0', fontSize: '32px', fontWeight: '800', letterSpacing: '-0.5px' }}>Producer Saab</h1>
-          <p style={{ margin: 0, color: '#777777', fontSize: '14px' }}>
-            {view === 'signup' ? "Join Producer Saab now — it's free!" : 'Access your workstation studio suite'}
-          </p>
+          <p style={{ margin: 0, color: '#777777', fontSize: '14px' }}>Access your workstation studio suite</p>
         </header>
 
         {statusMessage && (
-          <div style={{ backgroundColor: isError ? '#FDF2F2' : '#FAF6F0', border: '1px solid', borderColor: isError ? '#F8B4B4' : '#C5A880', color: isError ? '#9B1C1C' : '#A3855C', padding: '14px', borderRadius: '12px', fontSize: '13px', textAlign: 'center', marginBottom: '24px', fontWeight: '600', lineHeight: '1.5' }}>
+          <div style={{ backgroundColor: isError ? '#FDF2F2' : '#FAF6F0', border: '1px solid', borderColor: isError ? '#F8B4B4' : '#C5A880', color: isError ? '#9B1C1C' : '#A3855C', padding: '14px', borderRadius: '12px', fontSize: '13px', textAlign: 'center', marginBottom: '24px', fontWeight: '600' }}>
             {statusMessage}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {view === 'signup' && (
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Create Unique Handle Username</label>
-              <input type="text" placeholder="e.g., n_thakur" value={username} onChange={(e) => setUsername(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} required />
-            </div>
-          )}
-
+        <form onSubmit={handleSignIn} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
             <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Email Address</label>
             <input type="email" placeholder="name@domain.com" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} required />
@@ -148,18 +70,8 @@ export default function AuthPage() {
             </div>
           </div>
 
-          {view === 'signup' && (
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Reconfirm Password</label>
-              <div style={{ position: 'relative', width: '100%' }}>
-                <input type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} style={{ width: '100%', padding: '14px 60px 14px 14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} required />
-                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#C5A880', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>{showConfirmPassword ? 'Hide' : 'Show'}</button>
-              </div>
-            </div>
-          )}
-
-          <button type="submit" disabled={loading} style={{ width: '100%', padding: '16px', borderRadius: '30px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '4px' }}>
-            {loading ? 'Processing...' : view === 'signup' ? 'Agree & Join' : 'Sign In to Studio'}
+          <button type="submit" disabled={loading} style={{ width: '100%', padding: '16px', borderRadius: '30px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer' }}>
+            {loading ? 'Processing...' : 'Sign In to Studio'}
           </button>
         </form>
 
@@ -169,16 +81,10 @@ export default function AuthPage() {
           <div style={{ flex: 1, height: '1px', backgroundColor: '#E8E2D9' }} />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <button type="button" style={{ width: '100%', padding: '12px 16px', borderRadius: '30px', border: '1px solid #E8E2D9', backgroundColor: '#ffffff', color: '#444444', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>Continue with Google</button>
-        </div>
+        <button type="button" style={{ width: '100%', padding: '12px 16px', borderRadius: '30px', border: '1px solid #E8E2D9', backgroundColor: '#ffffff', color: '#444444', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>Continue with Google</button>
 
         <footer style={{ marginTop: '32px', textAlign: 'center', fontSize: '13px', color: '#666666' }}>
-          {view === 'signup' ? (
-            <span>Already a member? <button type="button" onClick={() => { setView('signin'); setStatusMessage(''); }} style={{ background: 'none', border: 'none', color: '#C5A880', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Sign in to Studio</button></span>
-          ) : (
-            <span>New to the community? <button type="button" onClick={() => { setView('signup'); setStatusMessage(''); }} style={{ background: 'none', border: 'none', color: '#C5A880', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Join now</button></span>
-          )}
+          New to the community? <button type="button" onClick={() => router.push('/signup')} style={{ background: 'none', border: 'none', color: '#C5A880', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Join now</button>
         </footer>
       </div>
     </div>
