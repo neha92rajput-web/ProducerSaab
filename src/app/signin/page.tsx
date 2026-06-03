@@ -80,12 +80,15 @@ export default function AuthPage() {
           return;
         }
 
+        // Dynamically detects if you are on localhost, vercel preview, or production domain
+        const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://producersaab.com';
+
         const { error } = await database.auth.signUp({
           email: cleanEmail,
           password: password,
           options: {
-            // Hardcoded to strictly match your Supabase configuration panel setup
-            emailRedirectTo: 'https://producersaab.com/auth/callback',
+            // FIX: Added ?next=/dashboard to tell Supabase where to go next after verification
+            emailRedirectTo: `${currentOrigin}/auth/callback?next=/dashboard`,
             data: { username: cleanHandle }
           },
         });
