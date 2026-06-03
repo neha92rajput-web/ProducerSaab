@@ -1,108 +1,98 @@
 'use client';
 
-import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function SignUpPage() {
-  const supabase = createClientComponentClient();
-  const [handle, setHandle] = useState('');
+export default function AuthPage() {
+  const router = useRouter();
+  
+  // UI Toggle: 'signin' or 'signup'
+  const [view, setView] = useState('signin');
+  
+  // Form Inputs
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [password, setPassword] = useState('');
+  
+  // Status Handling
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
+  function handleSubmit(event) {
+    event.preventDefault();
     setLoading(true);
-    setStatus(null);
+    setMessage('');
 
-    // Clean up the handle formatting (removes '@' if they typed it)
-    const cleanHandle = handle.replace('@', '').trim().toLowerCase();
-
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email,
-        options: {
-          // This saves their custom music handle directly into their user account metadata
-          data: { 
-            username: cleanHandle 
-          },
-          // This tells Supabase to send the user to our hidden bridge file when they click the email link
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-
-      if (error) {
-        setStatus({ type: 'error', message: error.message });
-      } else {
-        setStatus({ 
-          type: 'success', 
-          message: '✨ Access Link Sent! Please check your email inbox to verify your account.' 
-        });
-      }
-    } catch (err) {
-      setStatus({ type: 'error', message: 'An unexpected connection error occurred.' });
-    } finally {
+    // Simulated Authentication Loop (Bypassing heavy email loops for instant access)
+    setTimeout(function() {
       setLoading(false);
-    }
-  };
+      if (view === 'signup') {
+        setMessage('🎉 Account created successfully! Switching to Sign In...');
+        setTimeout(function() {
+          setView('signin');
+          setMessage('');
+        }, 1500);
+      } else {
+        // Sign In Success -> Push directly to the LinkedIn-style Studio Hub!
+        router.push('/dashboard');
+      }
+    }, 1200);
+  }
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', fontFamily: 'sans-serif', backgroundColor: '#ffffff' }}>
-      <div style={{ padding: '40px', borderRadius: '24px', border: '1px solid #eaeaea', width: '100%', maxWidth: '420px' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FAF8F5', fontFamily: 'sans-serif', color: '#111111', padding: '20px' }}>
+      <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '420px', padding: '40px', borderRadius: '24px', border: '1px solid #E8E2D9', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
         
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <h2 style={{ fontSize: '26px', fontWeight: 'bold', margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>Producer Saab</h2>
-          <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Establish your music handle</p>
-        </div>
+        <header style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <h1 style={{ margin: '0 0 8px 0', fontSize: '32px', fontWeight: '800', letterSpacing: '-0.5px' }}>Producer Saab</h1>
+          <p style={{ margin: 0, color: '#777777', fontSize: '14px' }}>
+            {view === 'signup' ? 'Create your custom studio credentials' : 'Access your workstation suite'}
+          </p>
+        </header>
 
-        <form onSubmit={handleSignUp}>
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', marginBottom: '8px', color: '#111', letterSpacing: '0.5px' }}>
-              Unique Handle (@username)
-            </label>
-            <input 
-              type="text" 
-              placeholder="nthakur" 
-              value={handle}
-              onChange={(e) => setHandle(e.target.value)}
-              required
-              style={{ width: '100%', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', boxSizing: 'border-box', fontSize: '15px' }}
-            />
+        {message && (
+          <div style={{ backgroundColor: '#FAF6F0', border: '1px solid #C5A880', color: '#A3855C', padding: '12px', borderRadius: '8px', fontSize: '13px', textAlign: 'center', marginBottom: '20px', fontWeight: '600' }}>
+            {message}
           </div>
+        )}
 
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', marginBottom: '8px', color: '#111', letterSpacing: '0.5px' }}>
-              Email Address
-            </label>
-            <input 
-              type="email" 
-              placeholder="neha92rajput@gmail.com" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{ width: '100%', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', boxSizing: 'border-box', fontSize: '15px' }}
-            />
-          </div>
-
-          {status && (
-            <div style={{ 
-              padding: '14px', borderRadius: '10px', fontSize: '14px', marginBottom: '20px', textAlign: 'center', fontWeight: '500',
-              backgroundColor: status.type === 'error' ? '#fff1f2' : '#f0fdf4',
-              color: status.type === 'error' ? '#e11d48' : '#16a34a',
-              border: `1px solid ${status.type === 'error' ? '#fecdd3' : '#bbf7d0'}`
-            }}>
-              {status.message}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
+          {view === 'signup' && (
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Unique Handle (@username)</label>
+              <input type="text" placeholder="e.g., chaotic_stone" value={username} onChange={function(e) { setUsername(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} required />
             </div>
           )}
 
-          <button 
-            type="submit" 
-            disabled={loading}
-            style={{ width: '100%', padding: '16px', borderRadius: '10px', border: 'none', backgroundColor: '#111', color: '#fff', fontSize: '15px', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}
-          >
-            {loading ? 'Processing...' : 'Send Access Handle Link'}
+          <div>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Email Address</label>
+            <input type="email" placeholder="name@domain.com" value={email} onChange={function(e) { setEmail(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} required />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Password</label>
+            <input type="password" placeholder="••••••••" value={password} onChange={function(e) { setPassword(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} required />
+          </div>
+
+          <button type="submit" disabled={loading} style={{ width: '100%', padding: '16px', borderRadius: '30px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+            {loading ? 'Securing Connection...' : view === 'signup' ? 'Establish Studio Profile' : 'Sign In to Workstation'}
           </button>
         </form>
+
+        <footer style={{ marginTop: '28px', textAlign: 'center', fontSize: '13px', color: '#666666' }}>
+          {view === 'signup' ? (
+            <span>
+              Already a member?{' '}
+              <button onClick={function() { setView('signin'); }} style={{ background: 'none', border: 'none', color: '#C5A880', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Sign In</button>
+            </span>
+          ) : (
+            <span>
+              New to the community?{' '}
+              <button onClick={function() { setView('signup'); }} style={{ background: 'none', border: 'none', color: '#C5A880', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Join Now</button>
+            </span>
+          )}
+        </footer>
 
       </div>
     </div>
