@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -10,8 +10,9 @@ const database = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function AuthPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   
-  // We hardcode the default starting view to 'signup' as requested!
+  // Dynamic view state based on the URL parameter
   const [view, setView] = useState('signup'); 
   
   const [username, setUsername] = useState(''); 
@@ -26,26 +27,19 @@ export default function AuthPage() {
   const [statusMessage, setStatusMessage] = useState('');
   const [isError, setIsError] = useState(false);
 
-  // Checks if view explicitly EQUALS signin. If it does NOT, it stays on signup.
+  // Sync state cleanly whenever the URL search params change
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const urlView = params.get('view');
-      if (urlView === 'signin') {
-        setView('signin');
-      } else {
-        setView('signup'); // Default fallback for any other string or missing param
-      }
+    const urlView = searchParams.get('view');
+    if (urlView === 'signin') {
+      setView('signin');
+    } else {
+      setView('signup');
     }
-  }, []);
+  }, [searchParams]);
 
   const handleViewSwitch = (newView: 'signup' | 'signin') => {
-    setView(newView);
     setStatusMessage('');
-    if (typeof window !== 'undefined') {
-      const newUrl = `${window.location.pathname}?view=${newView}`;
-      window.history.pushState({ path: newUrl }, '', newUrl);
-    }
+    router.push(`${window.location.pathname}?view=${newView}`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -83,13 +77,14 @@ export default function AuthPage() {
           email: cleanEmail,
           password: password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            // FIXED: Added ?next=/dashboard here so users route properly upon email verification!
+            emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
             data: { username: cleanHandle }
           },
         });
 
         if (error) throw error;
-        router.push('/dashboard');
+        setStatusMessage('✉️ Check your inbox for the confirmation link!');
         
       } catch (err: any) {
         setIsError(true);
@@ -134,7 +129,7 @@ export default function AuthPage() {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
-          {/* USERNAME INPUT CONTAINER - Shows by default now */}
+          {/* HIDES USERNAME FOR EXISTING USERS */}
           {view === 'signup' && (
             <div>
               <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Create Unique Handle Username</label>
@@ -155,7 +150,7 @@ export default function AuthPage() {
             </div>
           </div>
 
-          {/* PASSWORD CONFIRM CONTAINER - Shows by default now */}
+          {/* HIDES CONFIRM PASSWORD FOR EXISTING USERS */}
           {view === 'signup' && (
             <div>
               <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Confirm Password</label>
