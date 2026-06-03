@@ -5,32 +5,62 @@ import type { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get('code');
-  
-  // 1. Extract the target parameter we appended from the login screen (defaults to /dashboard)
-  const nextTarget = requestUrl.searchParams.get('next') || '/dashboard';
 
-  if (code) {
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
-    
-    // 2. Exchange the one-time secure email token code for an active user login session
-    const { data } = await supabase.auth.exchangeCodeForSession(code);
-    
-    // 3. Provision their profile setup row if they are a brand new registrant
-    if (data?.user) {
-      const metadataUsername = data.user.user_metadata?.username || `user_${data.user.id.substring(0, 5)}`;
-      const metadataEmail = data.user.email || '';
-      
-      await supabase.from('profiles').upsert({
-        id: data.user.id,
-        username: metadataUsername.toLowerCase().trim(),
-        email: metadataEmail.toLowerCase().trim(),
-        onboarded: false // Keeps them flagged for the profile completion setup card
-      });
-    }
+  const code = requestUrl.searchParams.get('code');
+
+  if (!code) {
+    return NextResponse.redirect(`${requestUrl.origin}/auth?view=signin`);
   }
 
-  // 4. DYNAMIC REDIRECT: Maps them directly to whatever domain or branch URL they are visiting from!
-  return NextResponse.redirect(`${requestUrl.origin}${nextTarget}`);
+  const cookieStore = cookies();
+
+  const supabase = createRouteHandlerClient({
+    cookies: () => cookieStore,
+  });
+
+  try {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (error || !data?.user) {
+      console.error('Session exchange failed:', error);
+      return NextResponse.redirect(`${requestUrl.origin}/auth?view=signin`);
+    }
+
+    const user = data.user;
+
+    const username =
+      user.user_metadata?.username ||
+      `user_${user.id.slice(0, 6)}`;
+
+    await supabase
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        email: user.email?.toLowerCase() || '',
+        username: username.toLowerCase(),
+        onboarded: false,
+      });
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('onboarded')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.onboarded) {
+      return NextResponse.redirect(
+        `${requestUrl.origin}/dashboard`
+      );
+    }
+
+    return NextResponse.redirect(
+      `${requestUrl.origin}/feed`
+    );
+  } catch (err) {
+    console.error(err);
+
+    return NextResponse.redirect(
+      `${requestUrl.origin}/auth?view=signin`
+    );
+  }
 }
