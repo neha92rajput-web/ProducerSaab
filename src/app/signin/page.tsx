@@ -1,66 +1,45 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-function SignInContent() {
+export default function SignInGate() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   
   const supabase = createClientComponentClient();
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
-  useEffect(() => {
-    if (searchParams.get('view') === 'signup') {
-      setIsSignUp(true);
-    }
-  }, [searchParams]);
-
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg('');
+    setMessage('');
 
     try {
-      if (isSignUp) {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-            data: {
-              username: username.toLowerCase().trim(),
-              display_name: username,
-            }
-          }
-        });
+      // Direct email notification handshake - drops password vulnerabilities
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: isSignUp ? {
+            username: username.toLowerCase().trim(),
+            display_name: username,
+          } : undefined
+        },
+      });
 
-        if (error) {
-          setErrorMsg(error.message);
-        } else if (data?.user && data.user.identities?.length === 0) {
-          setErrorMsg('This email address is already registered. Try signing in!');
-        } else {
-          alert('Check your email inbox to verify your network handle profile!');
-          router.push('/dashboard');
-        }
+      if (error) {
+        setErrorMsg(error.message);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          setErrorMsg(error.message);
-        } else {
-          router.push('/dashboard');
-          router.refresh();
-        }
+        setMessage('✨ Verification link dispatched! Check your email inbox to verify your profile handle.');
       }
     } catch (err) {
-      setErrorMsg('Database connection error. Check your API configuration.');
+      setErrorMsg('Network bridge failed. Ensure your connection configuration is live.');
     } finally {
       setLoading(false);
     }
@@ -75,11 +54,14 @@ function SignInContent() {
         <h2 className="text-2xl font-serif font-black tracking-tight text-neutral-900">
           {isSignUp ? 'Establish your music handle' : 'Sign in to your Dashboard'}
         </h2>
+        <p className="text-xs font-medium text-neutral-400">
+          Passwordless Verification • Direct via Email
+        </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white border border-[#EAE6DA] rounded-3xl p-8 shadow-sm space-y-6">
-          <form onSubmit={handleAuth} className="space-y-4">
+          <form onSubmit={handleMagicLink} className="space-y-4">
             
             {isSignUp && (
               <div>
@@ -107,21 +89,15 @@ function SignInContent() {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Password</label>
-              <input 
-                type="password" 
-                required
-                placeholder="••••••••" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-[#FAF9F5] border border-[#EAE6DA] rounded-xl text-sm focus:outline-none focus:border-neutral-900 transition"
-              />
-            </div>
-
             {errorMsg && (
               <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 px-3 py-2 rounded-xl text-center">
                 ⚠️ {errorMsg}
+              </p>
+            )}
+
+            {message && (
+              <p className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-2 rounded-xl text-center">
+                {message}
               </p>
             )}
 
@@ -130,7 +106,7 @@ function SignInContent() {
               disabled={loading}
               className="w-full py-3 bg-[#1E1E1E] hover:bg-neutral-800 disabled:bg-neutral-400 text-white font-bold rounded-xl text-sm transition shadow-sm"
             >
-              {loading ? 'Connecting...' : isSignUp ? 'Create Profile Handle' : 'Sign in to Studio'}
+              {loading ? 'Dispatched Notification...' : isSignUp ? 'Send Access Handle Link' : 'Send Sign In Link'}
             </button>
           </form>
 
@@ -140,26 +116,15 @@ function SignInContent() {
               onClick={() => {
                 setIsSignUp(!isSignUp);
                 setErrorMsg('');
+                setMessage('');
               }}
               className="text-xs font-bold text-neutral-500 hover:text-black transition"
             >
-              {isSignUp ? 'Already registered? Sign in here' : 'New to Producer Saab? Join the network'}
+              {isSignUp ? 'Already registered? Sign in here' : 'New to Producer Saab? Join the community'}
             </button>
           </div>
         </div>
       </div>
     </div>
-  );
-}
-
-export default function SignInGate() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#FAF9F5] flex items-center justify-center text-xs font-bold text-neutral-400 tracking-widest uppercase">
-        Loading Portal...
-      </div>
-    }>
-      <SignInContent />
-    </Suspense>
   );
 }
