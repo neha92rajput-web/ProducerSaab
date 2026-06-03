@@ -4,8 +4,6 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize the real-data production database client securely
-// Next.js automatically pulls these parameters straight from your environment variables
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const database = createClient(supabaseUrl, supabaseAnonKey);
@@ -13,15 +11,12 @@ const database = createClient(supabaseUrl, supabaseAnonKey);
 export default function AuthPage() {
   const router = useRouter();
   
-  // UI View States: 'signup' (Join the Community) or 'signin' (Sign in to Studio)
   const [view, setView] = useState('signup');
-  
-  // Form Inputs State variables
+  const [username, setUsername] = useState(''); // Tracking Unique Handle
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   
-  // Status Handling
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [isError, setIsError] = useState(false);
@@ -32,7 +27,7 @@ export default function AuthPage() {
     setStatusMessage('');
     setIsError(false);
 
-    // 1. Password Confirmation Check
+    // 1. Client side password confirmation validation
     if (view === 'signup' && password !== confirmPassword) {
       setLoading(false);
       setIsError(true);
@@ -42,47 +37,72 @@ export default function AuthPage() {
 
     try {
       if (view === 'signup') {
-        // 2. Real-Data Signup: Instructs database to register user & fire the confirmation email
+        
+        // 2. CHECK FOR DUPLICATE USERNAME FIRST
+        // This looks inside your public profiles data table to ensure the handle isn't taken
+        const cleanUserHandle = username.trim().toLowerCase();
+        const { data: existingUser, error: usernameCheckError } = await database
+          .from('profiles') 
+          .select('username')
+          .eq('username', cleanUserHandle)
+          .maybeSingle();
+
+        if (existingUser) {
+          setLoading(false);
+          setIsError(true);
+          setStatusMessage(`❌ The handle @${cleanUserHandle} is already taken! Please choose another one.`);
+          return;
+        }
+
+        // 3. REAL-DATA SIGNUP (Supabase natively catches duplicate emails here)
         const { data, error } = await database.auth.signUp({
-          email: email,
+          email: email.trim(),
           password: password,
           options: {
-            // Tells database where to redirect the user after they click the verification link in their email
             emailRedirectTo: `${window.location.origin}/dashboard`,
+            // Save the unique handle along with the registration metadata
+            data: {
+              username: cleanUserHandle,
+            }
           },
         });
 
+        // If the email is already in use, Supabase throws an explicit error object
         if (error) throw error;
 
-        // Success state: Real account created, awaiting user link validation
         setIsError(false);
-        setStatusMessage('✉️ A one-time confirmation link has been sent to your email! Please check your inbox to verify your new account.');
+        setStatusMessage('✉️ A one-time confirmation link has been sent to your email! Please check your inbox to verify your account.');
         
-        // Reset input fields cleanly
+        // Reset inputs
+        setUsername('');
         setEmail('');
         setPassword('');
         setConfirmPassword('');
       } else {
-        // 3. Real-Data Sign In
+        // REAL-DATA SIGN IN
         const { data, error } = await database.auth.signInWithPassword({
-          email: email,
+          email: email.trim(),
           password: password,
         });
 
         if (error) throw error;
-
-        // Signed in cleanly with real credentials -> Enter Studio Workspace
         router.push('/dashboard');
       }
     } catch (err: any) {
       setIsError(true);
-      setStatusMessage(`❌ Authentication Error: ${err.message || 'Action failed'}`);
+      
+      // Clean up common system error messages for standard human reading
+      let visualError = err.message || 'Action failed';
+      if (visualError.includes('already registered') || visualError.includes('Email already in use')) {
+        visualError = 'This email address is already linked to an existing account. Try Signing In instead!';
+      }
+      
+      setStatusMessage(`❌ ${visualError}`);
     } finally {
       setLoading(false);
     }
   }
 
-  // Handle OAuth provider flows (Google & Apple) securely with live accounts
   async function handleSocialLogin(providerName: 'google' | 'apple') {
     setLoading(true);
     setStatusMessage(`Connecting to ${providerName}...`);
@@ -132,6 +152,14 @@ export default function AuthPage() {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
+          {/* USERNAME HANDLE INPUT ROW */}
+          {view === 'signup' && (
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Unique Handle (@username)</label>
+              <input type="text" placeholder="e.g., n thakur" value={username} onChange={function(e) { setUsername(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} required />
+            </div>
+          )}
+
           <div>
             <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px', letterSpacing: '0.05em' }}>Email Address</label>
             <input type="email" placeholder="name@domain.com" value={email} onChange={function(e) { setEmail(e.target.value); }} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', fontSize: '14px' }} required />
@@ -150,7 +178,7 @@ export default function AuthPage() {
           )}
 
           <button type="submit" disabled={loading} style={{ width: '100%', padding: '16px', borderRadius: '30px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
-            {loading ? 'Connecting Node...' : view === 'signup' ? 'Agree & Join' : 'Sign In to Studio'}
+            {loading ? 'Validating fields...' : view === 'signup' ? 'Agree & Join' : 'Sign In to Studio'}
           </button>
         </form>
 
