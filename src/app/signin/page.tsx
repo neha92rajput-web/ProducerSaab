@@ -11,7 +11,7 @@ const database = createClient(supabaseUrl, supabaseAnonKey);
 export default function AuthPage() {
   const router = useRouter();
   
-  const [view, setView] = useState('signup');
+  const [view, setView] = useState('signup'); // 'signup' (Join the Community) or 'signin' (Sign in to Studio)
   const [username, setUsername] = useState(''); 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -49,7 +49,7 @@ export default function AuthPage() {
       }
 
       try {
-        // 1. DUPLICATE USERNAME CHECK
+        // 1. Check for duplicate username handle
         const { data: existingUserByHandle } = await database
           .from('profiles') 
           .select('username')
@@ -63,14 +63,12 @@ export default function AuthPage() {
           return;
         }
 
-        // 2. STAGE-TWO EMAIL REGISTER CHECK
-        // Using Supabase RPC or direct sign-in trial to check if the email has an active record 
+        // 2. Intercept duplicate emails by testing credential authentication flags
         const { error: emailCheckError } = await database.auth.signInWithPassword({
           email: cleanEmail,
-          password: 'this-is-a-dummy-password-to-probe-the-account-status-9988',
+          password: 'dummy-verification-probe-string-9988776655',
         });
 
-        // If the error message is "Invalid login credentials", it means the email EXISTS in auth.users!
         if (emailCheckError && emailCheckError.message.toLowerCase().includes('invalid login credentials')) {
           setLoading(false);
           setIsError(true);
@@ -78,7 +76,7 @@ export default function AuthPage() {
           return;
         }
 
-        // 3. CLEAN REGISTRATION ATTEMPT
+        // 3. Perform real account signup
         const { data, error } = await database.auth.signUp({
           email: cleanEmail,
           password: password,
@@ -154,7 +152,7 @@ export default function AuthPage() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', width: '100vw', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FAF8F5', fontFamily: 'sans-serif', color: '#111111', padding: '20px', boxSizing: 'border-box' }}>
       
-      <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '450px', padding: '40px', borderRadius: '24px', border: '1px solid #E8E2D9', boxShadow: '0 4px 25px rgba(0,0,0,0.03)', boxSizing: 'border-box' }}>
+      <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '#450px', padding: '40px', borderRadius: '24px', border: '1px solid #E8E2D9', boxShadow: '0 4px 25px rgba(0,0,0,0.03)', boxSizing: 'border-box' }}>
         
         <header style={{ textAlign: 'center', marginBottom: '28px' }}>
           <h1 style={{ margin: '0 0 8px 0', fontSize: '32px', fontWeight: '800', letterSpacing: '-0.5px' }}>Producer Saab</h1>
@@ -263,15 +261,16 @@ export default function AuthPage() {
           </button>
         </div>
 
+        {/* --- FIXED UPDATED FOOTER CONDITION AS REQUESTED --- */}
         <footer style={{ marginTop: '32px', textAlign: 'center', fontSize: '13px', color: '#666666' }}>
           {view === 'signup' ? (
             <span>
-              New on Producer Saab?{' '}
+              Already a member?{' '}
               <button type="button" onClick={function() { setView('signin'); setStatusMessage(''); }} style={{ background: 'none', border: 'none', color: '#C5A880', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Sign in to Studio</button>
             </span>
           ) : (
             <span>
-              Ready to claim your handle?{' '}
+              New to the community?{' '}
               <button type="button" onClick={function() { setView('signup'); setStatusMessage(''); }} style={{ background: 'none', border: 'none', color: '#C5A880', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Join now</button>
             </span>
           )}
