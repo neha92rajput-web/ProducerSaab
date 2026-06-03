@@ -82,9 +82,9 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 2. RE-BALANCED HERO CONTAINER (Audio Widget Removed to Expose Studio Desk & Piano Workspace on Right) */}
+      {/* 2. RE-BALANCED HERO CONTAINER (Buttons removed for an ultra-clean studio backdrop view) */}
       <main 
-        className="relative min-h-[540px] flex items-center bg-[#E7DED3] bg-cover bg-center bg-no-repeat overflow-hidden"
+        className="relative min-h-[500px] flex items-center bg-[#E7DED3] bg-cover bg-center bg-no-repeat overflow-hidden"
         style={{ 
           backgroundImage: `linear-gradient(to right, rgba(246, 241, 234, 0.96) 35%, rgba(246, 241, 234, 0.82) 65%, rgba(246, 241, 234, 0.4) 100%), url('https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1800&auto=format&fit=crop&q=80')` 
         }}
@@ -93,7 +93,7 @@ export default function Home() {
 
         <div className="max-w-6xl mx-auto w-full px-8 pt-20 pb-20 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
-          {/* Left Text Block expanded elegantly across columns to breathe nicely over the left-to-right gradient masking */}
+          {/* Content Block Column */}
           <div className="lg:col-span-9 xl:col-span-8 space-y-8 text-left">
             <div className="space-y-4">
               <p className="text-[10px] font-bold text-[#1C1B1A] uppercase tracking-[0.25em] bg-[#1C1B1A]/5 px-2.5 py-1 rounded w-max backdrop-blur-sm">WELCOME TO PRODUCER SAAB</p>
@@ -112,15 +112,9 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Link href="/signin?view=signup" className="px-6 py-3 bg-[#111111] hover:bg-[#2B2A27] text-white text-xs font-bold rounded-full transition-all duration-300 transform active:scale-95 shadow-md">
-                Join the Community →
-              </Link>
-              <Link href="/library" className="px-6 py-3 bg-transparent border border-[#1C1B1A]/20 hover:border-[#1C1B1A] text-[#1C1B1A] text-xs font-bold rounded-full transition-all duration-300">
-                Discover Sounds
-              </Link>
-            </div>
+            {/* The old row container holding "Join the Community" and "Discover Sounds" has been cleanly removed from here */}
 
+            {/* Feature row border line and columns */}
             <div className="pt-8 grid grid-cols-3 gap-6 max-w-xl text-left border-t border-[#1C1B1A]/10">
               <div className="space-y-1">
                 <h4 className="text-xs font-bold tracking-wide text-[#1C1B1A] flex items-center gap-1.5">
@@ -143,7 +137,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Right Column Left Blank Intentionally to Uncover the Studio Environment Background */}
           <div className="hidden lg:block lg:col-span-3 xl:col-span-4" />
 
         </div>
