@@ -7,10 +7,9 @@ export default function DashboardPage() {
   // Navigation & UI States
   const [showUploadModal, setShowUploadModal] = useState(false);
 
-  // Profile Setup Mock Data (Pulled from image_a43a21.jpg)
+  // Profile Setup Mock Data (Pulled from image_a3cda5.jpg)
   const [producerRole, setProducerRole] = useState('Music Producer');
   const [instagramUrl, setInstagramUrl] = useState('https://instagram.com/chaotic_stone');
-  const [selectedGenres, setSelectedGenres] = useState(['Coke Studio', 'Hip Hop', 'Ambient']);
 
   // Audio Upload Form State Variables
   const [trackTitle, setTrackTitle] = useState('');
@@ -19,13 +18,29 @@ export default function DashboardPage() {
   const [trackKey, setTrackKey] = useState('');
   const [instrumentType, setInstrumentType] = useState('');
   const [uploadStatus, setUploadStatus] = useState('Idle');
+  
+  // NEW: Audio file tracking and stream object URLs
+  const [audioFile, setAudioFile] = useState(null);
+  const [audioUrl, setAudioUrl] = useState('');
+
+  // Handle local audio file loading and create a working play url stream
+  function handleFileChange(event) {
+    if (event.target.files && event.target.files.length > 0) {
+      const selectedFile = event.target.files[0];
+      setAudioFile(selectedFile);
+      
+      // Generate a temporary browser URL stream for the player element
+      const streamingUrl = URL.createObjectURL(selectedFile);
+      setAudioUrl(streamingUrl);
+    }
+  }
 
   function simulateAudioUpload(event) {
     event.preventDefault();
     setUploadStatus('Progress');
     setTimeout(function() {
       setUploadStatus('Success');
-    }, 2000);
+    }, 1500);
   }
 
   return (
@@ -50,10 +65,10 @@ export default function DashboardPage() {
       <main style={{ flex: 1, padding: '40px 60px', display: 'flex', justifyContent: 'center' }}>
         <div style={{ width: '100%', maxWidth: '980px', display: 'grid', gridTemplateColumns: '1.4fr 0.6fr', gap: '40px', alignItems: 'start' }}>
           
-          {/* LEFT COLUMN: LINKEDIN STYLE PROFILE AREA */}
+          {/* LEFT COLUMN: PROFILE CARD AREA */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
             
-            {/* LINKEDIN HERO COVER & CARD PACK */}
+            {/* HERO COVER PROFILE HIGHLIGHT */}
             <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', border: '1px solid #E8E2D9', overflow: 'hidden' }}>
               <div style={{ height: '140px', backgroundColor: '#C5A880', backgroundImage: 'linear-gradient(45deg, #C5A880, #E8E2D9)' }} />
               
@@ -81,19 +96,32 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* FEATURED PORTFOLIO CARDS */}
+            {/* FEATURED AUDIO SHOWCASE REEL */}
             <div style={{ backgroundColor: '#ffffff', padding: '32px', borderRadius: '24px', border: '1px solid #E8E2D9' }}>
               <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '800' }}>Featured Tracks & Audio Drops</h3>
               <p style={{ margin: '0 0 24px 0', color: '#777777', fontSize: '13px' }}>Your published sounds appearing on the community feed panel.</p>
 
               {trackTitle ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', backgroundColor: '#FAF8F5', borderRadius: '16px', border: '1px solid #E8E2D9' }}>
-                  <div style={{ width: '48px', height: '48px', backgroundColor: '#111111', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>💿</div>
-                  <div style={{ flex: 1 }}>
-                    <h4 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: '700' }}>{trackTitle}</h4>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#666' }}>{selectedTrackGenre} • {trackBpm} BPM • {trackKey} • {instrumentType}</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px', backgroundColor: '#FAF8F5', borderRadius: '16px', border: '1px solid #E8E2D9' }}>
+                  
+                  {/* Track Label and Details Header info row */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ width: '48px', height: '48px', backgroundColor: '#111111', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>💿</div>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '700' }}>{trackTitle}</h4>
+                      <p style={{ margin: 0, fontSize: '12px', color: '#666' }}>{selectedTrackGenre} • {trackBpm} BPM • {trackKey} • {instrumentType}</p>
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#16a34a', fontWeight: 'bold', backgroundColor: '#f0fdf4', padding: '4px 10px', borderRadius: '12px' }}>Live</span>
                   </div>
-                  <span style={{ fontSize: '12px', color: '#16a34a', fontWeight: 'bold', backgroundColor: '#f0fdf4', padding: '4px 10px', borderRadius: '12px' }}>Live</span>
+
+                  {/* UPDATED: Embedded HTML5 Audio Controller bar container */}
+                  {audioUrl && (
+                    <div style={{ width: '100%', marginTop: '4px', borderTop: '1px solid #E8E2D9', paddingTop: '12px' }}>
+                      <audio controls src={audioUrl} style={{ width: '100%', accentColor: '#C5A880' }}>
+                        Your browser does not support the audio playback element.
+                      </audio>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div style={{ textAlign: 'center', padding: '40px 20px', color: '#999', border: '2px dashed #FAF8F5', borderRadius: '16px' }}>
@@ -105,7 +133,7 @@ export default function DashboardPage() {
 
           </div>
 
-          {/* RIGHT COLUMN: ACTION PANELS */}
+          {/* RIGHT COLUMN: HUB METRICS & LAUNCH PANEL */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <section style={{ backgroundColor: '#ffffff', padding: '28px', borderRadius: '24px', border: '1px solid #E8E2D9' }}>
               <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '800' }}>Studio Control Rack</h4>
@@ -128,7 +156,7 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      {/* UPLOAD MODAL POPUP ENGINE */}
+      {/* UPLOAD FILE CONTAINER MODAL DRAW OVERLAY */}
       {showUploadModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '540px', borderRadius: '24px', padding: '36px', border: '1px solid #E8E2D9', position: 'relative', boxSizing: 'border-box' }}>
@@ -141,7 +169,8 @@ export default function DashboardPage() {
             <form onSubmit={simulateAudioUpload} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Audio file track (.mp3 or .wav) *</label>
-                <input type="file" accept=".mp3,.wav" style={{ width: '100%', padding: '12px', border: '2px dashed #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', backgroundColor: '#FAF8F5' }} required />
+                {/* CONNECTED: Added the file change handler tracker */}
+                <input type="file" accept=".mp3,.wav" onChange={handleFileChange} style={{ width: '100%', padding: '12px', border: '2px dashed #E8E2D9', borderRadius: '8px', boxSizing: 'border-box', backgroundColor: '#FAF8F5' }} required />
               </div>
 
               <div>
