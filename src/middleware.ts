@@ -1,15 +1,15 @@
 import { createServerClient } from '@supabase/ssr';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
+  // Create an initial response object to carry headers forward
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   });
 
-  // Create the modern SSR client that speaks perfectly with your auth/callback route
+  // Instantiate the Supabase client specifically for Server Middleware cookie tracking
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -40,19 +40,31 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh or fetch the session securely
-  const { data: { session } } = await supabase.auth.getSession();
+  // Refresh the session cookie automatically if it is expired
+  const { data: { user } } = await supabase.auth.getUser();
 
-  // Guard rails: Banish unauthenticated traffic straight to your updated sign-in sheet
-  if (!session && request.nextUrl.pathname.startsWith('/dashboard')) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = '/signin';
-    return NextResponse.redirect(redirectUrl);
+  const url = request.nextUrl.clone();
+
+  // ROUTING PROTECTION RULE: 
+  // If a logged-out user tries to access /dashboard, instantly bounce them to /signin
+  if (!user && url.pathname.startsWith('/dashboard')) {
+    url.pathname = '/signin';
+    return NextResponse.redirect(url);
+  }
+
+  // OPTIONAL BONUS RULE: 
+  // If a user is ALREADY logged in and goes to /signin, carry them straight into the dashboard
+  if (user && url.pathname.startsWith('/signin')) {
+    url.pathname = '/dashboard';
+    return NextResponse.redirect(url);
   }
 
   return response;
 }
 
+// Ensure the middleware runs on all paths EXCEPT static files, images, and the auth callback line
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|auth/callback|.*\\.).*)',
+  ],
 };
