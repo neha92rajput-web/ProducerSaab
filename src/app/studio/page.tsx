@@ -18,10 +18,10 @@ export default function StudioWorkspace() {
     }
   );
 
-  // Layout State Switcher: 'personal' -> Your Profile Dashboard | 'community' -> The LinkedIn/Insta Feed Matrix
-  const [activeTab, setActiveTab] = useState<'personal' | 'community'>('personal');
+  // Studio Display State: 'personal' for your card profile, 'community' for social feed stream
+  const [viewMode, setViewMode] = useState<'personal' | 'community'>('personal');
 
-  // Dynamic Profile States
+  // Creator Structural Profile States
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>({ 
     display_name: '', username: '', headline: '', pronouns: '', company: '', location: '', avatar_url: '', cover_url: '' 
@@ -29,16 +29,15 @@ export default function StudioWorkspace() {
   const [editForm, setEditForm] = useState<any>({});
   const [editingProfile, setEditingProfile] = useState<boolean>(false);
   
-  // Feed Toggle State
+  // Interface Share Toggles
   const [shareType, setShareType] = useState<'none' | 'post' | 'audio'>('none');
   
-  // Database Array Repositories
+  // Synced Application Repositories
   const [mySounds, setMySounds] = useState<any[]>([]);
-  const [posts, setPosts] = useState<any[]>([]);
-  const [allProducers, setAllProducers] = useState<any[]>([]); 
+  const [communityFeed, setCommunityFeed] = useState<any[]>([]); // Combined posts + sounds tracking array
   const [postContent, setPostContent] = useState<string>('');
 
-  // Track Form Controls
+  // Audio Drop Form Variables
   const [trackTitle, setTrackTitle] = useState<string>('');
   const [trackGenre, setTrackGenre] = useState<string>('Trap Loop');
   const [trackBpm, setTrackBpm] = useState<string>('140');
@@ -50,6 +49,44 @@ export default function StudioWorkspace() {
   const [publishingPost, setPublishingPost] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // Pull records from target database instances
+  async function loadFeedAndProfiles() {
+    try {
+      // Fetch public updates feed posts joined with creator profiles
+      const { data: postsData } = await database
+        .from('posts')
+        .select(`
+          id, content, created_at, profile_id,
+          profiles ( id, username, display_name, avatar_url, headline )
+        `)
+        .order('created_at', { ascending: false });
+
+      // Fetch global audio tracking drops joined with creator profiles
+      const { data: soundsData } = await database
+        .from('sounds')
+        .select(`
+          id, title, genre, audio_url, bpm, key, mood, created_at, profile_id,
+          profiles ( id, username, display_name, avatar_url, headline )
+        `)
+        .order('created_at', { ascending: false });
+
+      // Combine and unify into a chronological Instagram/LinkedIn-style structural array stream
+      const aggregatedFeed: any[] = [];
+      if (postsData) {
+        postsData.forEach(item => aggregatedFeed.push({ ...item, itemType: 'post', dateObj: new Date(item.created_at) }));
+      }
+      if (soundsData) {
+        soundsData.forEach(item => aggregatedFeed.push({ ...item, itemType: 'audio', dateObj: new Date(item.created_at) }));
+      }
+
+      // Sort chronological entries natively from most recent down
+      aggregatedFeed.sort((a, b) => b.dateObj.getTime() - a.dateObj.getTime());
+      setCommunityFeed(aggregatedFeed);
+    } catch (error) {
+      console.error("Failed compiling community streams:", error);
+    }
+  }
+
   useEffect(() => {
     async function loadStudioData() {
       const { data: { user } } = await database.auth.getUser();
@@ -59,7 +96,6 @@ export default function StudioWorkspace() {
       }
       setUser(user);
 
-      // Fetch your real profile metrics
       const { data: record } = await database.from('profiles').select('*').eq('id', user.id).maybeSingle();
       if (record) {
         setProfile(record);
@@ -71,18 +107,10 @@ export default function StudioWorkspace() {
         setEditForm(fallback);
       }
 
-      // Fetch personal tracks
       const { data: sounds } = await database.from('sounds').select('*').eq('profile_id', user.id).order('created_at', { ascending: false });
       if (sounds) setMySounds(sounds);
 
-      // Fetch community broadcast updates
-      const { data: updates } = await database.from('posts').select('*').order('created_at', { ascending: false });
-      if (updates) setPosts(updates);
-
-      // Fetch all creators registered in the database for your network view
-      const { data: globalProfiles } = await database.from('profiles').select('*').limit(24);
-      if (globalProfiles) setAllProducers(globalProfiles);
-
+      await loadFeedAndProfiles();
       setLoading(false);
     }
     loadStudioData();
@@ -91,11 +119,11 @@ export default function StudioWorkspace() {
   const handleCreatePost = async () => {
     if (!postContent.trim()) return;
     setPublishingPost(true);
-    const { data, error } = await database.from('posts').insert([{ profile_id: user.id, content: postContent }]).select();
-    if (!error && data) {
-      setPosts([data[0], ...posts]);
+    const { error } = await database.from('posts').insert([{ profile_id: user.id, content: postContent }]);
+    if (!error) {
       setPostContent('');
       setShareType('none');
+      await loadFeedAndProfiles();
     }
     setPublishingPost(false);
   };
@@ -112,18 +140,20 @@ export default function StudioWorkspace() {
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = database.storage.from('audio-tracks').getPublicUrl(fileName);
-      const { data: soundEntry, error: tableError } = await database.from('sounds').insert([{ title: trackTitle.trim(), genre: trackGenre, audio_url: publicUrl, profile_id: user.id, bpm: trackBpm, key: trackKey, mood: trackMood }]).select();
+      const { error: tableError } = await database.from('sounds').insert([{ title: trackTitle.trim(), genre: trackGenre, audio_url: publicUrl, profile_id: user.id, bpm: trackBpm, key: trackKey, mood: trackMood }]);
       if (tableError) throw tableError;
 
-      if (soundEntry) {
-        setMySounds([soundEntry[0], ...mySounds]);
-        setTrackTitle('');
-        setSelectedFile(null);
-        setShareType('none');
-      }
+      setTrackTitle('');
+      setSelectedFile(null);
+      setShareType('none');
+      
+      const { data: sounds } = await database.from('sounds').select('*').eq('profile_id', user.id).order('created_at', { ascending: false });
+      if (sounds) setMySounds(sounds);
+      
+      await loadFeedAndProfiles();
     } catch (err: any) {
       alert(`Upload Error: ${err.message}`);
-    } bits: {
+    } finally {
       setPublishing(false);
     }
   };
@@ -144,58 +174,61 @@ export default function StudioWorkspace() {
     if (!error) {
       setProfile(editForm);
       setEditingProfile(false);
+      await loadFeedAndProfiles();
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-[#F3F2EF] flex items-center justify-center text-xs">Opening Creator Studio...</div>;
+  if (loading) return <div className="min-h-screen bg-[#F3F2EF] flex items-center justify-center text-xs font-semibold text-gray-400">Loading Studio Interface...</div>;
 
   const userInitial = String(profile.display_name || profile.username || 'P').charAt(0).toUpperCase();
 
   return (
     <div className="min-h-screen bg-[#F3F2EF] text-[#191919] pb-12 font-sans antialiased">
       
-      {/* 🛠️ TOP SUB-DASHBOARD NAVIGATION HEADER */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-3 shadow-sm">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <button onClick={() => router.push('/')} className="text-gray-500 hover:text-black text-xs font-bold">← Homepage</button>
-            <span className="text-gray-300">|</span>
-            <span className="text-xs font-black uppercase tracking-wider text-blue-700">Studio Core 💼</span>
+      {/* 🛠️ TOP UTILITY HEADER BAR */}
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-2.5 shadow-sm">
+        <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
+          
+          <div className="flex-1 max-w-xs relative flex items-center">
+            <button onClick={() => { setViewMode('personal'); setEditingProfile(false); }} className="mr-3 text-gray-400 hover:text-black font-black text-sm">
+              ←
+            </button>
+            <input type="text" placeholder="Search parameters..." className="w-full bg-[#EDF3F8] text-xs py-1.5 px-3 rounded focus:outline-none" disabled />
           </div>
           
-          {/* THE 2 LAYOUT MODES SWITCHER */}
-          <div className="flex items-center gap-1.5 bg-gray-100 p-1 rounded-full border border-gray-200">
+          {/* ACTION NAVIGATION SPLITTERS */}
+          <div className="flex items-center gap-2">
             <button 
-              onClick={() => { setActiveTab('personal'); setEditingProfile(false); }} 
-              className={`text-[11px] font-bold px-4 py-1.5 rounded-full transition ${activeTab === 'personal' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-black'}`}
+              onClick={() => { setViewMode(viewMode === 'community' ? 'personal' : 'community'); setEditingProfile(false); }} 
+              className={`text-xs font-bold px-4 py-1.5 rounded-full border transition-all ${viewMode === 'community' ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
             >
-              👤 My Profile
+              {viewMode === 'community' ? 'My Profile 👤' : 'Producer Community 👥'}
             </button>
             <button 
-              onClick={() => { setActiveTab('community'); setEditingProfile(false); }} 
-              className={`text-[11px] font-bold px-4 py-1.5 rounded-full transition ${activeTab === 'community' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-black'}`}
+              onClick={async () => { await database.auth.signOut(); router.push('/'); }} 
+              className="text-xs font-bold text-gray-500 hover:text-red-600 border border-gray-300 px-4 py-1.5 rounded-full bg-white hover:bg-red-50 transition"
             >
-              👥 Producer Community
+              Disconnect
             </button>
           </div>
+
         </div>
       </header>
 
       <div className="max-w-3xl mx-auto mt-4 space-y-4 px-2 sm:px-0">
         
-        {/* ------------------------------------------------------------- */}
-        {/* LAYOUT A: PERSONAL PROFILE DASHBOARD */}
-        {activeTab === 'personal' && (
+        {/* =================================================================== */}
+        {/* LAYOUT OPTION 1: USER'S PERSONAL WORKSPACE PORTFOLIO */}
+        {viewMode === 'personal' && (
           <>
-            {/* WORKSPACE USER HEADER CARD */}
             <div className="bg-white border border-gray-200 rounded-lg overflow-hidden relative shadow-sm">
-              <div className="h-32 bg-[#A0B2C6] bg-cover bg-center flex items-end justify-end p-3" style={profile.cover_url ? { backgroundImage: `url('${profile.cover_url}')` } : {}}>
-                <button onClick={() => setEditingProfile(true)} className="bg-white/90 hover:bg-white text-[11px] font-bold px-3 py-1 rounded shadow">✏️ Edit Profile</button>
+              <div className="h-36 sm:h-44 bg-[#A0B2C6] bg-cover bg-center flex items-end justify-end p-3" style={profile.cover_url ? { backgroundImage: `url('${profile.cover_url}')` } : {}}>
+                <button onClick={() => setEditingProfile(true)} className="bg-white/95 hover:bg-white text-[11px] font-bold px-3 py-1 rounded shadow border transition">✏️ Edit Profile</button>
               </div>
               
               <div className="px-6 pb-6 relative">
-                <div className="w-20 h-20 bg-black rounded-full border-4 border-white absolute -top-10 left-6 overflow-hidden flex items-center justify-center text-white font-bold text-2xl">
-                  {profile.avatar_url ? <img src={profile.avatar_url} className="w-full h-full object-cover" alt="User avatar" /> : <span>{userInitial}</span>}
+                <div className="w-20 h-20 bg-black rounded-full border-4 border-white absolute -top-10 left-6 overflow-hidden flex items-center justify-center text-white font-bold text-2xl shadow-md">
+                  {profile.avatar_url ? <img src={profile.avatar_url} className="w-full h-full object-cover" alt="User Avatar" /> : <span>{userInitial}</span>}
                 </div>
                 
                 <div className="pt-12 space-y-1">
@@ -203,7 +236,7 @@ export default function StudioWorkspace() {
                     {profile.display_name || `@${profile.username}`} 
                     {profile.pronouns && <span className="text-xs text-gray-400 font-medium ml-2">{profile.pronouns}</span>}
                   </h2>
-                  <p className="text-xs text-gray-700 font-medium">{profile.headline || 'Music Producer | Audio Engineer'}</p>
+                  <p className="text-xs text-gray-700 font-medium">{profile.headline || 'Music Producer | Audio Engineer & Mixer'}</p>
                   <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{profile.company || 'Independent Studio'} • {profile.location || 'Chandigarh, India'}</p>
                 </div>
 
@@ -215,50 +248,50 @@ export default function StudioWorkspace() {
               </div>
             </div>
 
-            {/* EDIT PARAMETERS PANEL */}
+            {/* EDIT PROFILE INPUT DRAWER */}
             {editingProfile && (
               <form onSubmit={handleProfileSave} className="bg-white border border-blue-200 rounded-lg p-5 space-y-3 shadow-sm animate-fadeIn">
-                <h3 className="text-xs font-black uppercase tracking-wider border-b pb-2 text-blue-700">Configure Identity parameters</h3>
+                <h3 className="text-xs font-black uppercase tracking-wider border-b pb-2 text-blue-700">Update Identity Fields</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] text-gray-400 font-bold uppercase mb-1">Display/Full Name</label>
-                    <input type="text" className="w-full border p-2.5 text-xs rounded bg-gray-50" placeholder="Display Name" value={editForm.display_name || ''} onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })} required />
+                    <label className="block text-[10px] text-gray-400 font-bold uppercase mb-1">Full Display Name</label>
+                    <input type="text" className="w-full border p-2.5 text-xs rounded bg-gray-50 focus:outline-none" value={editForm.display_name || ''} onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })} required />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-400 font-bold uppercase mb-1">Username Handle</label>
-                    <input type="text" className="w-full border p-2.5 text-xs rounded bg-gray-50" placeholder="Username" value={editForm.username || ''} onChange={(e) => setEditForm({ ...editForm, username: e.target.value })} required />
+                    <label className="block text-[10px] text-gray-400 font-bold uppercase mb-1">Handle Username</label>
+                    <input type="text" className="w-full border p-2.5 text-xs rounded bg-gray-50 focus:outline-none" value={editForm.username || ''} onChange={(e) => setEditForm({ ...editForm, username: e.target.value })} required />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-[10px] text-gray-400 font-bold uppercase mb-1">Professional Tagline Headline</label>
-                    <input type="text" className="w-full border p-2.5 text-xs rounded bg-gray-50" placeholder="Headline" value={editForm.headline || ''} onChange={(e) => setEditForm({ ...editForm, headline: e.target.value })} />
+                    <label className="block text-[10px] text-gray-400 font-bold uppercase mb-1">Headline Bio</label>
+                    <input type="text" className="w-full border p-2.5 text-xs rounded bg-gray-50 focus:outline-none" value={editForm.headline || ''} onChange={(e) => setEditForm({ ...editForm, headline: e.target.value })} />
                   </div>
                   <div className="col-span-2 grid grid-cols-3 gap-2">
                     <input type="text" className="border p-2 text-xs rounded bg-gray-50" placeholder="Pronouns" value={editForm.pronouns || ''} onChange={(e) => setEditForm({ ...editForm, pronouns: e.target.value })} />
-                    <input type="text" className="border p-2 text-xs rounded bg-gray-50" placeholder="Studio / Label" value={editForm.company || ''} onChange={(e) => setEditForm({ ...editForm, company: e.target.value })} />
+                    <input type="text" className="border p-2 text-xs rounded bg-gray-50" placeholder="Studio Group" value={editForm.company || ''} onChange={(e) => setEditForm({ ...editForm, company: e.target.value })} />
                     <input type="text" className="border p-2 text-xs rounded bg-gray-50" placeholder="Location" value={editForm.location || ''} onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} />
                   </div>
-                  <input type="url" className="border p-2 text-xs rounded bg-gray-50 col-span-2" placeholder="Avatar picture direct URL link" value={editForm.avatar_url || ''} onChange={(e) => setEditForm({ ...editForm, avatar_url: e.target.value })} />
-                  <input type="url" className="border p-2 text-xs rounded bg-gray-50 col-span-2" placeholder="Cover banner direct URL link" value={editForm.cover_url || ''} onChange={(e) => setEditForm({ ...editForm, cover_url: e.target.value })} />
+                  <input type="url" className="border p-2 text-xs rounded bg-gray-50 col-span-2" placeholder="Avatar Photo URL Link" value={editForm.avatar_url || ''} onChange={(e) => setEditForm({ ...editForm, avatar_url: e.target.value })} />
+                  <input type="url" className="border p-2 text-xs rounded bg-gray-50 col-span-2" placeholder="Cover Banner URL Link" value={editForm.cover_url || ''} onChange={(e) => setEditForm({ ...editForm, cover_url: e.target.value })} />
                 </div>
                 <div className="flex gap-2 justify-end border-t pt-2 mt-2">
-                  <button type="submit" className="px-4 py-1.5 bg-blue-700 text-white rounded-full text-xs font-bold">Save Settings</button>
-                  <button type="button" onClick={() => setEditingProfile(false)} className="px-4 py-1.5 bg-gray-100 rounded-full text-xs font-bold">Cancel</button>
+                  <button type="submit" className="px-5 py-1.5 bg-blue-700 text-white rounded-full text-xs font-bold">Save Settings</button>
+                  <button type="button" onClick={() => setEditingProfile(false)} className="px-5 py-1.5 bg-gray-100 rounded-full text-xs font-bold">Cancel</button>
                 </div>
               </form>
             )}
 
-            {/* SHARING HUB COMPONENT CONTAINER */}
+            {/* CREATION SHARING MODULE */}
             <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm space-y-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Deploy Tools:</span>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Publish:</span>
                 <button onClick={() => setShareType(shareType === 'post' ? 'none' : 'post')} className={`px-4 py-1.5 text-xs font-bold border rounded-full transition ${shareType === 'post' ? 'bg-blue-50 text-blue-700 border-blue-300' : 'bg-gray-50 hover:bg-gray-100 text-gray-600'}`}>✍️ Write Post</button>
                 <button onClick={() => setShareType(shareType === 'audio' ? 'none' : 'audio')} className={`px-4 py-1.5 text-xs font-bold border rounded-full transition ${shareType === 'audio' ? 'bg-blue-50 text-blue-700 border-blue-300' : 'bg-gray-50 hover:bg-gray-100 text-gray-600'}`}>🎵 Upload Audio</button>
               </div>
 
               {shareType === 'post' && (
                 <div className="border-t pt-3 space-y-2 animate-fadeIn">
-                  <textarea value={postContent} onChange={(e) => setPostContent(e.target.value)} placeholder="Broadcast a new dynamic update or thought to the community..." className="w-full text-xs p-3 bg-gray-50 border rounded-xl focus:outline-none min-h-[70px] resize-none" />
-                  <div className="flex justify-end"><button onClick={handleCreatePost} disabled={publishingPost || !postContent.trim()} className="px-4 py-1.5 bg-blue-700 text-white font-bold text-xs rounded-full">Publish post</button></div>
+                  <textarea value={postContent} onChange={(e) => setPostContent(e.target.value)} placeholder="Broadcast a new timeline update..." className="w-full text-xs p-3 bg-gray-50 border rounded-xl focus:outline-none min-h-[70px] resize-none" />
+                  <div className="flex justify-end"><button onClick={handleCreatePost} disabled={publishingPost || !postContent.trim()} className="px-4 py-1.5 bg-blue-700 text-white font-bold text-xs rounded-full">Post Update</button></div>
                 </div>
               )}
 
@@ -289,12 +322,12 @@ export default function StudioWorkspace() {
                     </select>
                     <input type="file" accept="audio/*" onChange={(e) => { if(e.target.files?.[0]) setSelectedFile(e.target.files[0]); }} className="text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-gray-100 col-span-2 cursor-pointer" required />
                   </div>
-                  <div className="flex justify-end border-t pt-2"><button type="submit" disabled={publishing} className="px-5 py-2 bg-blue-700 text-white font-bold text-xs rounded-full uppercase tracking-wider">{publishing ? 'Uploading...' : 'Publish Drop'}</button></div>
+                  <div className="flex justify-end border-t pt-2"><button type="submit" disabled={publishing} className="px-5 py-2 bg-blue-700 text-white font-bold text-xs rounded-full uppercase tracking-wider">{publishing ? 'Uploading...' : 'Publish Audio'}</button></div>
                 </form>
               )}
             </div>
 
-            {/* PERSONAL TRACK CATALOG DISPLAY */}
+            {/* MY STUDIO MASTER CATALOG LISTING */}
             <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm space-y-3">
               <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">📊 Personal Audio Catalog</h3>
               <div className="space-y-2">
@@ -309,56 +342,89 @@ export default function StudioWorkspace() {
                     </div>
                   ))
                 ) : (
-                  <div className="text-xs text-gray-400 italic py-2">No audio tracks uploaded to your studio deck line yet.</div>
+                  <div className="text-xs text-gray-400 italic py-2">Your audio track index is currently empty.</div>
                 )}
               </div>
             </div>
           </>
         )}
 
-        {/* ------------------------------------------------------------- */}
-        {/* LAYOUT B: LINKEDIN/INSTA STYLE PRODUCER COMMUNITY FEED */}
-        {activeTab === 'community' && (
+        {/* =================================================================== */}
+        {/* LAYOUT OPTION 2: INSTAGRAM & LINKEDIN-STYLE LIVE CHRONOLOGICAL COMMUNITY FEED */}
+        {viewMode === 'community' && (
           <div className="space-y-4 animate-fadeIn">
+            
             <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-              <h3 className="text-xs font-black uppercase tracking-widest text-blue-700 mb-0.5">👥 Global Networks Dashboard</h3>
-              <p className="text-[11px] text-gray-400 font-medium">Browse, follow, and interface with other producers logged on the platform network.</p>
+              <h3 className="text-xs font-black uppercase tracking-widest text-blue-700 mb-0.5">🌐 Producer Community Timeline</h3>
+              <p className="text-[11px] text-gray-400 font-medium">Real-time activity logs, audio catalog drops, and updates compiled across all registered creators.</p>
             </div>
 
-            {/* Network Timeline Card Grid Array */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {allProducers.map((creator) => {
-                const initials = String(creator.display_name || creator.username || 'P').charAt(0).toUpperCase();
-                return (
-                  <div key={creator.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm flex flex-col justify-between hover:border-gray-300 transition">
-                    <div className="h-12 bg-gradient-to-r from-gray-200 to-gray-100" style={creator.cover_url ? { backgroundImage: `url('${creator.cover_url}')`, backgroundSize: 'cover' } : {}} />
-                    <div className="p-4 pt-0 relative flex-1 flex flex-col justify-between">
-                      <div className="w-12 h-12 bg-black border-2 border-white rounded-full absolute -top-6 left-4 overflow-hidden flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                        {creator.avatar_url ? <img src={creator.avatar_url} className="w-full h-full object-cover" alt="Profile" /> : <span>{initials}</span>}
-                      </div>
+            {communityFeed.length > 0 ? (
+              <div className="space-y-3.5">
+                {communityFeed.map((feedItem, index) => {
+                  const itemCreator = feedItem.profiles || {};
+                  const creatorInitials = String(itemCreator.display_name || itemCreator.username || 'P').charAt(0).toUpperCase();
+
+                  return (
+                    <div key={`${feedItem.id}-${index}`} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4 hover:border-gray-300 transition duration-200">
                       
-                      <div className="pt-8 space-y-1">
-                        <h4 className="text-sm font-bold text-gray-900 truncate">{creator.display_name || `@${creator.username}`}</h4>
-                        <p className="text-[11px] text-gray-500 leading-snug line-clamp-2 min-h-[32px]">{creator.headline || 'Audio Engineer | Producer'}</p>
-                        <p className="text-[9px] text-gray-400 font-semibold uppercase">{creator.location || 'Global Hub'}</p>
+                      {/* Publisher Meta Row Header */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 bg-gray-900 text-white rounded-full overflow-hidden border border-gray-100 flex items-center justify-center text-xs font-bold shadow-sm">
+                            {itemCreator.avatar_url ? (
+                              <img src={itemCreator.avatar_url} className="w-full h-full object-cover" alt="Avatar" />
+                            ) : (
+                              <span>{creatorInitials}</span>
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-xs font-black text-gray-900 hover:text-blue-700 cursor-pointer" onClick={() => router.push(`/profile/${itemCreator.id}`)}>
+                              {itemCreator.display_name || `@${itemCreator.username}`}
+                            </div>
+                            <div className="text-[10px] text-gray-400 font-medium line-clamp-1 truncate max-w-sm">
+                              {itemCreator.headline || 'Verified Audio Architect'}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Custom Interaction Badge Indicator */}
+                        <span className={`text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded border ${
+                          feedItem.itemType === 'audio' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-blue-50 text-blue-700 border-blue-200'
+                        }`}>
+                          {feedItem.itemType === 'audio' ? '🎵 Audio Drop' : '✍️ Thought'}
+                        </span>
                       </div>
 
-                      <div className="pt-4 border-t mt-3 flex gap-2">
-                        <button 
-                          onClick={() => router.push(`/profile/${creator.id}`)} 
-                          className="flex-1 text-center py-1.5 bg-gray-50 hover:bg-gray-100 border text-[10px] font-bold text-gray-700 rounded-lg transition"
-                        >
-                          View Portfolio
-                        </button>
-                        <button className="flex-1 text-center py-1.5 bg-blue-700 hover:bg-blue-800 text-[10px] font-bold text-white rounded-lg transition">
-                          Connect +
-                        </button>
+                      {/* Content Section Container */}
+                      <div className="pt-1 text-xs leading-relaxed text-gray-800">
+                        {feedItem.itemType === 'post' ? (
+                          <p className="whitespace-pre-wrap font-medium">{feedItem.content}</p>
+                        ) : (
+                          <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-inner">
+                            <div className="space-y-1">
+                              <h4 className="font-bold text-gray-900 text-sm">💿 {feedItem.title}</h4>
+                              <div className="flex flex-wrap gap-1.5 pt-1">
+                                <span className="bg-white px-2 py-0.5 rounded text-[8px] font-bold border border-gray-200 text-blue-700">{feedItem.genre}</span>
+                                {feedItem.bpm && <span className="bg-white px-2 py-0.5 rounded text-[8px] font-bold border border-gray-200 text-gray-500">{feedItem.bpm} BPM</span>}
+                                {feedItem.key && <span className="bg-white px-1.5 py-0.5 rounded text-[8px] font-medium border border-gray-200 text-gray-400">{feedItem.key} • {feedItem.mood}</span>}
+                              </div>
+                            </div>
+                            <audio controls src={feedItem.audio_url} className="w-full sm:w-56 h-8 accent-blue-700 shrink-0" />
+                          </div>
+                        )}
                       </div>
+
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-xl bg-white text-xs text-gray-400 italic font-medium">
+                The community activity stream is currently empty. Write a post or drop a loop to kick off the feed log!
+              </div>
+            )}
+
           </div>
         )}
 
