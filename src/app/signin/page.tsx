@@ -2,9 +2,17 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
+// DELETE THESE LINES:
+// import { createClient } from '@supabase/supabase-js';
+// const database = createClient(supabaseUrl, supabaseAnonKey);
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+// PASTE THIS INSTEAD:
+import { createBrowserClient } from '@supabase/ssr';
+
+const database = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const database = createClient(supabaseUrl, supabaseAnonKey);
 
