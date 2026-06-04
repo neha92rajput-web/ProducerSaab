@@ -16,16 +16,20 @@ export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>({ display_name: 'Studio Workspace', account_type: 'Music Producer', username: 'username', bio: '' });
   const [mySounds, setMySounds] = useState<any[]>([]);
-  
-  // 1. Add states snippet
   const [posts, setPosts] = useState<any[]>([]);
   const [postContent, setPostContent] = useState<string>('');
 
-  // Audio Upload Form Input States
+  // Enhanced Form Input States matching your ASCII layout diagram
   const [trackTitle, setTrackTitle] = useState<string>('');
-  const [audioUrl, setAudioUrl] = useState<string>('');
-  const [trackGenre, setTrackGenre] = useState<string>('Guitar Loop / Sample');
+  const [trackGenre, setTrackGenre] = useState<string>('Trap');
+  const [trackBpm, setTrackBpm] = useState<string>('140');
+  const [trackKey, setTrackKey] = useState<string>('F# Minor');
+  const [trackMood, setTrackMood] = useState<string>('Dark');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
+  // UI States
   const [publishing, setPublishing] = useState<boolean>(false);
+  const [publishingPost, setPublishingPost] = useState<boolean>(false);
   const [editingProfile, setEditingProfile] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -62,63 +66,87 @@ export default function Dashboard() {
         .order('created_at', { ascending: false });
       if (recordedSounds) setMySounds(recordedSounds);
 
-      // 2. Load posts snippet
       const { data: feedPosts } = await database
         .from('posts')
         .select('*')
         .order('created_at', { ascending: false });
-
-      if (feedPosts) {
-        setPosts(feedPosts);
-      }
+      if (feedPosts) setPosts(feedPosts);
 
       setLoading(false);
     }
     loadDashboardData();
   }, [database, router]);
 
-  const handlePublishTrack = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!trackTitle.trim() || !audioUrl.trim()) return;
-    setPublishing(true);
-
-    const { data: soundEntry, error } = await database
-      .from('sounds')
-      .insert([
-        {
-          title: trackTitle,
-          genre: trackGenre,
-          audio_url: audioUrl.trim(),
-          profile_id: user.id
-        }
-      ])
-      .select();
-
-    if (!error && soundEntry) {
-      setMySounds([soundEntry[0], ...mySounds]);
-      setTrackTitle('');
-      setAudioUrl('');
-    }
-    setPublishing(false);
-  };
-
-  // 3. Add create post function snippet
+  // Handle Text Feed Post
   const handleCreatePost = async () => {
     if (!postContent.trim()) return;
+    setPublishingPost(true);
 
     const { data, error } = await database
       .from('posts')
-      .insert([
-        {
-          profile_id: user.id,
-          content: postContent
-        }
-      ])
+      .insert([{ profile_id: user.id, content: postContent }])
       .select();
 
     if (!error && data) {
       setPosts([data[0], ...posts]);
       setPostContent('');
+    }
+    setPublishingPost(false);
+  };
+
+  // Handle Complete File Asset Upload & Relational Data Sync
+  const handlePublishTrack = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!trackTitle.trim() || !selectedFile) return;
+    setPublishing(true);
+
+    try {
+      const fileExt = selectedFile.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await database.storage
+        .from('sounds')
+        .upload(filePath, selectedFile, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = database.storage
+        .from('sounds')
+        .getPublicUrl(filePath);
+
+      const { data: soundEntry, error: tableError } = await database
+        .from('sounds')
+        .insert([
+          {
+            title: trackTitle.trim(),
+            genre: trackGenre,
+            audio_url: publicUrl,
+            profile_id: user.id,
+            bpm: trackBpm,
+            key: trackKey,
+            mood: trackMood
+          }
+        ])
+        .select();
+
+      if (tableError) throw tableError;
+
+      if (soundEntry) {
+        setMySounds([soundEntry[0], ...mySounds]);
+        setTrackTitle('');
+        setSelectedFile(null);
+        const fileInput = document.getElementById('audio-file-picker') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(`Upload Flow Error: ${err.message || 'Check storage properties.'}`);
+    } finally {
+      setPublishing(false);
     }
   };
 
@@ -133,9 +161,7 @@ export default function Dashboard() {
       })
       .eq('id', user.id);
 
-    if (!error) {
-      setEditingProfile(false);
-    }
+    if (!error) setEditingProfile(false);
   };
 
   const handleLogOut = async () => {
@@ -155,7 +181,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#FBF9F6] text-[#111111] font-sans antialiased pb-20">
       
-      {/* BRAND HEADER */}
+      {/* HEADER NAVBAR */}
       <header className="max-w-6xl mx-auto px-6 pt-6 flex items-center justify-between">
         <h1 className="text-xs font-black tracking-[0.25em] uppercase cursor-pointer" onClick={() => router.push('/')}>
           <span className="text-[#C4A482] mr-1">川</span>Producer Saab
@@ -165,13 +191,13 @@ export default function Dashboard() {
         </button>
       </header>
 
-      {/* CORE CONTROL ROW DASHBOARD */}
+      {/* TWO COLUMN CONTENT VIEW HUB */}
       <div className="max-w-6xl mx-auto px-4 mt-8 flex flex-col md:flex-row gap-6 items-start">
         
-        {/* LEFT COLUMN PANEL: PROFILE PROFILE & TIMELINE DROPS */}
+        {/* LEFT COLUMN ELEMENT PANELS */}
         <div className="flex-1 w-full space-y-6">
           
-          {/* USER BIO IDENTITY DISPLAY CARD */}
+          {/* PROFILE BIO SUMMARY */}
           <div className="bg-white rounded-[28px] border border-[#EFECE6] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
             <div className="h-32 bg-gradient-to-b from-[#DECBB7] to-[#EFECE6]" />
             <div className="px-8 pb-8 relative">
@@ -185,56 +211,41 @@ export default function Dashboard() {
                     {profile.account_type} • Verified Creator
                   </p>
                 </div>
-                <p className="text-sm text-gray-500 leading-relaxed max-w-xl font-medium">
-                  {profile.bio || "Welcome to my verified audio drops portfolio space. Stream my latest sound stems, melody lines, and instrument layers below."}
-                </p>
+                <p className="text-sm text-gray-500 leading-relaxed max-w-xl font-medium">{profile.bio}</p>
               </div>
             </div>
           </div>
 
-          {/* 4. Add a feed card above your tracks section snippet */}
+          {/* STUDIO FEED TIMELINE */}
           <div className="bg-white rounded-[28px] border border-[#EFECE6] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
             <h3 className="text-lg font-black mb-4">Studio Feed</h3>
-
             <textarea
               value={postContent}
               onChange={(e) => setPostContent(e.target.value)}
               placeholder="Share a beat, sample pack, collaboration request..."
               className="w-full min-h-[100px] border border-[#EFECE6] rounded-2xl p-4 text-sm resize-none focus:outline-none"
             />
-
             <button
               onClick={handleCreatePost}
-              className="mt-3 px-5 py-3 bg-gray-900 text-white rounded-xl text-xs font-bold uppercase tracking-wider"
+              disabled={publishingPost}
+              className="mt-3 px-5 py-3 bg-gray-900 text-white rounded-xl text-xs font-bold uppercase tracking-wider disabled:opacity-50"
             >
-              Publish Update
+              {publishingPost ? 'Publishing...' : 'Publish Update'}
             </button>
 
             <div className="mt-6 space-y-4">
               {posts.map((post) => (
-                <div
-                  key={post.id}
-                  className="bg-[#FAF8F4] border border-[#EFECE6] rounded-2xl p-4"
-                >
-                  <div className="text-xs font-bold text-[#C4A482] uppercase mb-2">
-                    Studio Update
-                  </div>
-
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                    {post.content}
-                  </p>
+                <div key={post.id} className="bg-[#FAF8F4] border border-[#EFECE6] rounded-2xl p-4">
+                  <div className="text-xs font-bold text-[#C4A482] uppercase mb-2">Studio Update</div>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{post.content}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* AUDIO TRACK DISPLAY DECK */}
+          {/* COMPACT AUDIO PLAYBACK DECK CARD BLOCKS */}
           <div className="bg-white rounded-[28px] border border-[#EFECE6] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
-            <div className="mb-6">
-              <h3 className="text-lg font-black tracking-tight">Featured Tracks & Audio Drops</h3>
-              <p className="text-xs text-gray-400 font-semibold mt-0.5">Listen to custom sound architectures directly inside the browser player.</p>
-            </div>
-
+            <h3 className="text-lg font-black tracking-tight mb-4">Featured Tracks & Audio Drops</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {mySounds.length > 0 ? (
                 mySounds.map((track) => (
@@ -243,7 +254,10 @@ export default function Dashboard() {
                       <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center text-white font-bold shrink-0 shadow-sm">🎚️</div>
                       <div className="truncate">
                         <h4 className="font-bold text-sm text-gray-900 truncate">{track.title}</h4>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">{track.genre}</p>
+                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1 space-y-0.5">
+                          <div>{track.bpm ? `${track.bpm} BPM` : ''} • {track.genre}</div>
+                          <div className="text-[#C4A482]">{track.key || 'C Major'} • {track.mood || 'Chill'}</div>
+                        </div>
                       </div>
                       <span className="ml-auto text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase shrink-0">Live</span>
                     </div>
@@ -251,18 +265,14 @@ export default function Dashboard() {
                   </div>
                 ))
               ) : (
-                /* Static Default Matching Layout Placeholder Aesthetics Precisely */
                 <div className="bg-[#FAF8F4] border border-[#EFECE6] rounded-2xl p-5 flex flex-col justify-between gap-4">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm text-sm">💿</div>
                     <div>
                       <h4 className="font-bold text-sm text-gray-900">Midnight</h4>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">90 BPM • F# Minor • Guitar Loop</p>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">140 BPM • F# Minor • Dark • Trap</p>
                     </div>
                     <span className="ml-auto text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase">Live</span>
-                  </div>
-                  <div className="w-8 h-8 bg-gray-200/60 hover:bg-gray-200 rounded-full flex items-center justify-center cursor-pointer transition">
-                    <span className="text-gray-600 text-xs pl-0.5">▶</span>
                   </div>
                 </div>
               )}
@@ -270,68 +280,138 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN SIDEBAR: AUDIO PUBLISHING MANAGEMENT TOOLS */}
+        {/* RIGHT COLUMN SIDEBAR: ENHANCED STUDIO TRACK SUBMISSION DECK */}
         <aside className="w-full md:w-72 space-y-6 shrink-0">
           
-          {/* TRACK DROPS MANAGER TOOL */}
           <div className="bg-white rounded-[24px] border border-[#EFECE6] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
-            <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-4">Add Audio Drop</h3>
+            <h3 className="text-sm font-black uppercase tracking-wider text-gray-900 mb-4">Upload New Track</h3>
+            
             <form onSubmit={handlePublishTrack} className="space-y-4">
-              <input
-                type="text"
-                placeholder="Track Name"
-                className="w-full text-xs p-3 border border-[#EFECE6] rounded-xl focus:outline-none focus:border-[#C4A482]"
-                value={trackTitle}
-                onChange={(e) => setTrackTitle(e.target.value)}
-                required
-              />
-              <input
-                type="url"
-                placeholder="Audio File Resource URL (.mp3)"
-                className="w-full text-xs p-3 border border-[#EFECE6] rounded-xl focus:outline-none focus:border-[#C4A482]"
-                value={audioUrl}
-                onChange={(e) => setAudioUrl(e.target.value)}
-                required
-              />
-              <select
-                className="w-full text-xs p-3 border border-[#EFECE6] rounded-xl bg-white focus:outline-none"
-                value={trackGenre}
-                onChange={(e) => setTrackGenre(e.target.value)}
+              
+              {/* Title Field */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Title</label>
+                <input
+                  type="text"
+                  placeholder="Midnight Drive"
+                  className="w-full text-xs p-3 border border-[#EFECE6] rounded-xl focus:outline-none focus:border-[#C4A482]"
+                  value={trackTitle}
+                  onChange={(e) => setTrackTitle(e.target.value)}
+                  required
+                />
+              </div>
+
+              {/* Genre Selector */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Genre</label>
+                <select
+                  className="w-full text-xs p-3 border border-[#EFECE6] rounded-xl bg-white focus:outline-none cursor-pointer"
+                  value={trackGenre}
+                  onChange={(e) => setTrackGenre(e.target.value)}
+                >
+                  <option value="Trap">Trap</option>
+                  <option value="LoFi">LoFi</option>
+                  <option value="AfroHouse">AfroHouse</option>
+                  <option value="Drill">Drill</option>
+                  <option value="Melody Loop">Melody Loop</option>
+                </select>
+              </div>
+
+              {/* BPM Selector */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">BPM</label>
+                <select
+                  className="w-full text-xs p-3 border border-[#EFECE6] rounded-xl bg-white focus:outline-none cursor-pointer"
+                  value={trackBpm}
+                  onChange={(e) => setTrackBpm(e.target.value)}
+                >
+                  <option value="80">80</option>
+                  <option value="90">90</option>
+                  <option value="100">100</option>
+                  <option value="120">120</option>
+                  <option value="140">140</option>
+                  <option value="150">150</option>
+                </select>
+              </div>
+
+              {/* Key Selector */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Key</label>
+                <select
+                  className="w-full text-xs p-3 border border-[#EFECE6] rounded-xl bg-white focus:outline-none cursor-pointer"
+                  value={trackKey}
+                  onChange={(e) => setTrackKey(e.target.value)}
+                >
+                  <option value="F# Minor">F# Minor</option>
+                  <option value="A Minor">A Minor</option>
+                  <option value="C Major">C Major</option>
+                  <option value="E Minor">E Minor</option>
+                  <option value="G# Major">G# Major</option>
+                </select>
+              </div>
+
+              {/* Mood Selector */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Mood</label>
+                <select
+                  className="w-full text-xs p-3 border border-[#EFECE6] rounded-xl bg-white focus:outline-none cursor-pointer"
+                  value={trackMood}
+                  onChange={(e) => setTrackMood(e.target.value)}
+                >
+                  <option value="Dark">Dark</option>
+                  <option value="Chill">Chill</option>
+                  <option value="Energetic">Energetic</option>
+                  <option value="Emotional">Emotional</option>
+                  <option value="Hypnotic">Hypnotic</option>
+                </select>
+              </div>
+
+              {/* Audio File Native Upload Picker */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Audio File</label>
+                <input
+                  id="audio-file-picker"
+                  type="file"
+                  accept="audio/mp3, audio/mpeg, audio/wav, audio/x-wav"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setSelectedFile(e.target.files[0]);
+                    }
+                  }}
+                  className="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-bold file:bg-[#FAF8F4] file:text-gray-700 hover:file:bg-gray-100 cursor-pointer"
+                  required
+                />
+                {selectedFile && (
+                  <p className="text-[10px] text-gray-400 font-semibold mt-1.5 truncate">
+                    Selected: {selectedFile.name}
+                  </p>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={publishing}
+                className="w-full py-3 bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs rounded-xl tracking-wider uppercase transition disabled:opacity-50"
               >
-                <option value="Guitar Loop / Sample">Guitar Loop</option>
-                <option value="Drum Stems Pack">Drum Stems Pack</option>
-                <option value="Vocal Layer Patch">Vocal Layer</option>
-                <option value="Synth Arrangement Master">Full Beat Master</option>
-              </select>
-              <button type="submit" disabled={publishing} className="w-full py-3 bg-gray-900 text-white font-bold text-xs rounded-xl tracking-wider uppercase transition hover:bg-gray-800 disabled:opacity-50">
-                {publishing ? 'Publishing...' : 'Deploy Sound File'}
+                {publishing ? 'Uploading Track...' : 'Upload Track'}
               </button>
             </form>
           </div>
 
-          {/* STUDIO METRIC CREDENTIAL DETAILS FOR PANELS */}
+          {/* STUDIO CREDENTIAL DETAILS VIEW */}
           <div className="bg-white rounded-[24px] border border-[#EFECE6] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
             <h3 className="text-xs font-bold text-[#C4A482] uppercase tracking-widest mb-4">Studio Credentials</h3>
-            
             {!editingProfile ? (
               <div className="space-y-4 text-xs font-semibold">
-                <div className="flex justify-between border-b pb-2 border-gray-50">
-                  <span className="text-gray-400">Handle ID:</span>
-                  <span className="text-gray-800">@{profile.username}</span>
-                </div>
-                <div className="flex justify-between border-b pb-2 border-gray-50">
-                  <span className="text-gray-400">Trade Spec:</span>
-                  <span className="text-gray-800">{profile.account_type}</span>
-                </div>
-                <button onClick={() => setEditingProfile(true)} className="w-full py-2.5 bg-gray-50 hover:bg-gray-100 transition border border-[#EFECE6] text-gray-700 rounded-xl text-[11px] font-bold uppercase tracking-wider">
-                  Update Spec Parameters
-                </button>
+                <div className="flex justify-between border-b pb-2 border-gray-50"><span className="text-gray-400">Handle ID:</span><span className="text-gray-800">@{profile.username}</span></div>
+                <div className="flex justify-between border-b pb-2 border-gray-50"><span className="text-gray-400">Trade Spec:</span><span className="text-gray-800">{profile.account_type}</span></div>
+                <button onClick={() => setEditingProfile(true)} className="w-full py-2.5 bg-gray-50 hover:bg-gray-100 transition border border-[#EFECE6] text-gray-700 rounded-xl text-[11px] font-bold uppercase tracking-wider">Update Spec Parameters</button>
               </div>
             ) : (
               <form onSubmit={handleProfileUpdate} className="space-y-3">
-                <input type="text" className="w-full text-xs p-2.5 border rounded-xl" value={profile.display_name || ''} onChange={(e) => setProfile({ ...profile, display_name: e.target.value })} placeholder="Studio Display Title" required />
-                <input type="text" className="w-full text-xs p-2.5 border rounded-xl" value={profile.account_type || ''} onChange={(e) => setProfile({ ...profile, account_type: e.target.value })} placeholder="Trade Specialty" required />
-                <textarea className="w-full text-xs p-2.5 border rounded-xl resize-none" rows={2} value={profile.bio || ''} onChange={(e) => setProfile({ ...profile, bio: e.target.value })} placeholder="Custom portfolio statement..." />
+                <input type="text" className="w-full text-xs p-2.5 border rounded-xl" value={profile.display_name || ''} onChange={(e) => setProfile({ ...profile, display_name: e.target.value })} placeholder="Display Name" required />
+                <input type="text" className="w-full text-xs p-2.5 border rounded-xl" value={profile.account_type || ''} onChange={(e) => setProfile({ ...profile, account_type: e.target.value })} placeholder="Role" required />
+                <textarea className="w-full text-xs p-2.5 border rounded-xl resize-none" rows={2} value={profile.bio || ''} onChange={(e) => setProfile({ ...profile, bio: e.target.value })} placeholder="Bio info..." />
                 <div className="flex gap-2">
                   <button type="submit" className="flex-1 bg-gray-900 text-white text-[10px] font-bold py-2 rounded-lg">Save</button>
                   <button type="button" onClick={() => setEditingProfile(false)} className="flex-1 bg-gray-100 text-[10px] font-bold py-2 rounded-lg">Cancel</button>
