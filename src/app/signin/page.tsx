@@ -4,7 +4,6 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 
-// Initialize the modern SSR browser client
 const database = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -14,7 +13,7 @@ function AuthFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // View states: 'signin' | 'signup' | 'forgot'
+  // States: 'signin' | 'signup' | 'forgot' | 'update_password'
   const [view, setView] = useState('signin'); 
   const [username, setUsername] = useState(''); 
   const [email, setEmail] = useState('');
@@ -29,10 +28,14 @@ function AuthFormContent() {
   const [isError, setIsError] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
-  // Synchronize state based on URL search query parameters (?view=signup)
+  // Automatically switch to update view if the URL contains the recovery parameters
   useEffect(() => {
     const urlView = searchParams.get('view');
-    if (urlView === 'signup') {
+    
+    // Check if user arrived via a password reset link sequence
+    if (window.location.hash.includes('type=recovery') || searchParams.get('type') === 'recovery') {
+      setView('update_password');
+    } else if (urlView === 'signup') {
       setView('signup');
     } else if (urlView === 'forgot') {
       setView('forgot');
@@ -41,7 +44,7 @@ function AuthFormContent() {
     }
   }, [searchParams]);
 
-  const handleViewSwitch = (newView: 'signup' | 'signin' | 'forgot') => {
+  const handleViewSwitch = (newView: 'signup' | 'signin' | 'forgot' | 'update_password') => {
     setStatusMessage('');
     setEmailSent(false);
     router.push(`${window.location.pathname}?view=${newView}`);
@@ -53,13 +56,42 @@ function AuthFormContent() {
     setStatusMessage('');
     setIsError(false);
 
+    // A. UPDATE PASSWORD ACTION HANDLER
+    if (view === 'update_password') {
+      if (password !== confirmPassword) {
+        setLoading(false);
+        setIsError(true);
+        setStatusMessage('❌ Passwords do not match!');
+        return;
+      }
+
+      try {
+        const { error } = await database.auth.updateUser({
+          password: password
+        });
+
+        if (error) throw error;
+        
+        setStatusMessage('✅ Password successfully changed! Redirecting to studio...');
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 2000);
+      } catch (err: any) {
+        setIsError(true);
+        setStatusMessage(`❌ Update Failed: ${err.message || 'Could not change password.'}`);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     const cleanEmail = email.trim().toLowerCase();
 
-    // 1. FORGOT PASSWORD VIEW HANDLING
+    // B. FORGOT PASSWORD ACTION HANDLER
     if (view === 'forgot') {
       try {
         const { error } = await database.auth.resetPasswordForEmail(cleanEmail, {
-          redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+          redirectTo: `${window.location.origin}/signin?type=recovery`,
         });
 
         if (error) throw error;
@@ -74,7 +106,7 @@ function AuthFormContent() {
       return;
     }
 
-    // 2. SIGN UP VIEW HANDLING
+    // C. SIGN UP ACTION HANDLER
     if (view === 'signup') {
       const cleanHandle = username.trim().toLowerCase().replace(/\s+/g, '');
       
@@ -103,47 +135,47 @@ function AuthFormContent() {
           email: cleanEmail,
           password: password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+            emailRedirectTo: `${window.location.origin}/signin?type=recovery`,
             data: { username: cleanHandle }
           },
         });
 
         if (error) throw error;
         setEmailSent(true);
-        
       } catch (err: any) {
         setIsError(true);
         setStatusMessage(`❌ Registration Error: ${err.message || 'Could not create account.'}`);
       } finally {
         setLoading(false);
       }
-    } else {
-      // 3. SIGN IN VIEW HANDLING
-      try {
-        const { data, error } = await database.auth.signInWithPassword({
-          email: cleanEmail,
-          password: password,
-        });
+      return;
+    }
 
-        if (error) throw error;
+    // D. STANDARD SIGN IN ACTION HANDLER
+    try {
+      const { data, error } = await database.auth.signInWithPassword({
+        email: cleanEmail,
+        password: password,
+      });
 
-        const { data: profile } = await database
-          .from('profiles')
-          .select('onboarded')
-          .eq('id', data.user?.id)
-          .maybeSingle();
+      if (error) throw error;
 
-        if (profile?.onboarded) {
-          router.push('/feed');
-        } else {
-          router.push('/dashboard');
-        }
-      } catch (err: any) {
-        setIsError(true);
-        setStatusMessage(`❌ Login Failed: ${err.message || 'Invalid credentials.'}`);
-      } finally {
-        setLoading(false);
+      const { data: profile } = await database
+        .from('profiles')
+        .select('onboarded')
+        .eq('id', data.user?.id)
+        .maybeSingle();
+
+      if (profile?.onboarded) {
+        router.push('/feed');
+      } else {
+        router.push('/dashboard');
       }
+    } catch (err: any) {
+      setIsError(true);
+      setStatusMessage(`❌ Login Failed: ${err.message || 'Invalid credentials.'}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -156,7 +188,7 @@ function AuthFormContent() {
             <div style={{ fontSize: '54px', marginBottom: '20px' }}>✉️</div>
             <h2 style={{ fontSize: '26px', fontWeight: '800', margin: '0 0 12px 0' }}>Check Your Email</h2>
             <p style={{ color: '#555555', fontSize: '15px', lineHeight: '1.6', margin: '0 0 24px 0' }}>
-              We sent a validation link to <strong>{email}</strong>. Follow the link to access your profile settings.
+              We sent an authentication link to <strong>{email}</strong>. Follow it to unlock your secure credential configurations.
             </p>
             <button type="button" onClick={() => handleViewSwitch('signin')} style={{ background: 'none', border: 'none', color: '#C5A880', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline' }}>Back to Sign In</button>
           </div>
@@ -168,6 +200,7 @@ function AuthFormContent() {
                 {view === 'signup' && "Join Producer Saab now — it's free!"}
                 {view === 'signin' && "Access your workstation studio suite"}
                 {view === 'forgot' && "Recover your password credentials"}
+                {view === 'update_password' && "Change Password & Reconfirm"}
               </p>
             </header>
 
@@ -179,7 +212,7 @@ function AuthFormContent() {
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               
-              {/* USERNAME INPUT (Only on Sign Up) */}
+              {/* USERNAME INPUT */}
               {view === 'signup' && (
                 <div>
                   <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Create Unique Handle Username</label>
@@ -187,19 +220,21 @@ function AuthFormContent() {
                 </div>
               )}
 
-              {/* EMAIL INPUT (Always required) */}
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Email Address</label>
-                <input type="email" placeholder="name@domain.com" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box' }} required />
-              </div>
+              {/* EMAIL INPUT (Hidden on Password Update form) */}
+              {view !== 'update_password' && (
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Email Address</label>
+                  <input type="email" placeholder="name@domain.com" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box' }} required />
+                </div>
+              )}
 
-              {/* PASSWORD INPUT (Only on Sign In / Sign Up) */}
+              {/* PASSWORD/NEW PASSWORD INPUT */}
               {view !== 'forgot' && (
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555' }}>Password</label>
-                    
-                    {/* NEW FORGOT PASSWORD ACTION BRIDGE */}
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555' }}>
+                      {view === 'update_password' ? 'Type New Password' : 'Password'}
+                    </label>
                     {view === 'signin' && (
                       <button type="button" onClick={() => handleViewSwitch('forgot')} style={{ background: 'none', border: 'none', color: '#C5A880', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
                         Forgot Password?
@@ -214,10 +249,10 @@ function AuthFormContent() {
                 </div>
               )}
 
-              {/* CONFIRM PASSWORD INPUT (Only on Sign Up) */}
-              {view === 'signup' && (
+              {/* RECONFIRM PASSWORD INPUT */}
+              {(view === 'signup' || view === 'update_password') && (
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Confirm Password</label>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Reconfirm Password</label>
                   <div style={{ position: 'relative', width: '100%' }}>
                     <input type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} style={{ width: '100%', padding: '14px 60px 14px 14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box' }} required />
                     <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#C5A880', fontSize: '13px', fontWeight: 'bold' }}>{showConfirmPassword ? 'Hide' : 'Show'}</button>
@@ -226,17 +261,21 @@ function AuthFormContent() {
               )}
 
               <button type="submit" disabled={loading} style={{ width: '100%', padding: '16px', borderRadius: '30px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
-                {loading ? 'Processing...' : view === 'signup' ? 'Agree & Join' : view === 'signin' ? 'Sign In to Studio' : 'Send Recovery Link'}
+                {loading ? 'Processing...' : view === 'signup' ? 'Agree & Join' : view === 'signin' ? 'Sign In to Studio' : view === 'forgot' ? 'Send Recovery Link' : 'Update & Save Password'}
               </button>
             </form>
 
-            <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0', color: '#777777', fontSize: '13px' }}>
-              <div style={{ flex: 1, height: '1px', backgroundColor: '#E8E2D9' }} />
-              <span style={{ padding: '0 16px' }}>or</span>
-              <div style={{ flex: 1, height: '1px', backgroundColor: '#E8E2D9' }} />
-            </div>
+            {view !== 'update_password' && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0', color: '#777777', fontSize: '13px' }}>
+                  <div style={{ flex: 1, height: '1px', backgroundColor: '#E8E2D9' }} />
+                  <span style={{ padding: '0 16px' }}>or</span>
+                  <div style={{ flex: 1, height: '1px', backgroundColor: '#E8E2D9' }} />
+                </div>
 
-            <button type="button" style={{ width: '100%', padding: '12px 16px', borderRadius: '30px', border: '1px solid #E8E2D9', backgroundColor: '#ffffff', color: '#444444', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>Continue with Google</button>
+                <button type="button" style={{ width: '100%', padding: '12px 16px', borderRadius: '30px', border: '1px solid #E8E2D9', backgroundColor: '#ffffff', color: '#444444', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>Continue with Google</button>
+              </>
+            )}
 
             <footer style={{ marginTop: '32px', textAlign: 'center', fontSize: '13px', color: '#666666' }}>
               {view === 'signin' ? (
