@@ -27,10 +27,10 @@ export default function StudioWorkspace() {
   const [editingProfile, setEditingProfile] = useState<boolean>(false);
   const [shareType, setShareType] = useState<'none' | 'post' | 'audio'>('none');
   const [mySounds, setMySounds] = useState<any[]>([]);
+  const [myPosts, setMyPosts] = useState<any[]>([]); // 👈 New state hook for your personal text updates
   const [communityFeed, setCommunityFeed] = useState<any[]>([]); 
   const [postContent, setPostContent] = useState<string>('');
 
-  // Audio Drop Creative Forms States
   const [trackTitle, setTrackTitle] = useState<string>('');
   const [trackGenre, setTrackGenre] = useState<string>('Punjabi');
   const [trackBpm, setTrackBpm] = useState<string>('140');
@@ -38,7 +38,6 @@ export default function StudioWorkspace() {
   const [trackMood, setTrackMood] = useState<string>('Dark');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // 🔄 Track Editing States
   const [editingTrack, setEditingTrack] = useState<any>(null);
   const [editTrackForm, setEditTrackForm] = useState({ title: '', genre: 'Punjabi', bpm: '', key: '', mood: '' });
 
@@ -47,7 +46,6 @@ export default function StudioWorkspace() {
   const [updatingTrack, setUpdatingTrack] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // 🎵 Single Audio Playback Lock Manager
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const registerAudioPlayback = (e: React.SyntheticEvent<HTMLAudioElement>) => {
@@ -118,6 +116,23 @@ export default function StudioWorkspace() {
     }
   }
 
+  // Helper loop to load local user content indices cleanly
+  async function loadUserPersonalContent(userId: string) {
+    const { data: sounds } = await database
+      .from('sounds')
+      .select('*')
+      .eq('profile_id', userId)
+      .order('created_at', { ascending: false });
+    if (sounds) setMySounds(sounds);
+
+    const { data: posts } = await database
+      .from('posts')
+      .select('*')
+      .eq('profile_id', userId)
+      .order('created_at', { ascending: false });
+    if (posts) setMyPosts(posts);
+  }
+
   useEffect(() => {
     async function loadStudioData() {
       const { data: { user } } = await database.auth.getUser();
@@ -144,9 +159,7 @@ export default function StudioWorkspace() {
       setProfile(parsedProfile);
       setEditForm(parsedProfile);
 
-      const { data: sounds } = await database.from('sounds').select('*').eq('profile_id', user.id).order('created_at', { ascending: false });
-      if (sounds) setMySounds(sounds);
-
+      await loadUserPersonalContent(user.id);
       await loadFeedAndProfiles();
       setLoading(false);
     }
@@ -183,7 +196,7 @@ export default function StudioWorkspace() {
   };
 
   const handleDeletePost = async (postId: string) => {
-    if (!window.confirm("Are you sure you want to delete this community post update?")) return;
+    if (!window.confirm("Are you sure you want to delete this post update?")) return;
 
     try {
       const { error } = await database
@@ -193,13 +206,13 @@ export default function StudioWorkspace() {
 
       if (error) throw error;
 
+      setMyPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
       setCommunityFeed(prevFeed => prevFeed.filter(item => item.id !== postId));
     } catch (err: any) {
       alert(`Could not complete deletion: ${err.message}`);
     }
   };
 
-  // 📝 UPDATE AUDIO METADATA CONTROLLER FUNCTION
   const handleUpdateTrackMetadata = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingTrack) return;
@@ -221,11 +234,7 @@ export default function StudioWorkspace() {
       if (error) throw error;
 
       setEditingTrack(null);
-      
-      // Refresh matching array layouts instantly
-      const { data: sounds } = await database.from('sounds').select('*').eq('profile_id', user.id).order('created_at', { ascending: false });
-      if (sounds) setMySounds(sounds);
-      
+      await loadUserPersonalContent(user.id);
       await loadFeedAndProfiles();
     } catch (err: any) {
       alert(`Update failed: ${err.message}`);
@@ -241,6 +250,7 @@ export default function StudioWorkspace() {
     if (!error) {
       setPostContent('');
       setShareType('none');
+      await loadUserPersonalContent(user.id);
       await loadFeedAndProfiles();
     }
     setPublishingPost(false);
@@ -254,7 +264,7 @@ export default function StudioWorkspace() {
     try {
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const { error: uploadError } = await database.storage.from('audio-tracks').upload(fileName, selectedFile, { cacheControl: '3600', upsert: false });
+      const { error: uploadError = null } = await database.storage.from('audio-tracks').upload(fileName, selectedFile, { cacheControl: '3600', upsert: false });
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = database.storage.from('audio-tracks').getPublicUrl(fileName);
@@ -275,9 +285,7 @@ export default function StudioWorkspace() {
       setSelectedFile(null);
       setShareType('none');
       
-      const { data: sounds } = await database.from('sounds').select('*').eq('profile_id', user.id).order('created_at', { ascending: false });
-      if (sounds) setMySounds(sounds);
-      
+      await loadUserPersonalContent(user.id);
       await loadFeedAndProfiles();
     } catch (err: any) {
       alert(`Upload Failed: ${err.message}`);
@@ -407,7 +415,6 @@ export default function StudioWorkspace() {
               </form>
             )}
 
-            {/* TRACK METADATA HOT-EDIT PANEL POPUP DRAWER */}
             {editingTrack && (
               <form onSubmit={handleUpdateTrackMetadata} className="bg-white border border-emerald-300 rounded-lg p-5 space-y-3 shadow-md animate-fadeIn">
                 <div className="flex items-center justify-between border-b pb-2">
@@ -544,7 +551,6 @@ export default function StudioWorkspace() {
                       </div>
                       
                       <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end shrink-0">
-                        {/* 🎵 Auto Lock Playback Controller Trigger */}
                         <audio controls src={track.audio_url} onPlay={registerAudioPlayback} className="h-7 w-40 sm:w-44 accent-blue-600" />
                         
                         <div className="flex gap-1">
@@ -570,6 +576,29 @@ export default function StudioWorkspace() {
                   ))
                 ) : (
                   <div className="text-xs text-gray-400 italic py-2">Your audio track index is currently empty.</div>
+                )}
+              </div>
+            </div>
+
+            {/* 👤 NEW TIMELINE ROW MODULE: PERSONAL THOUGHTS TRACKER INDEX LIST */}
+            <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm space-y-3">
+              <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">📝 My Updates & Thoughts</h3>
+              <div className="space-y-2">
+                {myPosts.length > 0 ? (
+                  myPosts.map((post) => (
+                    <div key={post.id} className="bg-gray-50 border p-4 rounded-xl text-xs flex justify-between items-start gap-4">
+                      <p className="font-medium text-gray-700 whitespace-pre-wrap leading-relaxed flex-1">{post.content}</p>
+                      <button 
+                        onClick={() => handleDeletePost(post.id)}
+                        className="text-gray-400 hover:text-red-600 transition font-bold text-sm px-1"
+                        title="Delete thought post"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-xs text-gray-400 italic py-2">You haven't written any thoughts or text posts yet.</div>
                 )}
               </div>
             </div>
@@ -639,8 +668,7 @@ export default function StudioWorkspace() {
                             </div>
                             
                             <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end shrink-0">
-                              {/* 🎵 Auto Lock Playback Controller Trigger inside Global Feed */}
-                              <audio controls src={feedItem.audio_url} onPlay={registerAudioPlayback} className="w-40 sm:w-48 h-8 accent-blue-600" />
+                              <audio controls src={feedItem.audio_url} onPlay={registerAudioPlayback} className="w-44 sm:w-48 h-8 accent-blue-600" />
                               
                               {isMyAsset && (
                                 <div className="flex gap-1 shrink-0">
