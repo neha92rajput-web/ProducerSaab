@@ -47,10 +47,9 @@ export default function StudioWorkspace() {
   const [uploadingImage, setUploadingImage] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // 🎛️ Interactive Drag Positioning Alignment States
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [bannerOffset, setBannerOffset] = useState({ x: 50, y: 50 }); // Tracks percentage offsets (0% to 100%)
+  const [bannerOffset, setBannerOffset] = useState({ x: 50, y: 50 });
 
   const coverInputRef = useRef<HTMLInputElement>(null);
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -71,8 +70,7 @@ export default function StudioWorkspace() {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
+      minute: '2-digit'
     });
   };
 
@@ -114,12 +112,9 @@ export default function StudioWorkspace() {
     });
   };
 
-  // 🖱️ BANNER VIEWPORT MOUSE DRAG EVENT CONTROLLERS
   const handleBannerMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!profile?.cover_url) return;
-    // Don't trigger drag if clicking overlay operational buttons
-    if ((e.target as HTMLElement).closest('button')) return;
-    
+    if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('label')) return;
     setIsDragging(true);
     setDragStart({ x: e.clientX, y: e.clientY });
     e.preventDefault();
@@ -127,24 +122,19 @@ export default function StudioWorkspace() {
 
   const handleBannerMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging) return;
-
     const deltaX = e.clientX - dragStart.x;
     const deltaY = e.clientY - dragStart.y;
 
-    // Convert pixel dragging movements into responsive percentage step mutations
     setBannerOffset(prev => ({
       x: Math.max(0, Math.min(100, prev.x - deltaX * 0.15)),
       y: Math.max(0, Math.min(100, prev.y - deltaY * 0.25))
     }));
-
     setDragStart({ x: e.clientX, y: e.clientY });
   };
 
-  // Saves current drag coordinates straight to Supabase metadata logs
   const handleBannerMouseUpOrLeave = async () => {
     if (!isDragging || !user) return;
     setIsDragging(false);
-
     try {
       await database
         .from('profiles')
@@ -154,7 +144,7 @@ export default function StudioWorkspace() {
         })
         .eq('id', user.id);
     } catch (err) {
-      console.error("Failed auto-saving layout coordinates:", err);
+      console.error("Failed saving coordinates:", err);
     }
   };
 
@@ -278,9 +268,8 @@ export default function StudioWorkspace() {
     setUploadingImage(true);
 
     try {
-      const targetWidth = targetField === 'avatar_url' ? 300 : 1600; // Increased width canvas space for premium dragging resolution
+      const targetWidth = targetField === 'avatar_url' ? 300 : 1600; 
       const targetHeight = targetField === 'avatar_url' ? 300 : 600;
-
       const compressedBase64 = await resizeAndConvertToBase64(file, targetWidth, targetHeight);
 
       const updatePayload: any = { [targetField]: compressedBase64 };
@@ -478,44 +467,54 @@ export default function StudioWorkspace() {
   };
 
   if (loading || !profile) {
-    return <div className="min-h-screen bg-[#F3F2EF] flex items-center justify-center text-xs font-semibold text-gray-400">Opening Studio Control Center...</div>;
+    return <div className="min-h-screen bg-[#F4F0EA] flex items-center justify-center text-xs font-bold text-[#8C7E6B] tracking-widest uppercase animate-pulse">Acoustic Logic Booting Up...</div>;
   }
 
   const userInitial = String(profile.display_name || profile.username || 'P').charAt(0).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-[#F3F2EF] text-[#191919] pb-12 font-sans antialiased">
+    // 🎨 LUXURY ACOUSTIC BEIGE STUDIO THEME
+    <div className="min-h-screen bg-[#FDFBF7] text-[#2C251E] pb-16 font-sans antialiased relative overflow-x-hidden">
       
+      {/* FLOATING AMBIENT MUSIC INSTRUMENT OVERLAYS */}
+      <div className="absolute top-24 left-[-100px] w-96 h-96 opacity-[0.03] text-[#2C251E] pointer-events-none transform -rotate-12 select-none">
+        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full"><path d="M12 2A2 2 0 0 0 10 4v3.38l-4.5-1.5a1 1 0 0 0-1.27.64l-1.5 4.5A1 1 0 0 0 3.38 12.3l2.84.95-1.37 4.1a1 1 0 0 0 .64 1.27l4.5 1.5A1 1 0 0 0 11.27 19.5l1.37-4.1 2.84.95a1 1 0 0 0 1.27-.64l1.5-4.5a1 1 0 0 0-.64-1.27l-4.5-1.5V4a2 2 0 0 0-2-2z" /></svg>
+      </div>
+      <div className="absolute bottom-10 right-[-120px] w-[500px] h-[500px] opacity-[0.03] text-[#2C251E] pointer-events-none transform rotate-45 select-none">
+        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full"><path d="M12 2A2 2 0 0 0 10 4v3.38l-4.5-1.5a1 1 0 0 0-1.27.64l-1.5 4.5A1 1 0 0 0 3.38 12.3l2.84.95-1.37 4.1a1 1 0 0 0 .64 1.27l4.5 1.5A1 1 0 0 0 11.27 19.5l1.37-4.1 2.84.95a1 1 0 0 0 1.27-.64l1.5-4.5a1 1 0 0 0-.64-1.27l-4.5-1.5V4a2 2 0 0 0-2-2z" /></svg>
+      </div>
+
       <input type="file" id="avatarFileSelector" accept="image/*" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleDirectImageUpload(e.target.files[0], 'avatar_url'); }} />
       <input type="file" id="coverFileSelector" accept="image/*" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleDirectImageUpload(e.target.files[0], 'cover_url'); }} />
 
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-2">
+      {/* GLASSMORPHIC HEADER CONSOLE */}
+      <header className="sticky top-0 z-50 bg-[#F7F3EC]/95 backdrop-blur-md border-b border-[#EADFCF] px-6 py-3 shadow-sm">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 flex-1 max-w-xs">
-            <button onClick={() => router.push('/')} className="text-gray-400 hover:text-black font-black text-sm pr-1">
+            <button onClick={() => router.push('/')} className="text-[#8C7E6B] hover:text-[#2C251E] font-black text-base pr-1 transition">
               ←
             </button>
-            <input type="text" placeholder="Search..." className="w-full bg-[#EDF3F8] text-xs py-1.5 px-3 rounded focus:outline-none placeholder-gray-500" disabled />
+            <input type="text" placeholder="Search inside console..." className="w-full bg-[#EFECE3] text-xs py-2 px-3 rounded-lg border border-[#E1D9CC] text-[#2C251E] focus:outline-none placeholder-[#A09380]" disabled />
           </div>
           
           <div className="flex items-center gap-2">
             <button 
               onClick={() => { setViewMode('personal'); setEditingProfile(false); setEditingTrack(null); }} 
-              className={`text-xs font-bold px-4 py-1.5 rounded-full transition-all border ${viewMode === 'personal' ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-150'}`}
+              className={`text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full transition-all border ${viewMode === 'personal' ? 'bg-[#4A3E31] text-white border-[#4A3E31] shadow-md' : 'bg-white text-[#5C4F41] border-[#DFD8CC] hover:bg-[#EFECE3]'}`}
             >
               My Profile 👤
             </button>
             
             <button 
               onClick={() => { setViewMode('community'); setEditingProfile(false); setEditingTrack(null); }} 
-              className={`text-xs font-bold px-4 py-1.5 rounded-full transition-all border ${viewMode === 'community' ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-150'}`}
+              className={`text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full transition-all border ${viewMode === 'community' ? 'bg-[#4A3E31] text-white border-[#4A3E31] shadow-md' : 'bg-white text-[#5C4F41] border-[#DFD8CC] hover:bg-[#EFECE3]'}`}
             >
               Producer Community 👥
             </button>
 
             <button 
               onClick={async () => { await database.auth.signOut(); router.push('/'); }} 
-              className="text-xs font-bold text-gray-500 hover:text-red-600 border border-gray-300 px-4 py-1.5 rounded-full bg-white hover:bg-red-50 transition ml-2"
+              className="text-xs font-bold uppercase tracking-wider text-red-700 border border-red-200 px-4 py-2 rounded-full bg-red-50 hover:bg-red-100 transition ml-2"
             >
               Disconnect
             </button>
@@ -523,34 +522,33 @@ export default function StudioWorkspace() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto mt-6 space-y-4 px-4 sm:px-0">
+      <div className="max-w-4xl mx-auto mt-8 space-y-6 px-4 sm:px-0 relative z-10">
         {viewMode === 'personal' && (
           <>
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden relative shadow-sm">
+            {/* DRAGGABLE ACOUSTIC PROFILE HERO BOX */}
+            <div className="bg-[#FAF8F5] border border-[#EADFCF] rounded-2xl overflow-hidden relative shadow-xl">
               
-              {/* 🎯 DRAGGABLE INTERACTIVE BANNER FRAME WITH HOVER-ONLY ACTION CONTROLS */}
               <div 
                 onMouseDown={handleBannerMouseDown}
                 onMouseMove={handleBannerMouseMove}
                 onMouseUp={handleBannerMouseUpOrLeave}
                 onMouseLeave={handleBannerMouseUpOrLeave}
-                className={`h-40 sm:h-48 bg-[#A0B2C6] bg-cover flex items-start justify-start p-4 relative group select-none ${profile.cover_url ? 'cursor-move' : ''}`} 
+                className={`h-44 sm:h-52 bg-[#D9D1C4] bg-cover flex items-start justify-start p-4 relative group transition-all duration-300 ${profile.cover_url ? 'cursor-move' : ''}`} 
                 style={{
                   backgroundImage: profile.cover_url ? `url('${profile.cover_url}')` : 'none',
                   backgroundPosition: `${bannerOffset.x}% ${bannerOffset.y}%`
                 }}
               >
                 {uploadingImage && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-[11px] font-black tracking-widest animate-pulse z-30">
-                    🔄 RECOMPILING VIEWPORT AXIS...
+                  <div className="absolute inset-0 bg-[#3A3229]/60 flex items-center justify-center text-[#FDFBF7] text-xs font-bold tracking-widest animate-pulse z-30 backdrop-blur-sm">
+                    🎛️ RE-COMPILING STUDIO MATRIX VIEWPORT...
                   </div>
                 )}
 
-                {/* 🔒 HOVER-ONLY ASSET MANAGER HUB (Completely invisible until cursor hovers over banner layout box) */}
-                <div className="flex gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <div className="flex gap-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <label 
                     htmlFor="coverFileSelector"
-                    className="bg-black/70 hover:bg-black text-white font-bold px-3 py-1.5 rounded text-[10px] border border-white/20 uppercase tracking-wider cursor-pointer transition"
+                    className="bg-[#2C251E]/80 hover:bg-[#2C251E] text-white font-bold px-3 py-2 rounded-lg text-[10px] border border-white/20 uppercase tracking-widest cursor-pointer shadow-lg transition"
                   >
                     {profile.cover_url ? '📷 Change Banner' : '📷 Upload Banner'}
                   </label>
@@ -558,37 +556,38 @@ export default function StudioWorkspace() {
                     <button 
                       type="button" 
                       onClick={() => handleDeleteImageMedia('cover_url')} 
-                      className="bg-red-600 text-white font-bold px-2 py-1.5 rounded text-[10px] hover:bg-red-700 transition"
+                      className="bg-red-700 text-white font-bold px-3 py-2 rounded-lg text-[10px] hover:bg-red-800 shadow-lg transition"
                     >
                       ✕ Remove
                     </button>
                   )}
                   {profile.cover_url && (
-                    <div className="bg-black/40 text-white/90 text-[9px] font-medium px-2 py-1.5 rounded pointer-events-none tracking-tight">
-                      ↕ Drag to position picture
+                    <div className="bg-[#FAF8F5]/95 text-[#4A3E31] text-[10px] font-bold uppercase tracking-wider px-3 py-2 rounded-lg border border-[#EADFCF] shadow-lg pointer-events-none">
+                      ↕ Drag Frame
                     </div>
                   )}
                 </div>
               </div>
               
-              <div className="px-6 pb-6 relative">
+              <div className="px-8 pb-8 relative bg-white">
                 
+                {/* Profile Circle Accent */}
                 <label 
                   htmlFor="avatarFileSelector"
-                  className="w-28 h-28 bg-[#191919] border-4 border-white rounded-full absolute -top-14 left-6 overflow-hidden flex items-center justify-center text-white font-bold text-4xl shadow-sm cursor-pointer group/avatar block z-20"
+                  className="w-32 h-32 bg-[#2C251E] border-4 border-white rounded-full absolute -top-16 left-8 overflow-hidden flex items-center justify-center text-white font-bold text-5xl shadow-xl cursor-pointer group/avatar block z-20 transition transform hover:scale-105"
                 >
                   {profile.avatar_url ? (
-                    <img src={profile.avatar_url} className="w-full h-full object-cover" alt="Profile Headshot" />
+                    <img src={profile.avatar_url} className="w-full h-full object-cover" alt="Avatar" />
                   ) : (
-                    <span>{userInitial}</span>
+                    <span className="font-serif italic text-[#FAF8F5]">{userInitial}</span>
                   )}
 
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/avatar:opacity-100 flex flex-col justify-center items-center transition duration-200 select-none text-center">
-                    <span className="text-[9px] uppercase font-black tracking-wider text-white">📷 Change</span>
+                  <div className="absolute inset-0 bg-black/70 opacity-0 group-hover/avatar:opacity-100 flex flex-col justify-center items-center transition duration-200 select-none text-center">
+                    <span className="text-[10px] uppercase font-black tracking-widest text-white">📷 Change</span>
                     {profile.avatar_url && (
                       <span 
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteImageMedia('avatar_url'); }} 
-                        className="text-[8px] uppercase text-red-400 font-bold hover:text-red-300 block mt-1 hover:underline"
+                        className="text-[9px] uppercase text-red-400 font-bold hover:text-red-300 block mt-1.5 hover:underline"
                       >
                         Delete
                       </span>
@@ -596,66 +595,70 @@ export default function StudioWorkspace() {
                   </div>
                 </label>
                 
-                <div className="pt-16 space-y-1">
-                  <div className="flex items-center gap-1.5">
-                    <h2 className="text-xl font-bold text-gray-900 tracking-tight">{profile.display_name || profile.username}</h2>
-                    {profile.pronouns && <span className="text-xs text-gray-400 font-medium font-sans">({profile.pronouns})</span>}
+                <div className="pt-20 space-y-2">
+                  <div className="flex items-baseline gap-2">
+                    <h2 className="text-2xl font-black text-[#2C251E] tracking-tight font-serif">
+                      {profile.display_name || profile.username}
+                    </h2>
+                    {profile.pronouns && (
+                      <span className="text-xs text-[#8C7E6B] font-bold">({profile.pronouns})</span>
+                    )}
                   </div>
-                  <p className="text-sm text-gray-800 font-normal">{profile.headline || 'Music Producer | Mixer'}</p>
-                  <p className="text-xs text-gray-500 font-medium">{profile.company || 'Independent Studio'} • <span className="text-gray-400">{profile.location || 'Chandigarh, India'}</span></p>
+                  <p className="text-sm text-[#5C4F41] font-medium max-w-xl">{profile.headline || 'Music Producer | Mixer'}</p>
+                  <p className="text-xs text-[#A09380] font-bold uppercase tracking-widest">{profile.company || 'Independent Studio'} • <span className="text-[#8C7E6B]">{profile.location || 'Chandigarh, India'}</span></p>
                 </div>
 
-                <div className="pt-4">
-                  <button onClick={() => setEditingProfile(!editingProfile)} className="px-5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-full transition shadow-sm">
-                    Enhance bio details
+                <div className="pt-5">
+                  <button onClick={() => setEditingProfile(!editingProfile)} className="px-6 py-2 bg-[#4A3E31] hover:bg-[#3A3025] text-white text-xs font-bold uppercase tracking-widest rounded-full transition-all shadow-md transform hover:-translate-y-0.5">
+                    Enhance Bio Details
                   </button>
                 </div>
               </div>
             </div>
 
             {editingProfile && (
-              <form onSubmit={handleProfileSave} className="bg-white border border-blue-200 rounded-lg p-5 space-y-3 shadow-sm animate-fadeIn">
-                <h3 className="text-xs font-black uppercase tracking-wider border-b pb-2 text-blue-600">Update Profile Bio Parameters</h3>
-                <div className="grid grid-cols-2 gap-3">
+              <form onSubmit={handleProfileSave} className="bg-white border border-[#EADFCF] rounded-2xl p-6 space-y-4 shadow-lg animate-fadeIn">
+                <h3 className="text-xs font-black uppercase tracking-widest text-[#4A3E31] border-b pb-2">Modify Console Metadata</h3>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] text-gray-400 font-bold uppercase mb-1">Full Display Name</label>
-                    <input type="text" className="w-full border p-2.5 text-xs rounded bg-gray-50 focus:outline-none" value={editForm.display_name || ''} onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })} />
+                    <label className="block text-[10px] text-[#8C7E6B] font-bold uppercase tracking-wider mb-1">Full Display Name</label>
+                    <input type="text" className="w-full border border-[#DFD8CC] p-3 text-xs rounded-xl bg-[#FDFBF7] text-[#2C251E] focus:outline-none focus:border-[#4A3E31]" value={editForm.display_name || ''} onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })} />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-400 font-bold uppercase mb-1">Username Handle</label>
-                    <input type="text" className="w-full border p-2.5 text-xs rounded bg-gray-50 focus:outline-none" value={editForm.username || ''} onChange={(e) => setEditForm({ ...editForm, username: e.target.value })} required />
+                    <label className="block text-[10px] text-[#8C7E6B] font-bold uppercase tracking-wider mb-1">Username Handle</label>
+                    <input type="text" className="w-full border border-[#DFD8CC] p-3 text-xs rounded-xl bg-[#FDFBF7] text-[#2C251E] focus:outline-none focus:border-[#4A3E31]" value={editForm.username || ''} onChange={(e) => setEditForm({ ...editForm, username: e.target.value })} required />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-[10px] text-gray-400 font-bold uppercase mb-1">Headline Bio</label>
-                    <input type="text" className="w-full border p-2.5 text-xs rounded bg-gray-50 focus:outline-none" value={editForm.headline || ''} onChange={(e) => setEditForm({ ...editForm, headline: e.target.value })} />
+                    <label className="block text-[10px] text-[#8C7E6B] font-bold uppercase tracking-wider mb-1">Headline Bio</label>
+                    <input type="text" className="w-full border border-[#DFD8CC] p-3 text-xs rounded-xl bg-[#FDFBF7] text-[#2C251E] focus:outline-none focus:border-[#4A3E31]" value={editForm.headline || ''} onChange={(e) => setEditForm({ ...editForm, headline: e.target.value })} />
                   </div>
-                  <div className="col-span-2 grid grid-cols-3 gap-2">
-                    <input type="text" className="border p-2 text-xs rounded bg-gray-50 focus:outline-none" placeholder="Pronouns" value={editForm.pronouns || ''} onChange={(e) => setEditForm({ ...editForm, pronouns: e.target.value })} />
-                    <input type="text" className="border p-2 text-xs rounded bg-gray-50 focus:outline-none" placeholder="Studio Company" value={editForm.company || ''} onChange={(e) => setEditForm({ ...editForm, company: e.target.value })} />
-                    <input type="text" className="border p-2 text-xs rounded bg-gray-50 focus:outline-none" placeholder="Location" value={editForm.location || ''} onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} />
+                  <div className="col-span-2 grid grid-cols-3 gap-3">
+                    <input type="text" className="border border-[#DFD8CC] p-3 text-xs rounded-xl bg-[#FDFBF7] focus:outline-none focus:border-[#4A3E31]" placeholder="Pronouns" value={editForm.pronouns || ''} onChange={(e) => setEditForm({ ...editForm, pronouns: e.target.value })} />
+                    <input type="text" className="border border-[#DFD8CC] p-3 text-xs rounded-xl bg-[#FDFBF7] focus:outline-none focus:border-[#4A3E31]" placeholder="Studio / Label" value={editForm.company || ''} onChange={(e) => setEditForm({ ...editForm, company: e.target.value })} />
+                    <input type="text" className="border border-[#DFD8CC] p-3 text-xs rounded-xl bg-[#FDFBF7] focus:outline-none focus:border-[#4A3E31]" placeholder="Location" value={editForm.location || ''} onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} />
                   </div>
                 </div>
-                <div className="flex gap-2 justify-end border-t pt-2 mt-2">
-                  <button type="submit" className="px-5 py-1.5 bg-blue-600 text-white rounded-full text-xs font-bold shadow-sm">Save Text Settings</button>
-                  <button type="button" onClick={() => { setEditForm(profile); setEditingProfile(false); }} className="px-5 py-1.5 bg-gray-100 rounded-full text-xs font-bold text-gray-600">Cancel</button>
+                <div className="flex gap-2 justify-end border-t border-[#EADFCF] pt-3">
+                  <button type="submit" className="px-6 py-2 bg-[#4A3E31] text-white rounded-full text-xs font-bold uppercase tracking-widest shadow">Save Records</button>
+                  <button type="button" onClick={() => { setEditForm(profile); setEditingProfile(false); }} className="px-6 py-2 bg-[#EFECE3] rounded-full text-xs font-bold text-[#5C4F41] uppercase tracking-widest">Cancel</button>
                 </div>
               </form>
             )}
 
             {editingTrack && (
-              <form onSubmit={handleUpdateTrackMetadata} className="bg-white border border-emerald-300 rounded-lg p-5 space-y-3 shadow-md animate-fadeIn">
-                <div className="flex items-center justify-between border-b pb-2">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-emerald-700">✏️ Modify Audio Metadata parameters</h3>
-                  <button type="button" onClick={() => setEditingTrack(null)} className="text-xs text-gray-400 hover:text-black font-bold">✕ Close</button>
+              <form onSubmit={handleUpdateTrackMetadata} className="bg-white border-2 border-[#D9C4A9] rounded-2xl p-6 space-y-4 shadow-xl animate-fadeIn">
+                <div className="flex items-center justify-between border-b border-[#EADFCF] pb-2">
+                  <h3 className="text-xs font-black uppercase tracking-widest text-[#8A6F4E]">✏️ Edit Track Attributes</h3>
+                  <button type="button" onClick={() => setEditingTrack(null)} className="text-xs text-[#A09380] hover:text-black font-black">✕</button>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="col-span-2">
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Track Title</label>
-                    <input required type="text" className="w-full border text-xs p-2.5 rounded bg-gray-50 focus:outline-none focus:border-emerald-600" value={editTrackForm.title} onChange={(e) => setEditTrackForm({...editTrackForm, title: e.target.value})} />
+                    <label className="block text-[10px] font-bold text-[#8C7E6B] uppercase mb-1">Track Title</label>
+                    <input required type="text" className="w-full border border-[#DFD8CC] text-xs p-3 rounded-xl bg-[#FDFBF7] focus:outline-none focus:border-[#4A3E31]" value={editTrackForm.title} onChange={(e) => setEditTrackForm({...editTrackForm, title: e.target.value})} />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Genre Class</label>
-                    <select className="w-full border text-xs p-2.5 rounded bg-white cursor-pointer focus:outline-none font-medium text-gray-700" value={editTrackForm.genre} onChange={(e) => setEditTrackForm({...editTrackForm, genre: e.target.value})}>
+                    <label className="block text-[10px] font-bold text-[#8C7E6B] uppercase mb-1">Genre</label>
+                    <select className="w-full border border-[#DFD8CC] text-xs p-3 rounded-xl bg-white focus:outline-none" value={editTrackForm.genre} onChange={(e) => setEditTrackForm({...editTrackForm, genre: e.target.value})}>
                       <option value="Punjabi">Punjabi</option>
                       <option value="Trap Loop">Trap Loop</option>
                       <option value="LoFi Sample">LoFi Sample</option>
@@ -664,8 +667,8 @@ export default function StudioWorkspace() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Tempo (BPM)</label>
-                    <select className="w-full border text-xs p-2.5 rounded bg-white cursor-pointer focus:outline-none font-medium text-gray-700" value={editTrackForm.bpm} onChange={(e) => setEditTrackForm({...editTrackForm, bpm: e.target.value})}>
+                    <label className="block text-[10px] font-bold text-[#8C7E6B] uppercase mb-1">Tempo (BPM)</label>
+                    <select className="w-full border border-[#DFD8CC] text-xs p-3 rounded-xl bg-white focus:outline-none" value={editTrackForm.bpm} onChange={(e) => setEditTrackForm({...editTrackForm, bpm: e.target.value})}>
                       <option value="80">80 BPM</option>
                       <option value="90">90 BPM</option>
                       <option value="120">120 BPM</option>
@@ -673,8 +676,8 @@ export default function StudioWorkspace() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Key Signature</label>
-                    <select className="w-full border text-xs p-2.5 rounded bg-white cursor-pointer focus:outline-none font-medium text-gray-700" value={editTrackForm.key} onChange={(e) => setEditTrackForm({...editTrackForm, key: e.target.value})}>
+                    <label className="block text-[10px] font-bold text-[#8C7E6B] uppercase mb-1">Scale Key</label>
+                    <select className="w-full border border-[#DFD8CC] text-xs p-3 rounded-xl bg-white focus:outline-none" value={editTrackForm.key} onChange={(e) => setEditTrackForm({...editTrackForm, key: e.target.value})}>
                       <option value="F# Minor">F# Minor</option>
                       <option value="C Major">C Major</option>
                       <option value="A Minor">A Minor</option>
@@ -682,8 +685,8 @@ export default function StudioWorkspace() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Sonic Mood Vibe</label>
-                    <select className="w-full border text-xs p-2.5 rounded bg-white cursor-pointer focus:outline-none font-medium text-gray-700" value={editTrackForm.mood} onChange={(e) => setEditTrackForm({...editTrackForm, mood: e.target.value})}>
+                    <label className="block text-[10px] font-bold text-[#8C7E6B] uppercase mb-1">Vibe Mood</label>
+                    <select className="w-full border border-[#DFD8CC] text-xs p-3 rounded-xl bg-white focus:outline-none" value={editTrackForm.mood} onChange={(e) => setEditTrackForm({...editTrackForm, mood: e.target.value})}>
                       <option value="Dark">Dark</option>
                       <option value="Chill">Chill</option>
                       <option value="Energetic">Energetic</option>
@@ -691,37 +694,38 @@ export default function StudioWorkspace() {
                     </select>
                   </div>
                 </div>
-                <div className="flex gap-2 justify-end border-t pt-2 mt-2">
-                  <button type="submit" disabled={updatingTrack} className="px-5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-bold shadow-sm">{updatingTrack ? 'Saving...' : 'Save Meta Records'}</button>
-                  <button type="button" onClick={() => setEditingTrack(null)} className="px-5 py-1.5 bg-gray-100 rounded-full text-xs font-bold text-gray-600">Cancel</button>
+                <div className="flex gap-2 justify-end border-t border-[#EADFCF] pt-3">
+                  <button type="submit" disabled={updatingTrack} className="px-6 py-2 bg-[#8A6F4E] hover:bg-[#725B3F] text-white rounded-full text-xs font-bold uppercase tracking-widest shadow">{updatingTrack ? 'Saving...' : 'Update Meta'}</button>
+                  <button type="button" onClick={() => setEditingTrack(null)} className="px-6 py-2 bg-[#EFECE3] rounded-full text-xs font-bold text-[#5C4F41] uppercase tracking-widest">Cancel</button>
                 </div>
               </form>
             )}
 
-            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Publish Asset:</span>
-                <button onClick={() => setShareType(shareType === 'post' ? 'none' : 'post')} className={`px-4 py-1.5 text-xs font-bold border rounded-full transition ${shareType === 'post' ? 'bg-blue-50 text-blue-700 border-blue-300' : 'bg-gray-50 hover:bg-gray-100 text-gray-600'}`}>✍️ Write Post</button>
-                <button onClick={() => setShareType(shareType === 'audio' ? 'none' : 'audio')} className={`px-4 py-1.5 text-xs font-bold border rounded-full transition ${shareType === 'audio' ? 'bg-blue-50 text-blue-700 border-blue-300' : 'bg-gray-50 hover:bg-gray-100 text-gray-600'}`}>🎵 Upload Audio</button>
+            {/* HIGH-END CONTROL DECK INPUT BAY */}
+            <div className="bg-[#FAF6F0] border border-[#EADFCF] rounded-2xl p-5 shadow-md space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-black text-[#8C7E6B] uppercase tracking-widest">Master Console:</span>
+                <button onClick={() => setShareType(shareType === 'post' ? 'none' : 'post')} className={`px-5 py-2 text-xs font-bold uppercase tracking-wider border rounded-full transition-all duration-200 ${shareType === 'post' ? 'bg-[#4A3E31] text-white border-[#4A3E31] shadow-sm' : 'bg-white text-[#5C4F41] border-[#DFD8CC] hover:bg-[#EFECE3]'}`}>✍️ Log Thought</button>
+                <button onClick={() => setShareType(shareType === 'audio' ? 'none' : 'audio')} className={`px-5 py-2 text-xs font-bold uppercase tracking-wider border rounded-full transition-all duration-200 ${shareType === 'audio' ? 'bg-[#4A3E31] text-white border-[#4A3E31] shadow-sm' : 'bg-white text-[#5C4F41] border-[#DFD8CC] hover:bg-[#EFECE3]'}`}>🎵 Bounce Audio</button>
               </div>
 
               {shareType === 'post' && (
-                <div className="border-t pt-3 space-y-2">
-                  <textarea value={postContent} onChange={(e) => setPostContent(e.target.value)} placeholder="Share an update or idea with your network..." className="w-full text-xs p-3 bg-gray-50 border rounded-xl focus:outline-none min-h-[70px] resize-none" />
-                  <div className="flex justify-end"><button onClick={handleCreatePost} disabled={publishingPost || !postContent.trim()} className="px-4 py-1.5 bg-blue-600 text-white font-bold text-xs rounded-full shadow-sm">Post Update</button></div>
+                <div className="border-t border-[#EADFCF] pt-4 space-y-3 animate-fadeIn">
+                  <textarea value={postContent} onChange={(e) => setPostContent(e.target.value)} placeholder="Type micro-logs or dynamic text updates into the platform network..." className="w-full text-xs p-4 bg-[#FDFBF7] border border-[#DFD8CC] rounded-xl focus:outline-none focus:border-[#4A3E31] min-h-[80px] resize-none text-[#2C251E]" />
+                  <div className="flex justify-end"><button onClick={handleCreatePost} disabled={publishingPost || !postContent.trim()} className="px-5 py-2 bg-[#4A3E31] text-white font-bold text-xs uppercase tracking-widest rounded-full shadow">Commit Broadcast</button></div>
                 </div>
               )}
 
               {shareType === 'audio' && (
-                <form onSubmit={handlePublishTrack} className="border-t pt-3 space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <form onSubmit={handlePublishTrack} className="border-t border-[#EADFCF] pt-4 space-y-4 animate-fadeIn">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="col-span-2">
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Track Title</label>
-                      <input required type="text" placeholder="Atmospheric Synth Loop" className="w-full border text-xs p-2.5 rounded bg-gray-50 focus:outline-none focus:border-blue-600" value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} />
+                      <label className="block text-[10px] font-bold text-[#8C7E6B] uppercase mb-1">Track Master Title</label>
+                      <input required type="text" placeholder="e.g., Heavy Melodic Drill Blueprint" className="w-full border border-[#DFD8CC] text-xs p-3 rounded-xl bg-[#FDFBF7] focus:outline-none focus:border-[#4A3E31]" value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Genre Class</label>
-                      <select className="w-full border text-xs p-2.5 rounded bg-white cursor-pointer focus:outline-none font-medium text-gray-700" value={trackGenre} onChange={(e) => setTrackGenre(e.target.value)}>
+                      <label className="block text-[10px] font-bold text-[#8C7E6B] uppercase mb-1">Genre</label>
+                      <select className="w-full border border-[#DFD8CC] text-xs p-3 rounded-xl bg-white focus:outline-none" value={trackGenre} onChange={(e) => setTrackGenre(e.target.value)}>
                         <option value="Punjabi">Punjabi</option>
                         <option value="Trap Loop">Trap Loop</option>
                         <option value="LoFi Sample">LoFi Sample</option>
@@ -730,8 +734,8 @@ export default function StudioWorkspace() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Tempo (BPM)</label>
-                      <select className="w-full border text-xs p-2.5 rounded bg-white cursor-pointer focus:outline-none font-medium text-gray-700" value={trackBpm} onChange={(e) => setTrackBpm(e.target.value)}>
+                      <label className="block text-[10px] font-bold text-[#8C7E6B] uppercase mb-1">BPM</label>
+                      <select className="w-full border border-[#DFD8CC] text-xs p-3 rounded-xl bg-white focus:outline-none" value={trackBpm} onChange={(e) => setTrackBpm(e.target.value)}>
                         <option value="80">80 BPM</option>
                         <option value="90">90 BPM</option>
                         <option value="120">120 BPM</option>
@@ -739,8 +743,8 @@ export default function StudioWorkspace() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Key Signature</label>
-                      <select className="w-full border text-xs p-2.5 rounded bg-white cursor-pointer focus:outline-none font-medium text-gray-700" value={trackKey} onChange={(e) => setTrackKey(e.target.value)}>
+                      <label className="block text-[10px] font-bold text-[#8C7E6B] uppercase mb-1">Musical Scale</label>
+                      <select className="w-full border border-[#DFD8CC] text-xs p-3 rounded-xl bg-white focus:outline-none" value={trackKey} onChange={(e) => setTrackKey(e.target.value)}>
                         <option value="F# Minor">F# Minor</option>
                         <option value="C Major">C Major</option>
                         <option value="A Minor">A Minor</option>
@@ -748,8 +752,8 @@ export default function StudioWorkspace() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Sonic Mood Vibe</label>
-                      <select className="w-full border text-xs p-2.5 rounded bg-white cursor-pointer focus:outline-none font-medium text-gray-700" value={trackMood} onChange={(e) => setTrackMood(e.target.value)}>
+                      <label className="block text-[10px] font-bold text-[#8C7E6B] uppercase mb-1">Mood</label>
+                      <select className="w-full border border-[#DFD8CC] text-xs p-3 rounded-xl bg-white focus:outline-none" value={trackMood} onChange={(e) => setTrackMood(e.target.value)}>
                         <option value="Dark">Dark</option>
                         <option value="Chill">Chill</option>
                         <option value="Energetic">Energetic</option>
@@ -757,45 +761,49 @@ export default function StudioWorkspace() {
                       </select>
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Select Audio Source File</label>
-                      <input type="file" accept="audio/*" onChange={(e) => { if(e.target.files?.[0]) setSelectedFile(e.target.files[0]); }} className="w-full text-xs file:mr-2 file:py-1.5 file:px-2.5 file:rounded file:border-0 file:bg-gray-100 cursor-pointer text-gray-600" required />
+                      <label className="block text-[10px] font-bold text-[#8C7E6B] uppercase mb-1">Select Stem/Mixdown File</label>
+                      <input type="file" accept="audio/*" onChange={(e) => { if(e.target.files?.[0]) setSelectedFile(e.target.files[0]); }} className="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-[#EFECE3] file:text-[#4A3E31] file:text-[10px] file:font-bold file:uppercase file:tracking-widest cursor-pointer text-gray-500" required />
                     </div>
                   </div>
-                  <div className="flex justify-end border-t pt-2"><button type="submit" disabled={publishing} className="px-5 py-2 bg-blue-600 text-white font-bold text-xs rounded-full shadow-sm uppercase tracking-wider">{publishing ? 'Uploading...' : 'Publish Audio Drop'}</button></div>
+                  <div className="flex justify-end border-t border-[#EADFCF] pt-3"><button type="submit" disabled={publishing} className="px-6 py-2.5 bg-[#4A3E31] text-white font-bold text-xs uppercase tracking-widest rounded-full shadow">{publishing ? 'Bouncing Track...' : 'Deploy Audio Drop'}</button></div>
                 </form>
               )}
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm space-y-3">
-              <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">📊 Personal Audio Catalog</h3>
-              <div className="space-y-2.5">
+            {/* STUDIO PROFILE CATALOG DECK */}
+            <div className="bg-white border border-[#EADFCF] rounded-2xl p-6 shadow-md space-y-4">
+              <h3 className="text-xs font-black uppercase tracking-widest text-[#8C7E6B]">📊 Personal Audio Index</h3>
+              <div className="space-y-3">
                 {mySounds.length > 0 ? (
                   mySounds.map((track) => (
-                    <div key={track.id} className="bg-gray-50 p-3 rounded-xl border flex flex-col md:flex-row gap-3 justify-between items-start md:items-center text-xs shadow-inner">
+                    <div key={track.id} className="bg-[#FAF8F5] p-4 rounded-xl border border-[#ECE6DC] flex flex-col md:flex-row gap-4 justify-between items-start md:items-center text-xs shadow-sm hover:border-[#DFD8CC] transition">
                       <div className="min-w-0 flex-1">
-                        <span className="font-bold text-gray-900 truncate block sm:inline">{track.title}</span>
-                        <span className="text-[10px] text-gray-400 uppercase font-semibold sm:ml-2">({track.genre} • {track.bpm} BPM • {track.key || 'No Key'})</span>
+                        <span className="font-bold text-[#2C251E] text-sm block md:inline font-serif">{track.title}</span>
+                        <div className="flex gap-2 mt-1 md:mt-0 md:inline-flex items-center">
+                          <span className="bg-[#EFECE3] text-[#5C4F41] text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border border-[#DFD8CC]">{track.genre}</span>
+                          <span className="text-[10px] text-[#A09380] font-bold uppercase tracking-tight">{track.bpm} BPM • {track.key || 'No Key'} • {track.mood}</span>
+                        </div>
                       </div>
                       
-                      <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end shrink-0">
-                        <audio controls src={track.audio_url} onPlay={registerAudioPlayback} className="h-7 w-40 sm:w-44 accent-blue-600" />
+                      <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end shrink-0">
+                        <audio controls src={track.audio_url} onPlay={registerAudioPlayback} className="h-7 w-40 sm:w-48 accent-[#4A3E31]" />
                         
-                        <div className="flex gap-1">
+                        <div className="flex gap-1.5">
                           <button 
                             type="button"
                             onClick={() => {
                               setEditingTrack(track);
                               setEditTrackForm({ title: track.title, genre: track.genre, bpm: track.bpm || '140', key: track.key || 'F# Minor', mood: track.mood || 'Dark' });
-                              window.scrollTo({ top: 400, behavior: 'smooth' });
+                              window.scrollTo({ top: 350, behavior: 'smooth' });
                             }}
-                            className="px-2 py-1 text-[10px] font-bold bg-white text-gray-700 hover:bg-gray-150 rounded border transition shrink-0 shadow-sm"
+                            className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-white text-[#5C4F41] hover:bg-[#EFECE3] rounded-lg border border-[#DFD8CC] shadow-sm transition"
                           >
                             ✏️ Edit
                           </button>
                           <button 
                             type="button"
                             onClick={() => handleDeleteTrack(track.id, track.audio_url)}
-                            className="px-2 py-1 text-[10px] font-bold bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 rounded border border-red-200 transition shrink-0 shadow-sm"
+                            className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-red-50 text-red-700 hover:bg-red-100 rounded-lg border border-red-100 transition shadow-sm"
                           >
                             🗑️ Delete
                           </button>
@@ -804,47 +812,50 @@ export default function StudioWorkspace() {
                     </div>
                   ))
                 ) : (
-                  <div className="text-xs text-gray-400 italic py-2">Your audio track index is currently empty.</div>
+                  <div className="text-xs text-[#A09380] italic py-3 text-center border-2 border-dashed border-[#DFD8CC] rounded-xl">Your personal sound bank indices are currently empty.</div>
                 )}
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm space-y-3">
-              <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">📝 My Updates & Thoughts</h3>
-              <div className="space-y-2">
+            {/* PERSONAL THOUGHTS LOGGER */}
+            <div className="bg-white border border-[#EADFCF] rounded-2xl p-6 shadow-md space-y-4">
+              <h3 className="text-xs font-black uppercase tracking-widest text-[#8C7E6B]">📝 Micro-Log Updates</h3>
+              <div className="space-y-3">
                 {myPosts.length > 0 ? (
                   myPosts.map((post) => (
-                    <div key={post.id} className="bg-gray-50 border p-4 rounded-xl text-xs flex flex-col sm:flex-row justify-between items-start gap-3 relative animate-fadeIn">
-                      <div className="space-y-1.5 flex-1 min-w-0">
-                        <p className="font-medium text-gray-700 whitespace-pre-wrap leading-relaxed">{post.content}</p>
-                        <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400 select-none">
-                          🗓️ Posted: {formatExactDateTime(post.created_at)}
+                    <div key={post.id} className="bg-[#FAF8F5] border border-[#ECE6DC] p-5 rounded-xl text-xs flex flex-col sm:flex-row justify-between items-start gap-4 relative shadow-sm hover:border-[#DFD8CC] transition">
+                      <div className="space-y-2 flex-1 min-w-0">
+                        <p className="font-medium text-[#4A3E31] whitespace-pre-wrap leading-relaxed text-sm">{post.content}</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-[#A09380] select-none bg-[#EFECE3] px-2 py-1 rounded w-max border border-[#E1D9CC]">
+                          🗓️ Console Sync: {formatExactDateTime(post.created_at)}
                         </p>
                       </div>
                       
                       <button 
                         type="button"
                         onClick={() => handleDeletePost(post.id)}
-                        className="text-gray-400 hover:text-red-600 transition font-bold text-sm sm:static absolute top-3 right-3"
-                        title="Delete thought post"
+                        className="text-[#A09380] hover:text-red-700 transition font-black text-base sm:static absolute top-4 right-4"
+                        title="Delete entry node"
                       >
                         ✕
                       </button>
                     </div>
                   ))
                 ) : (
-                  <div className="text-xs text-gray-400 italic py-2">You haven't written any thoughts or text posts yet.</div>
+                  <div className="text-xs text-[#A09380] italic py-3 text-center border-2 border-dashed border-[#DFD8CC] rounded-xl">No active micro-logs configured inside this portfolio cell.</div>
                 )}
               </div>
             </div>
           </>
         )}
 
+        {/* =================================================================== */}
+        {/* VIEW MODE B: LUXURY PRODUCER COMMUNITY TIMELINE FEED */}
         {viewMode === 'community' && (
-          <div className="space-y-4">
-            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-              <h3 className="text-xs font-black uppercase tracking-widest text-blue-600 mb-0.5">🌐 Producer Community Timeline</h3>
-              <p className="text-[11px] text-gray-400 font-medium">Real-time update logs and brand-new tracks dropped across all community creators.</p>
+          <div className="space-y-4 animate-fadeIn">
+            <div className="bg-gradient-to-r from-[#4A3E31] to-[#635342] border border-[#4A3E31] rounded-2xl p-6 shadow-lg text-white">
+              <h3 className="text-sm font-black uppercase tracking-widest text-[#F7F3EC] mb-1">🌐 Shared Producer Master-Feed</h3>
+              <p className="text-xs text-[#DFD8CC] font-medium">Monitoring real-time audio bounces, stem uploads, and platform broadcast metrics worldwide.</p>
             </div>
 
             {communityFeed.length > 0 ? (
@@ -855,33 +866,33 @@ export default function StudioWorkspace() {
                   const isMyAsset = user && feedItem.profile_id === user.id;
 
                   return (
-                    <div key={`${feedItem.id}-${index}`} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4 hover:border-gray-300 transition duration-200">
+                    <div key={`${feedItem.id}-${index}`} className="bg-white border border-[#EADFCF] rounded-2xl p-6 shadow-md space-y-4 hover:shadow-lg transition duration-200">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gray-900 text-white rounded-full overflow-hidden border border-gray-100 flex items-center justify-center text-sm font-bold shadow-sm shrink-0">
-                            {itemCreator.avatar_url ? <img src={itemCreator.avatar_url} className="w-full h-full object-cover" alt="Avatar" /> : <span>{creatorInitials}</span>}
+                          <div className="w-11 h-11 bg-[#2C251E] text-white rounded-full overflow-hidden border-2 border-[#FAF8F5] flex items-center justify-center text-base font-bold shadow-md shrink-0">
+                            {itemCreator.avatar_url ? <img src={itemCreator.avatar_url} className="w-full h-full object-cover" alt="Avatar" /> : <span className="font-serif italic">{creatorInitials}</span>}
                           </div>
                           <div>
-                            <div className="text-xs font-black text-gray-900 hover:text-blue-600 cursor-pointer" onClick={() => router.push(`/profile/${itemCreator.id}`)}>
+                            <div className="text-sm font-black text-[#2C251E] hover:text-[#8A6F4E] cursor-pointer font-serif" onClick={() => router.push(`/profile/${itemCreator.id}`)}>
                               {itemCreator.display_name || `@${itemCreator.username}`}
                             </div>
-                            <div className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">
-                              {formatExactDateTime(feedItem.created_at)}
+                            <div className="text-[10px] text-[#A09380] font-black uppercase tracking-wider mt-0.5 select-none">
+                              🛰️ Sync: {formatExactDateTime(feedItem.created_at)}
                             </div>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <span className={`text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded border ${feedItem.itemType === 'audio' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
-                            {feedItem.itemType === 'audio' ? '🎵 Audio Drop' : '✍️ Thought'}
+                          <span className={`text-[8px] font-black tracking-widest uppercase px-2.5 py-1 rounded-md border ${feedItem.itemType === 'audio' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-blue-50 text-blue-800 border-blue-200'}`}>
+                            {feedItem.itemType === 'audio' ? '🎵 Audio Drop' : '✍️ Broadcast'}
                           </span>
                           
                           {isMyAsset && feedItem.itemType === 'post' && (
                             <button 
                               type="button"
                               onClick={() => handleDeletePost(feedItem.id)}
-                              className="text-xs text-gray-400 hover:text-red-600 transition ml-1 font-bold"
-                              title="Delete Post"
+                              className="text-[#A09380] hover:text-red-600 transition ml-1 font-black text-sm"
+                              title="Delete Broadcast Node"
                             >
                               ✕
                             </button>
@@ -889,22 +900,22 @@ export default function StudioWorkspace() {
                         </div>
                       </div>
 
-                      <div className="pt-1 text-xs leading-relaxed text-gray-800">
+                      <div className="text-xs leading-relaxed text-[#2C251E]">
                         {feedItem.itemType === 'post' ? (
-                          <p className="whitespace-pre-wrap font-medium text-gray-700">{feedItem.content}</p>
+                          <p className="whitespace-pre-wrap font-medium text-[#4A3E31] text-sm bg-[#FAF8F5] p-4 rounded-xl border border-[#ECE6DC] shadow-inner">{feedItem.content}</p>
                         ) : (
-                          <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-inner">
+                          <div className="bg-[#FAF8F5] border border-[#ECE6DC] rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-inner">
                             <div className="space-y-1 flex-1 min-w-0">
-                              <h4 className="font-bold text-gray-900 text-sm truncate">💿 {feedItem.title}</h4>
+                              <h4 className="font-bold text-[#2C251E] text-base font-serif">💿 {feedItem.title}</h4>
                               <div className="flex flex-wrap gap-1.5 pt-1">
-                                <span className="bg-white px-2 py-0.5 rounded text-[8px] font-bold border border-gray-200 text-blue-600">{feedItem.genre}</span>
-                                {feedItem.bpm && <span className="bg-white px-2 py-0.5 rounded text-[8px] font-bold border border-gray-200 text-gray-500">{feedItem.bpm} BPM</span>}
-                                {feedItem.key && <span className="bg-white px-1.5 py-0.5 rounded text-[8px] font-medium border border-gray-200 text-gray-400">{feedItem.key} • {feedItem.mood}</span>}
+                                <span className="bg-white px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border border-[#DFD8CC] text-[#8A6F4E]">{feedItem.genre}</span>
+                                {feedItem.bpm && <span className="bg-white px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border border-[#DFD8CC] text-gray-500">{feedItem.bpm} BPM</span>}
+                                {feedItem.key && <span className="bg-white px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border border-[#DFD8CC] text-gray-400">{feedItem.key} • {feedItem.mood}</span>}
                               </div>
                             </div>
                             
-                            <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end shrink-0">
-                              <audio controls src={feedItem.audio_url} onPlay={registerAudioPlayback} className="w-44 sm:w-56 h-8 accent-blue-600" />
+                            <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end shrink-0">
+                              <audio controls src={feedItem.audio_url} onPlay={registerAudioPlayback} className="w-40 sm:w-48 h-8 accent-[#4A3E31]" />
                               
                               {isMyAsset && (
                                 <div className="flex gap-1 shrink-0">
@@ -914,18 +925,18 @@ export default function StudioWorkspace() {
                                       setViewMode('personal');
                                       setEditingTrack(feedItem);
                                       setEditTrackForm({ title: feedItem.title, genre: feedItem.genre, bpm: feedItem.bpm || '140', key: feedItem.key || 'F# Minor', mood: feedItem.mood || 'Dark' });
-                                      window.scrollTo({ top: 400, behavior: 'smooth' });
+                                      window.scrollTo({ top: 350, behavior: 'smooth' });
                                     }}
-                                    className="p-1.5 bg-white text-gray-700 hover:bg-gray-150 rounded border transition text-[11px]"
-                                    title="Edit meta"
+                                    className="p-1.5 bg-white text-[#5C4F41] hover:bg-[#EFECE3] rounded-lg border border-[#DFD8CC] transition text-xs shadow-sm"
+                                    title="Edit Meta Node"
                                   >
                                     ✏️
                                   </button>
                                   <button 
                                     type="button"
                                     onClick={() => handleDeleteTrack(feedItem.id, feedItem.audio_url)}
-                                    className="p-1.5 bg-white text-red-500 hover:text-red-700 rounded border hover:border-red-200 transition text-[11px]"
-                                    title="Delete audio drop"
+                                    className="p-1.5 bg-white text-red-600 hover:text-red-700 rounded-lg border border-red-100 hover:border-red-200 transition text-xs shadow-sm"
+                                    title="Delete Audio Node"
                                   >
                                     🗑️
                                   </button>
@@ -940,8 +951,8 @@ export default function StudioWorkspace() {
                 })}
               </div>
             ) : (
-              <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-xl bg-white text-xs text-gray-400 italic font-medium">
-                The community feed is currently empty. Drop an update or track asset above to populate the timeline.
+              <div className="text-center py-16 border-2 border-dashed border-[#DFD8CC] rounded-2xl bg-white text-xs text-[#A09380] italic font-bold uppercase tracking-wider">
+                The global master-feed matrix is currently empty.
               </div>
             )}
           </div>
