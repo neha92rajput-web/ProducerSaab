@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-// Modern SSR Browser Client import
 import { createBrowserClient } from '@supabase/ssr';
 
-// Initialize the clean modern client (automatically writes cookie data)
+// Initialize the modern SSR browser client
 const database = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -15,7 +14,8 @@ function AuthFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  const [view, setView] = useState('signup'); // Default view is Join Community
+  // FIXED: Default view is now strictly 'signin' for existing users
+  const [view, setView] = useState('signin'); 
   const [username, setUsername] = useState(''); 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,12 +29,13 @@ function AuthFormContent() {
   const [isError, setIsError] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
+  // Synchronize state based on URL search query parameters (?view=signup)
   useEffect(() => {
     const urlView = searchParams.get('view');
-    if (urlView === 'signin') {
-      setView('signin');
-    } else {
+    if (urlView === 'signup') {
       setView('signup');
+    } else {
+      setView('signin');
     }
   }, [searchParams]);
 
@@ -51,9 +52,10 @@ function AuthFormContent() {
     setIsError(false);
 
     const cleanEmail = email.trim().toLowerCase();
-    const cleanHandle = username.trim().toLowerCase().replace(/\s+/g, '');
 
     if (view === 'signup') {
+      const cleanHandle = username.trim().toLowerCase().replace(/\s+/g, '');
+      
       if (password !== confirmPassword) {
         setLoading(false);
         setIsError(true);
@@ -94,6 +96,7 @@ function AuthFormContent() {
         setLoading(false);
       }
     } else {
+      // CLEAN SIGN-IN HANDSHAKE
       try {
         const { data, error } = await database.auth.signInWithPassword({
           email: cleanEmail,
@@ -102,7 +105,6 @@ function AuthFormContent() {
 
         if (error) throw error;
 
-        // Fetch user profile status to see if they completed onboarding or need to finish it
         const { data: profile } = await database
           .from('profiles')
           .select('onboarded')
@@ -110,9 +112,9 @@ function AuthFormContent() {
           .maybeSingle();
 
         if (profile?.onboarded) {
-          router.push('/feed'); // Existing users jump directly to the community feed
+          router.push('/feed');
         } else {
-          router.push('/dashboard'); // Uncompleted accounts go back to setup wizard
+          router.push('/dashboard');
         }
       } catch (err: any) {
         setIsError(true);
@@ -152,6 +154,8 @@ function AuthFormContent() {
             )}
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              
+              {/* HIDDEN IN SIGN IN VIEW: Username handle only shows up during Sign Up */}
               {view === 'signup' && (
                 <div>
                   <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Create Unique Handle Username</label>
@@ -172,6 +176,7 @@ function AuthFormContent() {
                 </div>
               </div>
 
+              {/* HIDDEN IN SIGN IN VIEW: Password confirmation input only shows up during Sign Up */}
               {view === 'signup' && (
                 <div>
                   <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Confirm Password</label>
