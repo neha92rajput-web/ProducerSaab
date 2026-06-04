@@ -27,7 +27,7 @@ export default function StudioWorkspace() {
   const [editingProfile, setEditingProfile] = useState<boolean>(false);
   const [shareType, setShareType] = useState<'none' | 'post' | 'audio'>('none');
   const [mySounds, setMySounds] = useState<any[]>([]);
-  const [myPosts, setMyPosts] = useState<any[]>([]); // 👈 New state hook for your personal text updates
+  const [myPosts, setMyPosts] = useState<any[]>([]); 
   const [communityFeed, setCommunityFeed] = useState<any[]>([]); 
   const [postContent, setPostContent] = useState<string>('');
 
@@ -44,6 +44,7 @@ export default function StudioWorkspace() {
   const [publishing, setPublishing] = useState<boolean>(false);
   const [publishingPost, setPublishingPost] = useState<boolean>(false);
   const [updatingTrack, setUpdatingTrack] = useState<boolean>(false);
+  const [uploadingImage, setUploadingImage] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -54,6 +55,20 @@ export default function StudioWorkspace() {
       activeAudioRef.current.pause();
     }
     activeAudioRef.current = currentAudio;
+  };
+
+  // Helper formatting function to generate readable exact date and time logs
+  const formatExactDateTime = (dateString: string) => {
+    if (!dateString) return '';
+    const dateObj = new Date(dateString);
+    return dateObj.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
   };
 
   async function loadFeedAndProfiles() {
@@ -116,7 +131,6 @@ export default function StudioWorkspace() {
     }
   }
 
-  // Helper loop to load local user content indices cleanly
   async function loadUserPersonalContent(userId: string) {
     const { data: sounds } = await database
       .from('sounds')
@@ -165,6 +179,65 @@ export default function StudioWorkspace() {
     }
     loadStudioData();
   }, [router]);
+
+  // 📷 CORE IMAGE FILE UPLOAD AND REPLACE ENGINE (Handles profile avatars and header banner media drops)
+  const handleImageMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>, targetField: 'avatar_url' | 'cover_url') => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setUploadingImage(true);
+
+    try {
+      // Direct asset storage layout configuration inside public bucket system
+      const bucketName = 'audio-tracks'; 
+      const fileExt = file.name.split('.').pop();
+      const storageFilePath = `profile-assets/${user.id}-${targetField}-${Date.now()}.${fileExt}`;
+
+      // If an existing custom image link exists, safely attempt to clean it from storage first to act as a proper replace engine
+      const currentUrl = editForm[targetField];
+      if (currentUrl && currentUrl.includes(`/${bucketName}/`)) {
+        const oldPathSegments = currentUrl.split(`/${bucketName}/`);
+        const oldStoragePath = oldPathSegments[oldPathSegments.length - 1];
+        if (oldStoragePath) {
+          await database.storage.from(bucketName).remove([decodeURIComponent(oldStoragePath)]);
+        }
+      }
+
+      // Execute upload transaction
+      const { error: uploadError } = await database.storage.from(bucketName).upload(storageFilePath, file, { cacheControl: '3600', upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = database.storage.from(bucketName).getPublicUrl(storageFilePath);
+
+      // Mutate interactive memory state
+      setEditForm(prev => ({ ...prev, [targetField]: publicUrl }));
+    } catch (err: any) {
+      alert(`Image operation failed: ${err.message}`);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  // 📷 PROFILE IMAGE DELETE HANDLER
+  const handleDeleteImageMedia = async (targetField: 'avatar_url' | 'cover_url') => {
+    if (!window.confirm(`Are you sure you want to remove your current profile ${targetField === 'avatar_url' ? 'avatar picture' : 'background banner'} image?`)) return;
+    
+    try {
+      const bucketName = 'audio-tracks';
+      const currentUrl = editForm[targetField];
+      
+      if (currentUrl && currentUrl.includes(`/${bucketName}/`)) {
+        const oldPathSegments = currentUrl.split(`/${bucketName}/`);
+        const oldStoragePath = oldPathSegments[oldPathSegments.length - 1];
+        if (oldStoragePath) {
+          await database.storage.from(bucketName).remove([decodeURIComponent(oldStoragePath)]);
+        }
+      }
+
+      setEditForm(prev => ({ ...prev, [targetField]: '' }));
+    } catch (err: any) {
+      console.error("Error clearing out profile object:", err);
+    }
+  };
 
   const handleDeleteTrack = async (trackId: string, fileUrl: string) => {
     if (!window.confirm("Are you sure you want to permanently delete this audio track?")) return;
@@ -384,9 +457,43 @@ export default function StudioWorkspace() {
               </div>
             </div>
 
+            {/* UPGRADED COMPREHENSIVE INTERACTIVE EDIT COMPONENT FORM */}
             {editingProfile && (
-              <form onSubmit={handleProfileSave} className="bg-white border border-blue-200 rounded-lg p-5 space-y-3 shadow-sm">
-                <h3 className="text-xs font-black uppercase tracking-wider border-b pb-2 text-blue-600">Update Profile Fields</h3>
+              <form onSubmit={handleProfileSave} className="bg-white border border-blue-200 rounded-lg p-5 space-y-4 shadow-sm animate-fadeIn">
+                <h3 className="text-xs font-black uppercase tracking-wider border-b pb-2 text-blue-600">Update Profile Fields & Assets</h3>
+                
+                {/* 📷 PROFILE ASSETS IMAGE CLOUD CONFIGURATION INTERFACE */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-3.5 rounded-xl border border-gray-200">
+                  <div>
+                    <label className="block text-[10px] text-gray-500 font-black uppercase mb-1">Avatar Picture Circle</label>
+                    <div className="flex items-center gap-3 mt-1">
+                      <div className="w-12 h-12 rounded-full bg-gray-800 text-white font-bold text-sm overflow-hidden flex items-center justify-center shrink-0 border">
+                        {editForm.avatar_url ? <img src={editForm.avatar_url} className="w-full h-full object-cover" alt="Preview" /> : <span>{userInitial}</span>}
+                      </div>
+                      <div className="space-y-1">
+                        <input type="file" accept="image/*" onChange={(e) => handleImageMediaUpload(e, 'avatar_url')} className="text-[11px] block text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-bold file:bg-blue-50 file:text-blue-700 cursor-pointer" />
+                        {editForm.avatar_url && (
+                          <button type="button" onClick={() => handleDeleteImageMedia('avatar_url')} className="text-[10px] text-red-500 hover:underline block font-semibold">🗑️ Remove Photo</button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] text-gray-500 font-black uppercase mb-1">Background Landscape Banner</label>
+                    <div className="flex items-center gap-3 mt-1">
+                      <div className="w-16 h-10 rounded bg-[#A0B2C6] bg-cover bg-center shrink-0 border" style={editForm.cover_url ? { backgroundImage: `url('${editForm.cover_url}')` } : {}} />
+                      <div className="space-y-1">
+                        <input type="file" accept="image/*" onChange={(e) => handleImageMediaUpload(e, 'cover_url')} className="text-[11px] block text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-bold file:bg-blue-50 file:text-blue-700 cursor-pointer" />
+                        {editForm.cover_url && (
+                          <button type="button" onClick={() => handleDeleteImageMedia('cover_url')} className="text-[10px] text-red-500 hover:underline block font-semibold">🗑️ Remove Banner</button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {uploadingImage && <p className="text-[10px] text-blue-600 font-bold col-span-2 animate-pulse">Processing asset modifications on Supabase Cloud Storage...</p>}
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[10px] text-gray-400 font-bold uppercase mb-1">Full Display Name</label>
@@ -405,18 +512,16 @@ export default function StudioWorkspace() {
                     <input type="text" className="border p-2 text-xs rounded bg-gray-50 focus:outline-none" placeholder="Studio Company" value={editForm.company || ''} onChange={(e) => setEditForm({ ...editForm, company: e.target.value })} />
                     <input type="text" className="border p-2 text-xs rounded bg-gray-50 focus:outline-none" placeholder="Location" value={editForm.location || ''} onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} />
                   </div>
-                  <input type="url" className="border p-2 text-xs rounded bg-gray-50 col-span-2 focus:outline-none" placeholder="Avatar Photo URL Link" value={editForm.avatar_url || ''} onChange={(e) => setEditForm({ ...editForm, avatar_url: e.target.value })} />
-                  <input type="url" className="border p-2 text-xs rounded bg-gray-50 col-span-2 focus:outline-none" placeholder="Cover Banner URL Link" value={editForm.cover_url || ''} onChange={(e) => setEditForm({ ...editForm, cover_url: e.target.value })} />
                 </div>
                 <div className="flex gap-2 justify-end border-t pt-2 mt-2">
-                  <button type="submit" className="px-5 py-1.5 bg-blue-600 text-white rounded-full text-xs font-bold">Save Settings</button>
-                  <button type="button" onClick={() => setEditingProfile(false)} className="px-5 py-1.5 bg-gray-100 rounded-full text-xs font-bold">Cancel</button>
+                  <button type="submit" disabled={uploadingImage} className="px-5 py-1.5 bg-blue-600 text-white rounded-full text-xs font-bold shadow-sm disabled:opacity-55">Save Settings</button>
+                  <button type="button" onClick={() => { setEditForm(profile); setEditingProfile(false); }} className="px-5 py-1.5 bg-gray-100 rounded-full text-xs font-bold text-gray-600">Cancel</button>
                 </div>
               </form>
             )}
 
             {editingTrack && (
-              <form onSubmit={handleUpdateTrackMetadata} className="bg-white border border-emerald-300 rounded-lg p-5 space-y-3 shadow-md animate-fadeIn">
+              <form onSubmit={handleUpdateTrackMetadata} className="bg-white border border-emerald-300 rounded-lg p-5 space-y-3 shadow-md">
                 <div className="flex items-center justify-between border-b pb-2">
                   <h3 className="text-xs font-black uppercase tracking-wider text-emerald-700">✏️ Modify Audio Metadata parameters</h3>
                   <button type="button" onClick={() => setEditingTrack(null)} className="text-xs text-gray-400 hover:text-black font-bold">✕ Close</button>
@@ -555,6 +660,7 @@ export default function StudioWorkspace() {
                         
                         <div className="flex gap-1">
                           <button 
+                            type="button"
                             onClick={() => {
                               setEditingTrack(track);
                               setEditTrackForm({ title: track.title, genre: track.genre, bpm: track.bpm || '140', key: track.key || 'F# Minor', mood: track.mood || 'Dark' });
@@ -565,6 +671,7 @@ export default function StudioWorkspace() {
                             ✏️ Edit
                           </button>
                           <button 
+                            type="button"
                             onClick={() => handleDeleteTrack(track.id, track.audio_url)}
                             className="px-2 py-1 text-[10px] font-bold bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 rounded border border-red-200 transition shrink-0 shadow-sm"
                           >
@@ -580,17 +687,25 @@ export default function StudioWorkspace() {
               </div>
             </div>
 
-            {/* 👤 NEW TIMELINE ROW MODULE: PERSONAL THOUGHTS TRACKER INDEX LIST */}
             <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm space-y-3">
               <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">📝 My Updates & Thoughts</h3>
               <div className="space-y-2">
                 {myPosts.length > 0 ? (
                   myPosts.map((post) => (
-                    <div key={post.id} className="bg-gray-50 border p-4 rounded-xl text-xs flex justify-between items-start gap-4">
-                      <p className="font-medium text-gray-700 whitespace-pre-wrap leading-relaxed flex-1">{post.content}</p>
+                    <div key={post.id} className="bg-gray-50 border p-4 rounded-xl text-xs flex flex-col sm:flex-row justify-between items-start gap-3 relative">
+                      <div className="space-y-1.5 flex-1 min-w-0">
+                        <p className="font-medium text-gray-700 whitespace-pre-wrap leading-relaxed">{post.content}</p>
+                        
+                        {/* ⏰ EXACT TIMESTAMP DISPLAY IN PROFILE LOGS */}
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400 select-none">
+                          🗓️ Posted: {formatExactDateTime(post.created_at)}
+                        </p>
+                      </div>
+                      
                       <button 
+                        type="button"
                         onClick={() => handleDeletePost(post.id)}
-                        className="text-gray-400 hover:text-red-600 transition font-bold text-sm px-1"
+                        className="text-gray-400 hover:text-red-600 transition font-bold text-sm sm:static absolute top-3 right-3"
                         title="Delete thought post"
                       >
                         ✕
@@ -630,8 +745,10 @@ export default function StudioWorkspace() {
                             <div className="text-xs font-black text-gray-900 hover:text-blue-600 cursor-pointer" onClick={() => router.push(`/profile/${itemCreator.id}`)}>
                               {itemCreator.display_name || `@${itemCreator.username}`}
                             </div>
-                            <div className="text-[10px] text-gray-400 font-medium line-clamp-1 truncate max-w-sm">
-                              {itemCreator.headline || 'Verified Platform Creator'}
+                            
+                            {/* ⏰ EXACT TIMESTAMP DISPLAY INSIDE GLOBAL COMMUNAL CARDS */}
+                            <div className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">
+                              {formatExactDateTime(feedItem.created_at)}
                             </div>
                           </div>
                         </div>
@@ -643,6 +760,7 @@ export default function StudioWorkspace() {
                           
                           {isMyAsset && feedItem.itemType === 'post' && (
                             <button 
+                              type="button"
                               onClick={() => handleDeletePost(feedItem.id)}
                               className="text-xs text-gray-400 hover:text-red-600 transition ml-1 font-bold"
                               title="Delete Post"
@@ -668,11 +786,12 @@ export default function StudioWorkspace() {
                             </div>
                             
                             <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end shrink-0">
-                              <audio controls src={feedItem.audio_url} onPlay={registerAudioPlayback} className="w-44 sm:w-48 h-8 accent-blue-600" />
+                              <audio controls src={feedItem.audio_url} onPlay={registerAudioPlayback} className="w-44 sm:w-56 h-8 accent-blue-600" />
                               
                               {isMyAsset && (
                                 <div className="flex gap-1 shrink-0">
                                   <button 
+                                    type="button"
                                     onClick={() => {
                                       setViewMode('personal');
                                       setEditingTrack(feedItem);
@@ -685,11 +804,12 @@ export default function StudioWorkspace() {
                                     ✏️
                                   </button>
                                   <button 
+                                    type="button"
                                     onClick={() => handleDeleteTrack(feedItem.id, feedItem.audio_url)}
                                     className="p-1.5 bg-white text-red-500 hover:text-red-700 rounded border hover:border-red-200 transition text-[11px]"
                                     title="Delete audio drop"
                                   >
-                                    🗑️
+                                    🗑 ...
                                   </button>
                                 </div>
                               )}
