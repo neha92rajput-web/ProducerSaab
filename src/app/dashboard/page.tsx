@@ -12,11 +12,14 @@ export default function Dashboard() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  // Core Application Data States
+  // Core Data States
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>({ display_name: 'Studio Workspace', account_type: 'Music Producer', username: 'username', bio: '' });
   const [mySounds, setMySounds] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  
+  // 1. Add states snippet
+  const [posts, setPosts] = useState<any[]>([]);
+  const [postContent, setPostContent] = useState<string>('');
 
   // Audio Upload Form Input States
   const [trackTitle, setTrackTitle] = useState<string>('');
@@ -24,6 +27,7 @@ export default function Dashboard() {
   const [trackGenre, setTrackGenre] = useState<string>('Guitar Loop / Sample');
   const [publishing, setPublishing] = useState<boolean>(false);
   const [editingProfile, setEditingProfile] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     async function loadDashboardData() {
@@ -58,6 +62,16 @@ export default function Dashboard() {
         .order('created_at', { ascending: false });
       if (recordedSounds) setMySounds(recordedSounds);
 
+      // 2. Load posts snippet
+      const { data: feedPosts } = await database
+        .from('posts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (feedPosts) {
+        setPosts(feedPosts);
+      }
+
       setLoading(false);
     }
     loadDashboardData();
@@ -86,6 +100,26 @@ export default function Dashboard() {
       setAudioUrl('');
     }
     setPublishing(false);
+  };
+
+  // 3. Add create post function snippet
+  const handleCreatePost = async () => {
+    if (!postContent.trim()) return;
+
+    const { data, error } = await database
+      .from('posts')
+      .insert([
+        {
+          profile_id: user.id,
+          content: postContent
+        }
+      ])
+      .select();
+
+    if (!error && data) {
+      setPosts([data[0], ...posts]);
+      setPostContent('');
+    }
   };
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -121,7 +155,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#FBF9F6] text-[#111111] font-sans antialiased pb-20">
       
-      {/* MINIMALIST HEADER */}
+      {/* BRAND HEADER */}
       <header className="max-w-6xl mx-auto px-6 pt-6 flex items-center justify-between">
         <h1 className="text-xs font-black tracking-[0.25em] uppercase cursor-pointer" onClick={() => router.push('/')}>
           <span className="text-[#C4A482] mr-1">川</span>Producer Saab
@@ -131,23 +165,19 @@ export default function Dashboard() {
         </button>
       </header>
 
-      {/* CORE WORKSPACE HUB GRID */}
+      {/* CORE CONTROL ROW DASHBOARD */}
       <div className="max-w-6xl mx-auto px-4 mt-8 flex flex-col md:flex-row gap-6 items-start">
         
-        {/* LEFT COLUMN COMPARTMENT: PRIMARY PROFILES & TRACK LISTS */}
+        {/* LEFT COLUMN PANEL: PROFILE PROFILE & TIMELINE DROPS */}
         <div className="flex-1 w-full space-y-6">
           
           {/* USER BIO IDENTITY DISPLAY CARD */}
           <div className="bg-white rounded-[28px] border border-[#EFECE6] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
-            {/* Soft Warm Gold Banner Gradient */}
             <div className="h-32 bg-gradient-to-b from-[#DECBB7] to-[#EFECE6]" />
-            
             <div className="px-8 pb-8 relative">
-              {/* Floating Headset Avatar Icon */}
               <div className="w-[84px] h-[84px] bg-[#111111] rounded-full flex items-center justify-center text-white text-3xl shadow-md border-4 border-white absolute -top-12 left-8">
                 🎧
               </div>
-              
               <div className="pt-16 space-y-4">
                 <div>
                   <h2 className="text-2xl font-black tracking-tight text-gray-900">{profile.display_name}</h2>
@@ -155,7 +185,6 @@ export default function Dashboard() {
                     {profile.account_type} • Verified Creator
                   </p>
                 </div>
-                
                 <p className="text-sm text-gray-500 leading-relaxed max-w-xl font-medium">
                   {profile.bio || "Welcome to my verified audio drops portfolio space. Stream my latest sound stems, melody lines, and instrument layers below."}
                 </p>
@@ -163,14 +192,49 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* DYNAMIC TRACK DISPLAY DECK CONTAINER */}
+          {/* 4. Add a feed card above your tracks section snippet */}
+          <div className="bg-white rounded-[28px] border border-[#EFECE6] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
+            <h3 className="text-lg font-black mb-4">Studio Feed</h3>
+
+            <textarea
+              value={postContent}
+              onChange={(e) => setPostContent(e.target.value)}
+              placeholder="Share a beat, sample pack, collaboration request..."
+              className="w-full min-h-[100px] border border-[#EFECE6] rounded-2xl p-4 text-sm resize-none focus:outline-none"
+            />
+
+            <button
+              onClick={handleCreatePost}
+              className="mt-3 px-5 py-3 bg-gray-900 text-white rounded-xl text-xs font-bold uppercase tracking-wider"
+            >
+              Publish Update
+            </button>
+
+            <div className="mt-6 space-y-4">
+              {posts.map((post) => (
+                <div
+                  key={post.id}
+                  className="bg-[#FAF8F4] border border-[#EFECE6] rounded-2xl p-4"
+                >
+                  <div className="text-xs font-bold text-[#C4A482] uppercase mb-2">
+                    Studio Update
+                  </div>
+
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                    {post.content}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* AUDIO TRACK DISPLAY DECK */}
           <div className="bg-white rounded-[28px] border border-[#EFECE6] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
             <div className="mb-6">
               <h3 className="text-lg font-black tracking-tight">Featured Tracks & Audio Drops</h3>
               <p className="text-xs text-gray-400 font-semibold mt-0.5">Listen to custom sound architectures directly inside the browser player.</p>
             </div>
 
-            {/* TRACK CARD WRAPPERS ARRAY */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {mySounds.length > 0 ? (
                 mySounds.map((track) => (
@@ -187,7 +251,7 @@ export default function Dashboard() {
                   </div>
                 ))
               ) : (
-                /* Static Default Fallback Example Matching Image Aesthetics precisely */
+                /* Static Default Matching Layout Placeholder Aesthetics Precisely */
                 <div className="bg-[#FAF8F4] border border-[#EFECE6] rounded-2xl p-5 flex flex-col justify-between gap-4">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm text-sm">💿</div>
@@ -206,10 +270,10 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN SIDEBAR PANEL: LIVE UTILITY MANAGEMENT */}
+        {/* RIGHT COLUMN SIDEBAR: AUDIO PUBLISHING MANAGEMENT TOOLS */}
         <aside className="w-full md:w-72 space-y-6 shrink-0">
           
-          {/* TRACK SUBMISSION COMPONENT */}
+          {/* TRACK DROPS MANAGER TOOL */}
           <div className="bg-white rounded-[24px] border border-[#EFECE6] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
             <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-4">Add Audio Drop</h3>
             <form onSubmit={handlePublishTrack} className="space-y-4">
@@ -245,7 +309,7 @@ export default function Dashboard() {
             </form>
           </div>
 
-          {/* DYNAMIC STUDIO ACCOUNT CREDENTIAL EDITOR PANEL */}
+          {/* STUDIO METRIC CREDENTIAL DETAILS FOR PANELS */}
           <div className="bg-white rounded-[24px] border border-[#EFECE6] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
             <h3 className="text-xs font-bold text-[#C4A482] uppercase tracking-widest mb-4">Studio Credentials</h3>
             
