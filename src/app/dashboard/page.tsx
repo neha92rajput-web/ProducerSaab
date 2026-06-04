@@ -1,280 +1,313 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { createBrowserClient } from '@supabase/ssr';
 
 export default function Dashboard() {
-  const supabase = createClientComponentClient();
   const router = useRouter();
+  
+  // Initialize Database Link Client
+  const database = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
-  // Authentication & Profile States
+  // Structural Application States
   const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>({
-    username: "",
-    display_name: "",
-    bio: "",
-    account_type: "Producer",
-  });
+  const [profile, setProfile] = useState<any>({ display_name: 'Your Studio', account_type: 'Music Producer', bio: '' });
   const [mySounds, setMySounds] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [updatingProfile, setUpdatingProfile] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  // Audio Upload Form States
-  const [trackTitle, setTrackTitle] = useState("");
-  const [trackGenre, setTrackGenre] = useState("Loop");
-  const [audioUrl, setAudioUrl] = useState("");
-  const [uploadingTrack, setUploadingTrack] = useState(false);
-  const [message, setMessage] = useState("");
+  // Interactive Form States
+  const [trackTitle, setTrackTitle] = useState<string>('');
+  const [audioUrl, setAudioUrl] = useState<string>('');
+  const [trackGenre, setTrackGenre] = useState<string>('#LoFi');
+  const [publishing, setPublishing] = useState<boolean>(false);
+  const [editingProfile, setEditingProfile] = useState<boolean>(false);
 
   useEffect(() => {
     async function loadDashboardData() {
-      // 1. Check if user is logged in securely
-      const { data: { user } } = await supabase.auth.getUser();
+      // 1. Verify User Authentication Session
+      const { data: { user } } = await database.auth.getUser();
       if (!user) {
-        router.push("/signin");
+        router.push('/signin');
         return;
       }
       setUser(user);
 
-      // 2. Fetch or create LinkedIn-style profile metadata
-      let { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
+      // 2. Fetch or Sync Profile Matrix Data
+      let { data: profileRecord } = await database
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
         .maybeSingle();
 
-      if (!profileData) {
-        // Create an initial fallback profile if none exists yet
-        const defaultUsername = user.email?.split("@")[0] || "producer";
-        const { data: newProfile } = await supabase
-          .from("profiles")
-          .insert([{ id: user.id, username: defaultUsername, display_name: defaultUsername, account_type: "Producer" }])
+      if (!profileRecord) {
+        const fallBackHandle = user.email?.split('@')[0] || 'producer';
+        const { data: generatedRecord } = await database
+          .from('profiles')
+          .insert([{ id: user.id, username: fallBackHandle, display_name: 'Your Studio', account_type: 'Music Producer' }])
           .select()
           .single();
-        if (newProfile) profileData = newProfile;
+        if (generatedRecord) profileRecord = generatedRecord;
       }
-      if (profileData) setProfile(profileData);
+      if (profileRecord) setProfile(profileRecord);
 
-      // 3. Fetch user's uploaded tracks
-      const { data: soundRecords } = await supabase
-        .from("sounds")
-        .select("*")
-        .eq("profile_id", user.id)
-        .order("created_at", { ascending: false });
-      if (soundRecords) setMySounds(soundRecords);
+      // 3. Populate Active User Track Feeds
+      const { data: recordedSounds } = await database
+        .from('sounds')
+        .select('*')
+        .eq('profile_id', user.id)
+        .order('created_at', { ascending: false });
+      if (recordedSounds) setMySounds(recordedSounds);
 
       setLoading(false);
     }
     loadDashboardData();
-  }, [supabase, router]);
+  }, [database, router]);
 
-  // Handle Profile Update Changes
-  const saveProfileChanges = async (e: React.FormEvent) => {
+  // Handler: Register New Tracks Into Supabase Data Arrays
+  const handlePublishTrack = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUpdatingProfile(true);
-    setMessage("");
+    if (!trackTitle.trim() || !audioUrl.trim()) return;
+    setPublishing(true);
 
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        display_name: profile.display_name,
-        username: profile.username.trim().toLowerCase().replace(/\s+/g, ""),
-        bio: profile.bio,
-        account_type: profile.account_type,
-      })
-      .eq("id", user.id);
-
-    if (error) {
-      setMessage(`❌ Profile Save Error: ${error.message}`);
-    } else {
-      setMessage("✨ Profile workstation metrics saved successfully!");
-    }
-    setUpdatingProfile(false);
-  };
-
-  // Handle Audio Upload Registration
-  const handlePublishAudio = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!audioUrl.trim()) return;
-    setUploadingTrack(true);
-    setMessage("");
-
-    const { data: newTrack, error } = await supabase
-      .from("sounds")
+    const { data: soundEntry, error } = await database
+      .from('sounds')
       .insert([
         {
           title: trackTitle,
           genre: trackGenre,
           audio_url: audioUrl.trim(),
-          profile_id: user.id,
-        },
+          profile_id: user.id
+        }
       ])
       .select();
 
-    if (error) {
-      setMessage(`❌ Audio Save Error: ${error.message}`);
+    if (!error && soundEntry) {
+      setMySounds([soundEntry[0], ...mySounds]);
+      setTrackTitle('');
+      setAudioUrl('');
     } else {
-      setMessage("🚀 New sound track compiled and sent to public feeds!");
-      setTrackTitle("");
-      setAudioUrl("");
-      if (newTrack) setMySounds([newTrack[0], ...mySounds]);
+      console.error('Audio asset save rejection:', error);
     }
-    setUploadingTrack(false);
+    setPublishing(false);
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
+  // Handler: Commit Updated Studio Settings
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { error } = await database
+      .from('profiles')
+      .update({
+        display_name: profile.display_name,
+        account_type: profile.account_type,
+        bio: profile.bio
+      })
+      .eq('id', user.id);
+
+    if (!error) {
+      setEditingProfile(false);
+    }
+  };
+
+  const handleLogOut = async () => {
+    await database.auth.signOut();
     router.refresh();
-    router.push("/");
+    router.push('/');
   };
 
   if (loading) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", fontFamily: "sans-serif", backgroundColor: "#F6F1EA" }}>
-        <h3 style={{ color: "#5A5550" }}>Loading Control Room Dashboard...</h3>
+      <div className="min-h-screen bg-[#F6F0E8] flex items-center justify-center font-sans">
+        <div className="text-sm font-semibold text-gray-500 tracking-wider">Syncing Studio Control Panel...</div>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#F6F1EA", color: "#1C1B1A", fontFamily: "sans-serif", paddingBottom: "60px" }}>
-      {/* HEADER NAVBAR */}
-      <header style={{ backgroundColor: "#ffffff", borderBottom: "1px solid #E7DED3", padding: "16px 32px", sticky: "top" }}>
-        <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <Link href="/" style={{ textDecoration: "none", color: "#1C1B1A", fontWeight: "900", letterSpacing: "2px", fontSize: "14px", uppercase: "true" }}>
-            <span style={{ color: "#C89B6D", marginRight: "6px" }}>川</span>PRODUCER SAAB STUDIO
-          </Link>
-          <button onClick={handleSignOut} style={{ padding: "8px 18px", backgroundColor: "#111111", color: "white", border: "none", borderRadius: "20px", fontWeight: "bold", cursor: "pointer", fontSize: "12px" }}>
-            Leave Dashboard
-          </button>
-        </div>
+    <div className="min-h-screen bg-[#F6F0E8] text-[#1C1B1A] font-sans antialiased">
+      
+      {/* HEADER SECTION NAVBAR */}
+      <header className="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-8 sticky top-0 z-50">
+        <h1 className="text-xl font-black tracking-[0.15em] uppercase cursor-pointer" onClick={() => router.push('/')}>
+          <span className="text-[#C89B6D] mr-1">川</span>ProducerSaab
+        </h1>
+        <button 
+          onClick={handleLogOut}
+          className="text-xs font-bold px-4 py-2 bg-gray-100 hover:bg-gray-200 transition rounded-full"
+        >
+          Sign Out
+        </button>
       </header>
 
-      {/* TWO-COLUMN LINKEDIN STYLE LAYOUT */}
-      <div style={{ maxWidth: "1100px", margin: "40px auto", padding: "0 20px", display: "grid", gridTemplateColumns: "1fr", gap: "30px" }} className="md:grid-cols-12">
+      {/* THREE-COLUMN INTERACTIVE CONTENT FEED */}
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 p-6">
         
-        {/* LEFT COLUMN: PROFILE CARD CONTROLS (LinkedIn Style Card) */}
-        <div style={{ gridColumn: "span 4" }}>
-          <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", border: "1px solid #E7DED3", overflow: "hidden", boxShadow: "0 4px 15px rgba(0,0,0,0.02)" }}>
-            <div style={{ height: "70px", backgroundColor: "#C89B6D" }} /> {/* Profile Banner Accent */}
-            
-            <div style={{ padding: "24px", marginTop: "-45px", textAlign: "center" }}>
-              <div style={{ width: "70px", height: "70px", backgroundColor: "#111111", color: "white", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px", fontWeight: "bold", margin: "0 auto 16px auto", border: "3px solid white" }}>
-                {String(profile.display_name || "P").charAt(0).toUpperCase()}
-              </div>
-              
-              <h2 style={{ fontSize: "18px", fontWeight: "800", margin: "0 0 4px 0" }}>{profile.display_name}</h2>
-              <p style={{ color: "#A3855C", fontSize: "12px", fontWeight: "bold", margin: "0 0 16px 0" }}>@{profile.username} • {profile.account_type}</p>
-              <p style={{ color: "#5A5550", fontSize: "13px", lineHeight: "1.5", margin: "0 0 24px 0", backgroundColor: "#FAF8F5", padding: "10px", borderRadius: "8px", border: "1px solid #F0EAE1" }}>
-                {profile.bio || "No custom bio established yet. Tweak your control panel configuration parameters below."}
-              </p>
+        {/* LEFT COLUMN: INTERACTIVE PROFILE DISPLAY PANEL */}
+        <aside className="w-full lg:w-64 shrink-0">
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+            <div className="w-16 h-16 rounded-full bg-orange-200 mb-3 flex items-center justify-center text-xl font-bold text-orange-700 uppercase">
+              {String(profile.display_name || 'P').charAt(0)}
             </div>
-
-            {/* INTERACTIVE WORKSPACE SETTINGS FORM */}
-            <form onSubmit={saveProfileChanges} style={{ borderTop: "1px solid #E7DED3", padding: "24px", display: "flex", flexDirection: "column", gap: "14px" }}>
-              <h3 style={{ fontSize: "13px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 6px 0", color: "#1C1B1A" }}>Edit Profile Space</h3>
-              
-              <div>
-                <label style={{ display: "block", fontSize: "10px", fontWeight: "bold", color: "#5A5550", marginBottom: "4px", textTransform: "uppercase" }}>Display Name</label>
-                <input type="text" value={profile.display_name || ""} onChange={(e) => setProfile({ ...profile, display_name: e.target.value })} style={{ width: "100%", padding: "10px", border: "1px solid #E7DED3", borderRadius: "8px", boxSizing: "border-box", fontSize: "13px" }} required />
-              </div>
-
-              <div>
-                <label style={{ display: "block", fontSize: "10px", fontWeight: "bold", color: "#5A5550", marginBottom: "4px", textTransform: "uppercase" }}>Unique Handle Handle (@)</label>
-                <input type="text" value={profile.username || ""} onChange={(e) => setProfile({ ...profile, username: e.target.value })} style={{ width: "100%", padding: "10px", border: "1px solid #E7DED3", borderRadius: "8px", boxSizing: "border-box", fontSize: "13px" }} required />
-              </div>
-
-              <div>
-                <label style={{ display: "block", fontSize: "10px", fontWeight: "bold", color: "#5A5550", marginBottom: "4px", textTransform: "uppercase" }}>Account Specialty Role</label>
-                <select value={profile.account_type || "Producer"} onChange={(e) => setProfile({ ...profile, account_type: e.target.value })} style={{ width: "100%", padding: "10px", border: "1px solid #E7DED3", borderRadius: "8px", boxSizing: "border-box", fontSize: "13px" }}>
-                  <option value="Producer">Music Producer</option>
-                  <option value="Audio Engineer">Audio Engineer</option>
-                  <option value="Vocalist / Artist">Vocalist / Artist</option>
-                  <option value="Sound Designer">Sound Designer</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ display: "block", fontSize: "10px", fontWeight: "bold", color: "#5A5550", marginBottom: "4px", textTransform: "uppercase" }}>Short Bio Description</label>
-                <textarea rows={3} value={profile.bio || ""} onChange={(e) => setProfile({ ...profile, bio: e.target.value })} placeholder="Tell the community about your equipment array..." style={{ width: "100%", padding: "10px", border: "1px solid #E7DED3", borderRadius: "8px", boxSizing: "border-box", fontSize: "13px", resize: "none" }} />
-              </div>
-
-              <button type="submit" disabled={updatingProfile} style={{ width: "100%", padding: "12px", border: "none", backgroundColor: "#C89B6D", color: "white", borderRadius: "24px", fontWeight: "bold", fontSize: "13px", cursor: "pointer", transition: "background 0.2s" }}>
-                {updatingProfile ? "Updating Panel..." : "Save Profile Edits"}
-              </button>
-            </form>
-          </div>
-        </div>
-
-        {/* RIGHT COLUMN: RELEASES & STUDIO MANAGEMENT FEED */}
-        <div style={{ gridColumn: "span 8" }}>
-          
-          {/* AUDIO TRACK SUBMISSION PANEL */}
-          <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", border: "1px solid #E7DED3", padding: "28px", marginBottom: "30px", boxShadow: "0 4px 15px rgba(0,0,0,0.02)" }}>
-            <h2 style={{ fontSize: "20px", fontWeight: "800", margin: "0 0 6px 0", color: "#1C1B1A" }}>Publish a New Production Sound</h2>
-            <p style={{ color: "#5A5550", fontSize: "13px", margin: "0 0 20px 0" }}>Broadcast loops, patches, or full masters directly to the community streaming array feed network.</p>
             
-            <form onSubmit={handlePublishAudio} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "16px" }}>
-                <div>
-                  <label style={{ display: "block", fontSize: "10px", fontWeight: "bold", color: "#5A5550", marginBottom: "6px", textTransform: "uppercase" }}>Track Name Title</label>
-                  <input type="text" placeholder="e.g., Summer Lo-Fi Melody Loop" value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} style={{ width: "100%", padding: "12px", border: "1px solid #E7DED3", borderRadius: "8px", boxSizing: "border-box", fontSize: "13px" }} required />
-                </div>
-                <div>
-                  <label style={{ display: "block", fontSize: "10px", fontWeight: "bold", color: "#5A5550", marginBottom: "6px", textTransform: "uppercase" }}>Sound Category</label>
-                  <select value={trackGenre} onChange={(e) => setTrackGenre(e.target.value)} style={{ width: "100%", padding: "12px", border: "1px solid #E7DED3", borderRadius: "8px", boxSizing: "border-box", fontSize: "13px" }}>
-                    <option value="Loop">Melody Loop</option>
-                    <option value="Drum Kit">Drum Kit</option>
-                    <option value="Synth Patch">Synth Patch</option>
-                    <option value="Full Beat">Full Beat</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: "block", fontSize: "10px", fontWeight: "bold", color: "#5A5550", marginBottom: "6px", textTransform: "uppercase" }}>Direct Audio Storage Link (URL File Target)</label>
-                <input type="url" placeholder="https://your-hosting-domain.com/sample.mp3" value={audioUrl} onChange={(e) => setAudioUrl(e.target.value)} style={{ width: "100%", padding: "12px", border: "1px solid #E7DED3", borderRadius: "8px", boxSizing: "border-box", fontSize: "13px" }} required />
-              </div>
-
-              <button type="submit" disabled={uploadingTrack} style={{ alignSelf: "flex-end", padding: "12px 30px", border: "none", backgroundColor: "#111111", color: "white", borderRadius: "24px", fontWeight: "bold", fontSize: "13px", cursor: "pointer" }}>
-                {uploadingTrack ? "Deploying Code..." : "Publish Sound File"}
-              </button>
-            </form>
-          </div>
-
-          {/* DYNAMIC LIST OF RELEASES RECORDED */}
-          <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", border: "1px solid #E7DED3", padding: "28px", boxShadow: "0 4px 15px rgba(0,0,0,0.02)" }}>
-            <h3 style={{ fontSize: "16px", fontWeight: "800", margin: "0 0 20px 0" }}>Your Studio Workstation Releases ({mySounds.length})</h3>
-            
-            {mySounds.length > 0 ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                {mySounds.map((track) => (
-                  <div key={track.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid #E7DED3", padding: "16px", borderRadius: "12px", backgroundColor: "#FAF8F5" }}>
-                    <div style={{ flex: 1, marginRight: "20px" }}>
-                      <span style={{ fontSize: "9px", fontWeight: "bold", textTransform: "uppercase", backgroundColor: "#E7DED3", padding: "3px 6px", borderRadius: "4px", color: "#1C1B1A" }}>{track.genre}</span>
-                      <h4 style={{ fontSize: "14px", fontWeight: "bold", margin: "8px 0 0 0" }}>{track.title}</h4>
-                    </div>
-                    <audio controls src={track.audio_url} style={{ height: "32px", width: "240px" }} />
-                  </div>
-                ))}
+            {!editingProfile ? (
+              <div className="space-y-2">
+                <h2 className="font-bold text-base tracking-tight">{profile.display_name}</h2>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{profile.account_type}</p>
+                {profile.bio && <p className="text-xs text-gray-600 border-t pt-2 mt-2 leading-relaxed">{profile.bio}</p>}
+                <button 
+                  onClick={() => setEditingProfile(true)}
+                  className="w-full mt-3 text-center text-[11px] font-bold text-[#C89B6D] hover:underline bg-amber-50/50 py-1.5 rounded-lg"
+                >
+                  Edit Studio Profile
+                </button>
               </div>
             ) : (
-              <p style={{ margin: 0, fontSize: "13px", color: "#5A5550", fontStyle: "italic", textAlign: "center", padding: "40px 0", border: "1px solid #E7DED3", borderRadius: "12px", borderStyle: "dashed" }}>
-                No active tracks initialized yet inside your catalog array pipeline.
-              </p>
+              <form onSubmit={handleProfileUpdate} className="space-y-3 mt-2">
+                <input 
+                  type="text" 
+                  className="w-full text-xs p-2 border rounded-lg" 
+                  value={profile.display_name || ''} 
+                  onChange={(e) => setProfile({ ...profile, display_name: e.target.value })} 
+                  placeholder="Studio Name" 
+                  required 
+                />
+                <input 
+                  type="text" 
+                  className="w-full text-xs p-2 border rounded-lg" 
+                  value={profile.account_type || ''} 
+                  onChange={(e) => setProfile({ ...profile, account_type: e.target.value })} 
+                  placeholder="Role Title" 
+                  required 
+                />
+                <textarea 
+                  className="w-full text-xs p-2 border rounded-lg resize-none" 
+                  rows={2}
+                  value={profile.bio || ''} 
+                  onChange={(e) => setProfile({ ...profile, bio: e.target.value })} 
+                  placeholder="Add your bio info..." 
+                />
+                <div className="flex gap-2">
+                  <button type="submit" className="flex-1 bg-gray-900 text-white text-[10px] font-bold py-1.5 rounded-md">Save</button>
+                  <button type="button" onClick={() => setEditingProfile(false)} className="flex-1 bg-gray-100 text-[10px] font-bold py-1.5 rounded-md">Cancel</button>
+                </div>
+              </form>
             )}
           </div>
-        </div>
-      </div>
+        </aside>
 
-      {/* FEEDBACK POPUP MESSAGE SYSTEM */}
-      {message && (
-        <div style={{ position: "fixed", bottom: "24px", right: "24px", padding: "16px 24px", backgroundColor: "#ffffff", borderRadius: "12px", border: "2px solid #C89B6D", boxShadow: "0 10px 30px rgba(0,0,0,0.08)", fontSize: "13px", fontWeight: "600", zIndex: 100 }}>
-          {message}
-        </div>
-      )}
+        {/* MIDDLE COLUMN: AUDIO PUBLISHING COMPONENT & DYNAMIC BROADCAST FEED */}
+        <main className="flex-1">
+          {/* TRACK SUBMISSION CONTAINER */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-6">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Publish To Network Stream</h3>
+            <form onSubmit={handlePublishTrack} className="space-y-3">
+              <input
+                type="text"
+                className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-[#C89B6D]"
+                placeholder="Name your track title..."
+                value={trackTitle}
+                onChange={(e) => setTrackTitle(e.target.value)}
+                required
+              />
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="url"
+                  className="flex-1 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:border-[#C89B6D]"
+                  placeholder="Direct link to audio file URL (e.g. storage bucket file.mp3)"
+                  value={audioUrl}
+                  onChange={(e) => setAudioUrl(e.target.value)}
+                  required
+                />
+                <select 
+                  className="p-3 border border-gray-200 rounded-xl text-xs bg-white focus:outline-none"
+                  value={trackGenre}
+                  onChange={(e) => setTrackGenre(e.target.value)}
+                >
+                  <option value="#LoFi">#LoFi</option>
+                  <option value="#AfroHouse">#AfroHouse</option>
+                  <option value="#Drill">#Drill</option>
+                  <option value="#Trap">#Trap</option>
+                </select>
+              </div>
+              <button 
+                type="submit" 
+                disabled={publishing}
+                className="w-full sm:w-max px-6 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-xs font-semibold rounded-xl tracking-wide transition self-end disabled:opacity-50"
+              >
+                {publishing ? 'Publishing File...' : 'Share Session Link'}
+              </button>
+            </form>
+          </div>
+
+          {/* STREAM CONTENT ACCELERATOR LOOP */}
+          <div className="space-y-4">
+            {mySounds.length > 0 ? (
+              mySounds.map((track) => (
+                <div key={track.id} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col justify-between gap-4 hover:shadow-md transition">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-bold text-base tracking-tight text-gray-900">{track.title}</h3>
+                      <p className="text-[11px] font-semibold text-gray-400 mt-0.5">Uploaded by @{profile.username}</p>
+                    </div>
+                    <span className="text-[10px] font-bold text-[#C89B6D] bg-amber-50 px-2 py-0.5 rounded uppercase tracking-wider">{track.genre}</span>
+                  </div>
+                  <audio controls src={track.audio_url} className="w-full h-8 mt-1 accent-gray-900" />
+                </div>
+              ))
+            ) : (
+              /* Fallback Placeholders when Catalog is Empty */
+              <>
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-semibold text-gray-900">New Lo-Fi Session</h3>
+                    <span className="text-[10px] font-bold text-[#C89B6D] bg-amber-50 px-2 py-0.5 rounded">#LoFi</span>
+                  </div>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    Looking for a vocalist for this track arrangement.
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-semibold text-gray-900">Studio Breakdown</h3>
+                    <span className="text-[10px] font-bold text-[#C89B6D] bg-amber-50 px-2 py-0.5 rounded">#Mixing</span>
+                  </div>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    Sharing my mixing chain configurations for analog vocals.
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+        </main>
+
+        {/* RIGHT COLUMN: TRENDING INSIGHT MATRIX */}
+        <aside className="w-full lg:w-72 shrink-0">
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+            <h3 className="font-bold text-xs uppercase tracking-widest text-gray-400 mb-4">
+              Trending Studio Metrics
+            </h3>
+            <div className="space-y-3 font-semibold text-sm">
+              <div className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-xl cursor-pointer transition">
+                <span className="text-gray-700">#AfroHouse</span>
+                <span className="text-xs font-normal text-gray-400">🔥 high stream velocity</span>
+              </div>
+              <div className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-xl cursor-pointer transition">
+                <span className="text-gray-700">#Drill</span>
+                <span className="text-xs font-normal text-gray-400">📈 rising query depth</span>
+              </div>
+              <div className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-xl cursor-pointer transition">
+                <span className="text-gray-700">#LoFi</span>
+                <span className="text-xs font-normal text-gray-400">✨ stable distribution</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+      </div>
     </div>
   );
 }
