@@ -86,7 +86,7 @@ export default function StudioWorkspace() {
             key: item.key,
             mood: item.mood,
             created_at: item.created_at,
-            profile_id: item.profile_id,
+            profile_id: item.profile_id, // Explicitly linked for authorization checks
             profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles,
             itemType: 'audio',
             dateValue: new Date(item.created_at).getTime()
@@ -136,8 +136,9 @@ export default function StudioWorkspace() {
     loadStudioData();
   }, [router]);
 
+  // 🗑️ TRACK DELETION HANDLER
   const handleDeleteTrack = async (trackId: string, fileUrl: string) => {
-    if (!window.confirm("Are you sure you want to permanently delete this audio track master?")) return;
+    if (!window.confirm("Are you sure you want to permanently delete this audio track?")) return;
 
     try {
       const { error: dbDeleteError } = await database
@@ -160,9 +161,26 @@ export default function StudioWorkspace() {
 
       setMySounds(prevSounds => prevSounds.filter(track => track.id !== trackId));
       setCommunityFeed(prevFeed => prevFeed.filter(item => item.id !== trackId));
-
     } catch (err: any) {
       alert(`Deletion Failed: ${err.message}`);
+    }
+  };
+
+  // 🗑️ POST DELETION HANDLER
+  const handleDeletePost = async (postId: string) => {
+    if (!window.confirm("Are you sure you want to delete this community post update?")) return;
+
+    try {
+      const { error } = await database
+        .from('posts')
+        .delete()
+        .eq('id', postId);
+
+      if (error) throw error;
+
+      setCommunityFeed(prevFeed => prevFeed.filter(item => item.id !== postId));
+    } catch (err: any) {
+      alert(`Could not complete deletion: ${err.message}`);
     }
   };
 
@@ -468,9 +486,22 @@ export default function StudioWorkspace() {
                           </div>
                         </div>
 
-                        <span className={`text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded border ${feedItem.itemType === 'audio' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
-                          {feedItem.itemType === 'audio' ? '🎵 Audio Drop' : '✍️ Thought'}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded border ${feedItem.itemType === 'audio' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+                            {feedItem.itemType === 'audio' ? '🎵 Audio Drop' : '✍️ Thought'}
+                          </span>
+                          
+                          {/* 🗑️ Inline Deletion Option for text thoughts */}
+                          {isMyAsset && feedItem.itemType === 'post' && (
+                            <button 
+                              onClick={() => handleDeletePost(feedItem.id)}
+                              className="text-xs text-gray-400 hover:text-red-600 transition ml-1"
+                              title="Delete Post"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       <div className="pt-1 text-xs leading-relaxed text-gray-800">
@@ -489,13 +520,15 @@ export default function StudioWorkspace() {
                             
                             <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end shrink-0">
                               <audio controls src={feedItem.audio_url} className="w-44 sm:w-56 h-8 accent-blue-600" />
+                              
+                              {/* 🗑️ Inline Deletion Option for audio catalog drops */}
                               {isMyAsset && (
                                 <button 
                                   onClick={() => handleDeleteTrack(feedItem.id, feedItem.audio_url)}
-                                  className="p-1.5 bg-white hover:bg-red-50 text-red-500 hover:text-red-700 rounded-lg border border-gray-200 hover:border-red-200 transition text-[11px] shadow-sm"
+                                  className="p-1.5 bg-white hover:bg-red-50 text-red-500 hover:text-red-700 rounded-lg border border-gray-200 hover:border-red-200 transition text-[11px] shadow-sm font-bold"
                                   title="Delete audio drop"
                                 >
-                                  🗑️
+                                  🗑️ Delete
                                 </button>
                               )}
                             </div>
