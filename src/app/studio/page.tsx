@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 
-// Tell Next.js to bypass static prerendering and enforce purely dynamic client execution
 export const dynamic = 'force-dynamic';
 
 export default function StudioWorkspace() {
@@ -21,24 +20,19 @@ export default function StudioWorkspace() {
     }
   );
 
-  // Tab view state toggler
   const [viewMode, setViewMode] = useState<'personal' | 'community'>('personal');
 
-  // Profile configuration parameters
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [editForm, setEditForm] = useState<any>({});
   const [editingProfile, setEditingProfile] = useState<boolean>(false);
   
-  // Custom deployment toggles
   const [shareType, setShareType] = useState<'none' | 'post' | 'audio'>('none');
   
-  // Storage Lists repositories
   const [mySounds, setMySounds] = useState<any[]>([]);
   const [communityFeed, setCommunityFeed] = useState<any[]>([]); 
   const [postContent, setPostContent] = useState<string>('');
 
-  // Audio Drop Form Variables
   const [trackTitle, setTrackTitle] = useState<string>('');
   const [trackGenre, setTrackGenre] = useState<string>('Punjabi');
   const [trackBpm, setTrackBpm] = useState<string>('140');
@@ -50,7 +44,6 @@ export default function StudioWorkspace() {
   const [publishingPost, setPublishingPost] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Compiled feed parser for unified stream logging
   async function loadFeedAndProfiles() {
     try {
       const { data: postsData } = await database
@@ -71,7 +64,6 @@ export default function StudioWorkspace() {
 
       const aggregatedFeed: any[] = [];
       
-      // Clean parsing logic ensuring clean primitive string values pass rendering parameters
       if (postsData && Array.isArray(postsData)) {
         postsData.forEach(item => {
           aggregatedFeed.push({
@@ -105,11 +97,10 @@ export default function StudioWorkspace() {
         });
       }
 
-      // Sort chronological entries primitives seamlessly
       aggregatedFeed.sort((a, b) => b.dateValue - a.dateValue);
       setCommunityFeed(aggregatedFeed);
     } catch (error) {
-      console.error("Failed assembling global network streams safely:", error);
+      console.error("Failed assembling streams safely:", error);
     }
   }
 
@@ -147,6 +138,40 @@ export default function StudioWorkspace() {
     }
     loadStudioData();
   }, [router]);
+
+  // 🔥 CORE DELETION HANDLER (Cleans database table entries + wipes actual cloud storage files)
+  const handleDeleteTrack = async (trackId: string, fileUrl: string) => {
+    if (!window.confirm("Are you sure you want to permanently delete this audio track master?")) return;
+
+    try {
+      // 1. Delete matching row from Supabase sounds database table
+      const { error: dbDeleteError } = await database
+        .from('sounds')
+        .delete()
+        .eq('id', trackId);
+
+      if (dbDeleteError) throw dbDeleteError;
+
+      // 2. Safely parse internal storage path from public URL if it points to your storage bucket
+      if (fileUrl && fileUrl.includes('/audio-tracks/')) {
+        const urlSegments = fileUrl.split('/audio-tracks/');
+        const storageFilePath = urlSegments[urlSegments.length - 1];
+        
+        if (storageFilePath) {
+          await database.storage
+            .from('audio-tracks')
+            .remove([decodeURIComponent(storageFilePath)]);
+        }
+      }
+
+      // 3. Update active UI states instantly across elements without hard-reloads
+      setMySounds(mySounds.filter(track => track.id !== trackId));
+      setCommunityFeed(communityFeed.filter(item => item.id !== trackId));
+
+    } catch (err: any) {
+      alert(`Deletion Failed: ${err.message}`);
+    }
+  };
 
   const handleCreatePost = async () => {
     if (!postContent.trim()) return;
@@ -195,7 +220,7 @@ export default function StudioWorkspace() {
       await loadFeedAndProfiles();
     } catch (err: any) {
       alert(`Upload Failed: ${err.message}`);
-    } finally {
+    } bits: {
       setPublishing(false);
     }
   };
@@ -227,7 +252,7 @@ export default function StudioWorkspace() {
   return (
     <div className="min-h-screen bg-[#F3F2EF] text-[#191919] pb-12 font-sans antialiased">
       
-      {/* HEADER NAVIGATION BAR */}
+      {/* HEADER NAVIGATION */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-2">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
           
@@ -235,33 +260,20 @@ export default function StudioWorkspace() {
             <button onClick={() => router.push('/')} className="text-gray-400 hover:text-black font-black text-sm pr-1">
               ←
             </button>
-            <input 
-              type="text" 
-              placeholder="Search..." 
-              className="w-full bg-[#EDF3F8] text-xs py-1.5 px-3 rounded focus:outline-none placeholder-gray-500" 
-              disabled 
-            />
+            <input type="text" placeholder="Search..." className="w-full bg-[#EDF3F8] text-xs py-1.5 px-3 rounded focus:outline-none placeholder-gray-500" disabled />
           </div>
           
           <div className="flex items-center gap-2">
             <button 
               onClick={() => { setViewMode('personal'); setEditingProfile(false); }} 
-              className={`text-xs font-bold px-4 py-1.5 rounded-full transition-all border ${
-                viewMode === 'personal' 
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm' 
-                  : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-150'
-              }`}
+              className={`text-xs font-bold px-4 py-1.5 rounded-full transition-all border ${viewMode === 'personal' ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-150'}`}
             >
               My Profile 👤
             </button>
             
             <button 
               onClick={() => { setViewMode('community'); setEditingProfile(false); }} 
-              className={`text-xs font-bold px-4 py-1.5 rounded-full transition-all border ${
-                viewMode === 'community' 
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm' 
-                  : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-150'
-              }`}
+              className={`text-xs font-bold px-4 py-1.5 rounded-full transition-all border ${viewMode === 'community' ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-150'}`}
             >
               Producer Community 👥
             </button>
@@ -273,7 +285,6 @@ export default function StudioWorkspace() {
               Disconnect
             </button>
           </div>
-
         </div>
       </header>
 
@@ -283,52 +294,31 @@ export default function StudioWorkspace() {
         {viewMode === 'personal' && (
           <>
             <div className="bg-white border border-gray-200 rounded-lg overflow-hidden relative shadow-sm">
-              <div 
-                className="h-40 sm:h-48 bg-[#A0B2C6] bg-cover bg-center flex items-start justify-end p-4" 
-                style={profile.cover_url ? { backgroundImage: `url('${profile.cover_url}')` } : {}}
-              >
-                <button 
-                  onClick={() => setEditingProfile(true)} 
-                  className="bg-white hover:bg-gray-50 text-xs font-bold px-4 py-1.5 rounded-full shadow border transition text-gray-700"
-                >
-                  ✏️ Edit Profile
-                </button>
+              <div className="h-40 sm:h-48 bg-[#A0B2C6] bg-cover bg-center flex items-start justify-end p-4" style={profile.cover_url ? { backgroundImage: `url('${profile.cover_url}')` } : {}}>
+                <button onClick={() => setEditingProfile(true)} className="bg-white hover:bg-gray-50 text-xs font-bold px-4 py-1.5 rounded-full shadow border transition text-gray-700">✏️ Edit Profile</button>
               </div>
               
               <div className="px-6 pb-6 relative">
                 <div className="w-28 h-28 bg-gray-900 border-4 border-white rounded-full absolute -top-14 left-6 overflow-hidden flex items-center justify-center text-white font-bold text-4xl shadow-sm">
-                  {profile.avatar_url ? (
-                    <img src={profile.avatar_url} className="w-full h-full object-cover" alt="Profile Avatar" />
-                  ) : (
-                    <span>{userInitial}</span>
-                  )}
+                  {profile.avatar_url ? <img src={profile.avatar_url} className="w-full h-full object-cover" alt="Profile Avatar" /> : <span>{userInitial}</span>}
                 </div>
                 
                 <div className="pt-16 space-y-1">
                   <div className="flex items-center gap-1.5">
-                    <h2 className="text-xl font-bold text-gray-900 tracking-tight">
-                      {profile.display_name || profile.username}
-                    </h2>
-                    {profile.pronouns && (
-                      <span className="text-xs text-gray-400 font-medium font-sans">({profile.pronouns})</span>
-                    )}
+                    <h2 className="text-xl font-bold text-gray-900 tracking-tight">{profile.display_name || profile.username}</h2>
+                    {profile.pronouns && <span className="text-xs text-gray-400 font-medium font-sans">({profile.pronouns})</span>}
                   </div>
                   <p className="text-sm text-gray-800 font-normal">{profile.headline || 'Music Producer | Mixer'}</p>
                   <p className="text-xs text-gray-500 font-medium">{profile.company || 'Independent Studio'} • <span className="text-gray-400">{profile.location || 'Chandigarh, India'}</span></p>
                 </div>
 
                 <div className="pt-4">
-                  <button 
-                    onClick={() => setEditingProfile(true)} 
-                    className="px-5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-full transition shadow-sm"
-                  >
-                    Enhance profile
-                  </button>
+                  <button onClick={() => setEditingProfile(true)} className="px-5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-full transition shadow-sm">Enhance profile</button>
                 </div>
               </div>
             </div>
 
-            {/* INTERACTIVE MANIFEST PROFILE MANAGER FORM */}
+            {/* EDIT PROFILE DIALOG DRAWER */}
             {editingProfile && (
               <form onSubmit={handleProfileSave} className="bg-white border border-blue-200 rounded-lg p-5 space-y-3 shadow-sm">
                 <h3 className="text-xs font-black uppercase tracking-wider border-b pb-2 text-blue-600">Update Profile Fields</h3>
@@ -360,7 +350,7 @@ export default function StudioWorkspace() {
               </form>
             )}
 
-            {/* EXPANDABLE UPLOADER INPUT FIELD MODULES */}
+            {/* EXPANDABLE UPLOADER FIELD DRAWER */}
             <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm space-y-3">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Publish Asset:</span>
@@ -429,18 +419,28 @@ export default function StudioWorkspace() {
               )}
             </div>
 
-            {/* STUDIO PROFILE CATALOG REPOSITORY */}
+            {/* PERSONAL REPOSITORY DISPLAY BLOCK WITH RED COAX DELETE ACTIONS */}
             <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm space-y-3">
               <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">📊 Personal Audio Catalog</h3>
               <div className="space-y-2">
                 {mySounds.length > 0 ? (
                   mySounds.map((track) => (
-                    <div key={track.id} className="bg-gray-50 p-3 rounded-xl border flex justify-between items-center text-xs shadow-inner">
-                      <div>
-                        <span className="font-bold text-gray-900">{track.title}</span>
-                        <span className="text-[10px] text-gray-400 uppercase font-semibold ml-2">({track.genre} • {track.bpm} BPM)</span>
+                    <div key={track.id} className="bg-gray-50 p-3 rounded-xl border flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center text-xs shadow-inner">
+                      <div className="min-w-0 flex-1">
+                        <span className="font-bold text-gray-900 truncate block sm:inline">{track.title}</span>
+                        <span className="text-[10px] text-gray-400 uppercase font-semibold sm:ml-2">({track.genre} • {track.bpm} BPM)</span>
                       </div>
-                      <audio controls src={track.audio_url} className="h-7 w-48 accent-blue-600" />
+                      
+                      <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end shrink-0">
+                        <audio controls src={track.audio_url} className="h-7 w-44 sm:w-48 accent-blue-600" />
+                        <button 
+                          onClick={() => handleDeleteTrack(track.id, track.audio_url)}
+                          className="px-2 py-1 text-[10px] font-bold bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 rounded border border-red-200 transition"
+                          title="Permanently remove track"
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
                     </div>
                   ))
                 ) : (
@@ -452,7 +452,7 @@ export default function StudioWorkspace() {
         )}
 
         {/* =================================================================== */}
-        {/* VIEW 2: PRODUCER COMMUNITY TIMELINE FEED */}
+        {/* VIEW 2: PRODUCER COMMUNITY TIMELINE FEED (WITH CONDITIONAL DELETE BUTTONS) */}
         {viewMode === 'community' && (
           <div className="space-y-4">
             <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
@@ -465,6 +465,9 @@ export default function StudioWorkspace() {
                 {communityFeed.map((feedItem, index) => {
                   const itemCreator = feedItem.profiles || {};
                   const creatorInitials = String(itemCreator.display_name || itemCreator.username || 'P').charAt(0).toUpperCase();
+                  
+                  // Verification checker confirming if the logged-in user uploaded this asset node
+                  const isMyAsset = user && feedItem.profile_id === user.id;
 
                   return (
                     <div key={`${feedItem.id}-${index}`} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4 hover:border-gray-300 transition duration-200">
@@ -488,11 +491,14 @@ export default function StudioWorkspace() {
                           </div>
                         </div>
 
-                        <span className={`text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded border ${
-                          feedItem.itemType === 'audio' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-blue-50 text-blue-700 border-blue-200'
-                        }`}>
-                          {feedItem.itemType === 'audio' ? '🎵 Audio Drop' : '✍️ Thought'}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          {/* Render contextual timeline badging indicators */}
+                          <span className={`text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded border ${
+                            feedItem.itemType === 'audio' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-blue-50 text-blue-700 border-blue-200'
+                          }`}>
+                            {feedItem.itemType === 'audio' ? '🎵 Audio Drop' : '✍️ Thought'}
+                          </span>
+                        </div>
                       </div>
 
                       <div className="pt-1 text-xs leading-relaxed text-gray-800">
@@ -500,15 +506,29 @@ export default function StudioWorkspace() {
                           <p className="whitespace-pre-wrap font-medium text-gray-700">{feedItem.content}</p>
                         ) : (
                           <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-inner">
-                            <div className="space-y-1">
-                              <h4 className="font-bold text-gray-900 text-sm">💿 {feedItem.title}</h4>
+                            <div className="space-y-1 flex-1 min-w-0">
+                              <h4 className="font-bold text-gray-900 text-sm truncate">💿 {feedItem.title}</h4>
                               <div className="flex flex-wrap gap-1.5 pt-1">
                                 <span className="bg-white px-2 py-0.5 rounded text-[8px] font-bold border border-gray-200 text-blue-600">{feedItem.genre}</span>
                                 {feedItem.bpm && <span className="bg-white px-2 py-0.5 rounded text-[8px] font-bold border border-gray-200 text-gray-500">{feedItem.bpm} BPM</span>}
                                 {feedItem.key && <span className="bg-white px-1.5 py-0.5 rounded text-[8px] font-medium border border-gray-200 text-gray-400">{feedItem.key} • {feedItem.mood}</span>}
                               </div>
                             </div>
-                            <audio controls src={feedItem.audio_url} className="w-full sm:w-56 h-8 accent-blue-600 shrink-0" />
+                            
+                            <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end shrink-0">
+                              <audio controls src={feedItem.audio_url} className="w-44 sm:w-56 h-8 accent-blue-600" />
+                              
+                              {/* Conditional delete option button inside global stream row cards */}
+                              {isMyAsset && (
+                                <button 
+                                  onClick={() => handleDeleteTrack(feedItem.id, feedItem.audio_url)}
+                                  className="p-1.5 bg-white hover:bg-red-50 text-red-500 hover:text-red-700 rounded border border-gray-200 hover:border-red-200 transition text-[11px]"
+                                  title="Delete audio drop"
+                                >
+                                  🗑️
+                                </button>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
