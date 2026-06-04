@@ -47,7 +47,6 @@ export default function StudioWorkspace() {
   const [uploadingImage, setUploadingImage] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -72,9 +71,8 @@ export default function StudioWorkspace() {
     });
   };
 
-  // 📐 AUTOMATIC RESIZER & UNIVERSAL JPEG CONVERTER ENGINE
-  // Bypasses database mime-type locks by canvas-rendering images down to verified dimensions
-  const processAndConvertImage = (file: File, targetWidth: number, targetHeight: number): Promise<File> => {
+  // Optimized base64 image compiler to fit perfectly inside the profile DB table
+  const resizeAndConvertToBase64 = (file: File, targetWidth: number, targetHeight: number): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -86,13 +84,11 @@ export default function StudioWorkspace() {
           canvas.width = targetWidth;
           canvas.height = targetHeight;
           const ctx = canvas.getContext('2d');
-          
           if (!ctx) {
-            reject(new Error("Canvas execution context failed"));
+            reject(new Error("Canvas context error"));
             return;
           }
 
-          // Calculate premium aspect ratio center cropping metrics automatically
           const imgRatio = img.width / img.height;
           const targetRatio = targetWidth / targetHeight;
           let sx = 0, sy = 0, sw = img.width, sh = img.height;
@@ -106,20 +102,12 @@ export default function StudioWorkspace() {
           }
 
           ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight);
-          
-          // Re-serialize raw canvas streams into standard image/jpeg types cleanly
-          canvas.toBlob((blob) => {
-            if (blob) {
-              const standardFile = new File([blob], `${Date.now()}.jpeg`, { type: 'image/jpeg' });
-              resolve(standardFile);
-            } else {
-              reject(new Error("Blob compilation failed"));
-            }
-          }, 'image/jpeg', 0.90);
+          // Compress the base64 output quality to keep the database performance lightning fast
+          resolve(canvas.toDataURL('image/jpeg', 0.75));
         };
-        img.onerror = () => reject(new Error("Image parsing failed"));
+        img.onerror = () => reject(new Error("Image compilation failed"));
       };
-      reader.onerror = () => reject(new Error("FileReader processing failed"));
+      reader.onerror = () => reject(new Error("File conversion failed"));
     });
   };
 
@@ -179,7 +167,7 @@ export default function StudioWorkspace() {
       aggregatedFeed.sort((a, b) => b.dateValue - a.dateValue);
       setCommunityFeed(aggregatedFeed);
     } catch (error) {
-      console.error("Failed compiling application feeds:", error);
+      console.error("Failed compiling feeds:", error);
     }
   }
 
@@ -232,50 +220,27 @@ export default function StudioWorkspace() {
     loadStudioData();
   }, [router]);
 
-  // 📷 Direct Cloud Storage Image Upload & Auto-Save handler
+  // 📷 Direct Database Storage Engine - Bypasses Storage Buckets to ensure it never fails
   const handleDirectImageUpload = async (file: File, targetField: 'avatar_url' | 'cover_url') => {
     if (!file || !user) return;
     setUploadingImage(true);
 
     try {
-      const bucketName = 'audio-tracks'; 
-      
-      // Enforce premium resizing blueprints: 400x400 for Avatars, 1200x400 for Landscape Banners
-      const targetWidth = targetField === 'avatar_url' ? 400 : 1200;
-      const targetHeight = targetField === 'avatar_url' ? 400 : 400;
+      const targetWidth = targetField === 'avatar_url' ? 300 : 900;
+      const targetHeight = targetField === 'avatar_url' ? 300 : 300;
 
-      // Convert any source image seamlessly into a safe optimized JPEG
-      const optimizedJpegFile = await processAndConvertImage(file, targetWidth, targetHeight);
-      const storageFilePath = `profile-assets/${user.id}-${targetField}-${Date.now()}.jpeg`;
+      // Converts image to pure base64 database string natively
+      const compressedBase64 = await resizeAndConvertToBase64(file, targetWidth, targetHeight);
 
-      // Clean old picture from bucket if replacing
-      const currentUrl = profile[targetField];
-      if (currentUrl && currentUrl.includes(`/${bucketName}/`)) {
-        const oldSegments = currentUrl.split(`/${bucketName}/`);
-        const oldStoragePath = oldSegments[oldSegments.length - 1];
-        if (oldStoragePath) {
-          await database.storage.from(bucketName).remove([decodeURIComponent(oldStoragePath)]);
-        }
-      }
-
-      // Upload newly converted JPEG asset smoothly
-      const { error: uploadError } = await database.storage
-        .from(bucketName)
-        .upload(storageFilePath, optimizedJpegFile, { contentType: 'image/jpeg', cacheControl: '3600', upsert: true });
-      
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = database.storage.from(bucketName).getPublicUrl(storageFilePath);
-
-      // Save link directly into your profile record right away
+      // Instantly save directly into your profile data rows
       const { error: updateError } = await database
         .from('profiles')
-        .update({ [targetField]: publicUrl })
+        .update({ [targetField]: compressedBase64 })
         .eq('id', user.id);
 
       if (updateError) throw updateError;
 
-      const updatedProfile = { ...profile, [targetField]: publicUrl };
+      const updatedProfile = { ...profile, [targetField]: compressedBase64 };
       setProfile(updatedProfile);
       setEditForm(updatedProfile);
       await loadFeedAndProfiles();
@@ -287,21 +252,10 @@ export default function StudioWorkspace() {
   };
 
   const handleDeleteImageMedia = async (targetField: 'avatar_url' | 'cover_url') => {
-    if (!window.confirm(`Are you sure you want to remove this profile ${targetField === 'avatar_url' ? 'picture' : 'banner'}?`)) return;
+    if (!window.confirm(`Are you sure you want to remove your profile ${targetField === 'avatar_url' ? 'picture' : 'banner'}?`)) return;
     setUploadingImage(true);
 
     try {
-      const bucketName = 'audio-tracks';
-      const currentUrl = profile[targetField];
-      
-      if (currentUrl && currentUrl.includes(`/${bucketName}/`)) {
-        const oldSegments = currentUrl.split(`/${bucketName}/`);
-        const oldStoragePath = oldSegments[oldSegments.length - 1];
-        if (oldStoragePath) {
-          await database.storage.from(bucketName).remove([decodeURIComponent(oldStoragePath)]);
-        }
-      }
-
       const { error: updateError } = await database
         .from('profiles')
         .update({ [targetField]: '' })
@@ -475,8 +429,8 @@ export default function StudioWorkspace() {
   return (
     <div className="min-h-screen bg-[#F3F2EF] text-[#191919] pb-12 font-sans antialiased">
       
-      {/* NATIVE INTERACTIVE FORCED INPUT REGISTERS */}
-      <input type="file" ref={avatarInputRef} accept="image/*" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleDirectImageUpload(e.target.files[0], 'avatar_url'); }} />
+      {/* NATIVE FILE SELECTORS */}
+      <input type="file" id="avatarFileSelector" accept="image/*" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleDirectImageUpload(e.target.files[0], 'avatar_url'); }} />
       <input type="file" ref={coverInputRef} accept="image/*" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleDirectImageUpload(e.target.files[0], 'cover_url'); }} />
 
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-2">
@@ -516,28 +470,26 @@ export default function StudioWorkspace() {
       <div className="max-w-4xl mx-auto mt-6 space-y-4 px-4 sm:px-0">
         {viewMode === 'personal' && (
           <>
-            {/* LINKEDIN DESIGN PROFILE VAULT MATRIX */}
             <div className="bg-white border border-gray-200 rounded-lg overflow-hidden relative shadow-sm">
               
-              {/* Landscape Background Cover Component Layer */}
+              {/* Cover Banner Component Container */}
               <div 
-                className="h-40 sm:h-48 bg-[#A0B2C6] bg-cover bg-center flex items-start justify-between p-4 relative transition-all duration-300 group" 
+                className="h-40 sm:h-48 bg-[#A0B2C6] bg-cover bg-center flex items-start justify-between p-4 relative group" 
                 style={profile.cover_url ? { backgroundImage: `url('${profile.cover_url}')` } : {}}
               >
                 {uploadingImage && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-[11px] font-black tracking-widest animate-pulse z-30">
-                    🔄 OPTIMIZING & SYNCING IMAGE CANVAS MASTER...
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-[11px] font-black tracking-widest animate-pulse z-30">
+                    🔄 PROCESSING LOG DETAILS...
                   </div>
                 )}
 
-                {/* Banner overlay control triggers */}
                 <div className="flex gap-1 z-10 opacity-90 group-hover:opacity-100 transition">
                   <button 
                     type="button" 
                     onClick={() => coverInputRef.current?.click()} 
                     className="bg-black/70 hover:bg-black text-white font-bold px-3 py-1.5 rounded text-[10px] border border-white/20 uppercase tracking-wider transition"
                   >
-                    {profile.cover_url ? '📷 Replace Banner' : '📷 Upload Banner'}
+                    {profile.cover_url ? '📷 Change Banner' : '📷 Upload Banner'}
                   </button>
                   {profile.cover_url && (
                     <button 
@@ -560,10 +512,10 @@ export default function StudioWorkspace() {
               
               <div className="px-6 pb-6 relative">
                 
-                {/* 🔄 PROFILE AVATAR CONTAINER ENHANCED WITH FULL DIRECT FILE CLICK INTERCEPTOR */}
-                <div 
-                  onClick={() => avatarInputRef.current?.click()}
-                  className="w-28 h-28 bg-[#191919] border-4 border-white rounded-full absolute -top-14 left-6 overflow-hidden flex items-center justify-center text-white font-bold text-4xl shadow-sm cursor-pointer group/avatar"
+                {/* 🔄 NATIVE HTML LABEL CONTAINER ATTACHED DIRECTLY TO AVATAR DISK INPUT */}
+                <label 
+                  htmlFor="avatarFileSelector"
+                  className="w-28 h-28 bg-[#191919] border-4 border-white rounded-full absolute -top-14 left-6 overflow-hidden flex items-center justify-center text-white font-bold text-4xl shadow-sm cursor-pointer group/avatar block z-20"
                 >
                   {profile.avatar_url ? (
                     <img src={profile.avatar_url} className="w-full h-full object-cover" alt="Profile Headshot" />
@@ -571,19 +523,18 @@ export default function StudioWorkspace() {
                     <span>{userInitial}</span>
                   )}
 
-                  {/* Absolute camera action layer trigger layout overlay */}
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/avatar:opacity-100 flex flex-col justify-center items-center transition duration-200 select-none text-center">
-                    <span className="text-[9px] uppercase font-black tracking-wider text-white">📷 {profile.avatar_url ? 'Replace' : 'Upload'}</span>
+                    <span className="text-[9px] uppercase font-black tracking-wider text-white">📷 Change</span>
                     {profile.avatar_url && (
                       <span 
-                        onClick={(e) => { e.stopPropagation(); handleDeleteImageMedia('avatar_url'); }} 
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteImageMedia('avatar_url'); }} 
                         className="text-[8px] uppercase text-red-400 font-bold hover:text-red-300 block mt-1 hover:underline"
                       >
                         Delete
                       </span>
                     )}
                   </div>
-                </div>
+                </label>
                 
                 <div className="pt-16 space-y-1">
                   <div className="flex items-center gap-1.5">
@@ -893,7 +844,7 @@ export default function StudioWorkspace() {
                             </div>
                             
                             <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end shrink-0">
-                              <audio controls src={feedItem.audio_url} onPlay={registerAudioPlayback} className="w-44 sm:w-56 h-8 accent-blue-600" />
+                              <audio controls src={feedItem.audio_url} onPlay={registerAudioPlayback} className="w-44 sm:w-48 h-8 accent-blue-600" />
                               
                               {isMyAsset && (
                                 <div className="flex gap-1 shrink-0">
