@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 
@@ -30,6 +30,7 @@ export default function StudioWorkspace() {
   const [communityFeed, setCommunityFeed] = useState<any[]>([]); 
   const [postContent, setPostContent] = useState<string>('');
 
+  // Audio Drop Creative Forms States
   const [trackTitle, setTrackTitle] = useState<string>('');
   const [trackGenre, setTrackGenre] = useState<string>('Punjabi');
   const [trackBpm, setTrackBpm] = useState<string>('140');
@@ -37,9 +38,25 @@ export default function StudioWorkspace() {
   const [trackMood, setTrackMood] = useState<string>('Dark');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+  // 🔄 Track Editing States
+  const [editingTrack, setEditingTrack] = useState<any>(null);
+  const [editTrackForm, setEditTrackForm] = useState({ title: '', genre: 'Punjabi', bpm: '', key: '', mood: '' });
+
   const [publishing, setPublishing] = useState<boolean>(false);
   const [publishingPost, setPublishingPost] = useState<boolean>(false);
+  const [updatingTrack, setUpdatingTrack] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // 🎵 Single Audio Playback Lock Manager
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const registerAudioPlayback = (e: React.SyntheticEvent<HTMLAudioElement>) => {
+    const currentAudio = e.currentTarget;
+    if (activeAudioRef.current && activeAudioRef.current !== currentAudio) {
+      activeAudioRef.current.pause();
+    }
+    activeAudioRef.current = currentAudio;
+  };
 
   async function loadFeedAndProfiles() {
     try {
@@ -86,7 +103,7 @@ export default function StudioWorkspace() {
             key: item.key,
             mood: item.mood,
             created_at: item.created_at,
-            profile_id: item.profile_id, // Explicitly linked for authorization checks
+            profile_id: item.profile_id,
             profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles,
             itemType: 'audio',
             dateValue: new Date(item.created_at).getTime()
@@ -97,7 +114,7 @@ export default function StudioWorkspace() {
       aggregatedFeed.sort((a, b) => b.dateValue - a.dateValue);
       setCommunityFeed(aggregatedFeed);
     } catch (error) {
-      console.error("Failed compiling app live grid pipelines:", error);
+      console.error("Failed compiling application live feeds:", error);
     }
   }
 
@@ -136,7 +153,6 @@ export default function StudioWorkspace() {
     loadStudioData();
   }, [router]);
 
-  // 🗑️ TRACK DELETION HANDLER
   const handleDeleteTrack = async (trackId: string, fileUrl: string) => {
     if (!window.confirm("Are you sure you want to permanently delete this audio track?")) return;
 
@@ -166,7 +182,6 @@ export default function StudioWorkspace() {
     }
   };
 
-  // 🗑️ POST DELETION HANDLER
   const handleDeletePost = async (postId: string) => {
     if (!window.confirm("Are you sure you want to delete this community post update?")) return;
 
@@ -181,6 +196,41 @@ export default function StudioWorkspace() {
       setCommunityFeed(prevFeed => prevFeed.filter(item => item.id !== postId));
     } catch (err: any) {
       alert(`Could not complete deletion: ${err.message}`);
+    }
+  };
+
+  // 📝 UPDATE AUDIO METADATA CONTROLLER FUNCTION
+  const handleUpdateTrackMetadata = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTrack) return;
+    setUpdatingTrack(true);
+
+    try {
+      const { error } = await database
+        .from('sounds')
+        .update({
+          title: editTrackForm.title.trim(),
+          genre: editTrackForm.genre,
+          bpm: editTrackForm.bpm,
+          key: editTrackForm.key,
+          musical_key: editTrackForm.key,
+          mood: editTrackForm.mood
+        })
+        .eq('id', editingTrack.id);
+
+      if (error) throw error;
+
+      setEditingTrack(null);
+      
+      // Refresh matching array layouts instantly
+      const { data: sounds } = await database.from('sounds').select('*').eq('profile_id', user.id).order('created_at', { ascending: false });
+      if (sounds) setMySounds(sounds);
+      
+      await loadFeedAndProfiles();
+    } catch (err: any) {
+      alert(`Update failed: ${err.message}`);
+    } finally {
+      setUpdatingTrack(false);
     }
   };
 
@@ -275,14 +325,14 @@ export default function StudioWorkspace() {
           
           <div className="flex items-center gap-2">
             <button 
-              onClick={() => { setViewMode('personal'); setEditingProfile(false); }} 
+              onClick={() => { setViewMode('personal'); setEditingProfile(false); setEditingTrack(null); }} 
               className={`text-xs font-bold px-4 py-1.5 rounded-full transition-all border ${viewMode === 'personal' ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-150'}`}
             >
               My Profile 👤
             </button>
             
             <button 
-              onClick={() => { setViewMode('community'); setEditingProfile(false); }} 
+              onClick={() => { setViewMode('community'); setEditingProfile(false); setEditingTrack(null); }} 
               className={`text-xs font-bold px-4 py-1.5 rounded-full transition-all border ${viewMode === 'community' ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-150'}`}
             >
               Producer Community 👥
@@ -357,6 +407,63 @@ export default function StudioWorkspace() {
               </form>
             )}
 
+            {/* TRACK METADATA HOT-EDIT PANEL POPUP DRAWER */}
+            {editingTrack && (
+              <form onSubmit={handleUpdateTrackMetadata} className="bg-white border border-emerald-300 rounded-lg p-5 space-y-3 shadow-md animate-fadeIn">
+                <div className="flex items-center justify-between border-b pb-2">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-emerald-700">✏️ Modify Audio Metadata parameters</h3>
+                  <button type="button" onClick={() => setEditingTrack(null)} className="text-xs text-gray-400 hover:text-black font-bold">✕ Close</button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="col-span-2">
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Track Title</label>
+                    <input required type="text" className="w-full border text-xs p-2.5 rounded bg-gray-50 focus:outline-none focus:border-emerald-600" value={editTrackForm.title} onChange={(e) => setEditTrackForm({...editTrackForm, title: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Genre Class</label>
+                    <select className="w-full border text-xs p-2.5 rounded bg-white cursor-pointer focus:outline-none font-medium text-gray-700" value={editTrackForm.genre} onChange={(e) => setEditTrackForm({...editTrackForm, genre: e.target.value})}>
+                      <option value="Punjabi">Punjabi</option>
+                      <option value="Trap Loop">Trap Loop</option>
+                      <option value="LoFi Sample">LoFi Sample</option>
+                      <option value="Full Track Beat">Full Track Beat</option>
+                      <option value="Stem Track Layer">Stem Track Layer</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Tempo (BPM)</label>
+                    <select className="w-full border text-xs p-2.5 rounded bg-white cursor-pointer focus:outline-none font-medium text-gray-700" value={editTrackForm.bpm} onChange={(e) => setEditTrackForm({...editTrackForm, bpm: e.target.value})}>
+                      <option value="80">80 BPM</option>
+                      <option value="90">90 BPM</option>
+                      <option value="120">120 BPM</option>
+                      <option value="140">140 BPM</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Key Signature</label>
+                    <select className="w-full border text-xs p-2.5 rounded bg-white cursor-pointer focus:outline-none font-medium text-gray-700" value={editTrackForm.key} onChange={(e) => setEditTrackForm({...editTrackForm, key: e.target.value})}>
+                      <option value="F# Minor">F# Minor</option>
+                      <option value="C Major">C Major</option>
+                      <option value="A Minor">A Minor</option>
+                      <option value="E Minor">E Minor</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Sonic Mood Vibe</label>
+                    <select className="w-full border text-xs p-2.5 rounded bg-white cursor-pointer focus:outline-none font-medium text-gray-700" value={editTrackForm.mood} onChange={(e) => setEditTrackForm({...editTrackForm, mood: e.target.value})}>
+                      <option value="Dark">Dark</option>
+                      <option value="Chill">Chill</option>
+                      <option value="Energetic">Energetic</option>
+                      <option value="Hypnotic">Hypnotic</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex gap-2 justify-end border-t pt-2 mt-2">
+                  <button type="submit" disabled={updatingTrack} className="px-5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-bold shadow-sm">{updatingTrack ? 'Saving...' : 'Save Meta Records'}</button>
+                  <button type="button" onClick={() => setEditingTrack(null)} className="px-5 py-1.5 bg-gray-100 rounded-full text-xs font-bold text-gray-600">Cancel</button>
+                </div>
+              </form>
+            )}
+
             <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm space-y-3">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Publish Asset:</span>
@@ -427,23 +534,37 @@ export default function StudioWorkspace() {
 
             <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm space-y-3">
               <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">📊 Personal Audio Catalog</h3>
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {mySounds.length > 0 ? (
                   mySounds.map((track) => (
-                    <div key={track.id} className="bg-gray-50 p-3 rounded-xl border flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center text-xs shadow-inner">
+                    <div key={track.id} className="bg-gray-50 p-3 rounded-xl border flex flex-col md:flex-row gap-3 justify-between items-start md:items-center text-xs shadow-inner">
                       <div className="min-w-0 flex-1">
                         <span className="font-bold text-gray-900 truncate block sm:inline">{track.title}</span>
-                        <span className="text-[10px] text-gray-400 uppercase font-semibold sm:ml-2">({track.genre} • {track.bpm} BPM)</span>
+                        <span className="text-[10px] text-gray-400 uppercase font-semibold sm:ml-2">({track.genre} • {track.bpm} BPM • {track.key || 'No Key'})</span>
                       </div>
                       
-                      <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end shrink-0">
-                        <audio controls src={track.audio_url} className="h-7 w-44 sm:w-48 accent-blue-600" />
-                        <button 
-                          onClick={() => handleDeleteTrack(track.id, track.audio_url)}
-                          className="px-3 py-1 text-[10px] font-bold bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 rounded-lg border border-red-200 transition shrink-0 shadow-sm"
-                        >
-                          Permanent Delete 🗑️
-                        </button>
+                      <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end shrink-0">
+                        {/* 🎵 Auto Lock Playback Controller Trigger */}
+                        <audio controls src={track.audio_url} onPlay={registerAudioPlayback} className="h-7 w-40 sm:w-44 accent-blue-600" />
+                        
+                        <div className="flex gap-1">
+                          <button 
+                            onClick={() => {
+                              setEditingTrack(track);
+                              setEditTrackForm({ title: track.title, genre: track.genre, bpm: track.bpm || '140', key: track.key || 'F# Minor', mood: track.mood || 'Dark' });
+                              window.scrollTo({ top: 400, behavior: 'smooth' });
+                            }}
+                            className="px-2 py-1 text-[10px] font-bold bg-white text-gray-700 hover:bg-gray-150 rounded border transition shrink-0 shadow-sm"
+                          >
+                            ✏️ Edit
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteTrack(track.id, track.audio_url)}
+                            className="px-2 py-1 text-[10px] font-bold bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 rounded border border-red-200 transition shrink-0 shadow-sm"
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))
@@ -491,11 +612,10 @@ export default function StudioWorkspace() {
                             {feedItem.itemType === 'audio' ? '🎵 Audio Drop' : '✍️ Thought'}
                           </span>
                           
-                          {/* 🗑️ Inline Deletion Option for text thoughts */}
                           {isMyAsset && feedItem.itemType === 'post' && (
                             <button 
                               onClick={() => handleDeletePost(feedItem.id)}
-                              className="text-xs text-gray-400 hover:text-red-600 transition ml-1"
+                              className="text-xs text-gray-400 hover:text-red-600 transition ml-1 font-bold"
                               title="Delete Post"
                             >
                               ✕
@@ -519,17 +639,31 @@ export default function StudioWorkspace() {
                             </div>
                             
                             <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end shrink-0">
-                              <audio controls src={feedItem.audio_url} className="w-44 sm:w-56 h-8 accent-blue-600" />
+                              {/* 🎵 Auto Lock Playback Controller Trigger inside Global Feed */}
+                              <audio controls src={feedItem.audio_url} onPlay={registerAudioPlayback} className="w-40 sm:w-48 h-8 accent-blue-600" />
                               
-                              {/* 🗑️ Inline Deletion Option for audio catalog drops */}
                               {isMyAsset && (
-                                <button 
-                                  onClick={() => handleDeleteTrack(feedItem.id, feedItem.audio_url)}
-                                  className="p-1.5 bg-white hover:bg-red-50 text-red-500 hover:text-red-700 rounded-lg border border-gray-200 hover:border-red-200 transition text-[11px] shadow-sm font-bold"
-                                  title="Delete audio drop"
-                                >
-                                  🗑️ Delete
-                                </button>
+                                <div className="flex gap-1 shrink-0">
+                                  <button 
+                                    onClick={() => {
+                                      setViewMode('personal');
+                                      setEditingTrack(feedItem);
+                                      setEditTrackForm({ title: feedItem.title, genre: feedItem.genre, bpm: feedItem.bpm || '140', key: feedItem.key || 'F# Minor', mood: feedItem.mood || 'Dark' });
+                                      window.scrollTo({ top: 400, behavior: 'smooth' });
+                                    }}
+                                    className="p-1.5 bg-white text-gray-700 hover:bg-gray-150 rounded border transition text-[11px]"
+                                    title="Edit meta"
+                                  >
+                                    ✏️
+                                  </button>
+                                  <button 
+                                    onClick={() => handleDeleteTrack(feedItem.id, feedItem.audio_url)}
+                                    className="p-1.5 bg-white text-red-500 hover:text-red-700 rounded border hover:border-red-200 transition text-[11px]"
+                                    title="Delete audio drop"
+                                  >
+                                    🗑️
+                                  </button>
+                                </div>
                               )}
                             </div>
                           </div>
