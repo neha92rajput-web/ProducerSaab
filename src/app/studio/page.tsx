@@ -47,7 +47,6 @@ export default function StudioWorkspace() {
   const [uploadingImage, setUploadingImage] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Hidden references to click standard file inputs from our custom overlay buttons
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -70,6 +69,57 @@ export default function StudioWorkspace() {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit'
+    });
+  };
+
+  // 📐 AUTOMATIC RESIZER & UNIVERSAL JPEG CONVERTER ENGINE
+  // Bypasses database mime-type locks by canvas-rendering images down to verified dimensions
+  const processAndConvertImage = (file: File, targetWidth: number, targetHeight: number): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+          const ctx = canvas.getContext('2d');
+          
+          if (!ctx) {
+            reject(new Error("Canvas execution context failed"));
+            return;
+          }
+
+          // Calculate premium aspect ratio center cropping metrics automatically
+          const imgRatio = img.width / img.height;
+          const targetRatio = targetWidth / targetHeight;
+          let sx = 0, sy = 0, sw = img.width, sh = img.height;
+
+          if (imgRatio > targetRatio) {
+            sw = img.height * targetRatio;
+            sx = (img.width - sw) / 2;
+          } else {
+            sh = img.width / targetRatio;
+            sy = (img.height - sh) / 2;
+          }
+
+          ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight);
+          
+          // Re-serialize raw canvas streams into standard image/jpeg types cleanly
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const standardFile = new File([blob], `${Date.now()}.jpeg`, { type: 'image/jpeg' });
+              resolve(standardFile);
+            } else {
+              reject(new Error("Blob compilation failed"));
+            }
+          }, 'image/jpeg', 0.90);
+        };
+        img.onerror = () => reject(new Error("Image parsing failed"));
+      };
+      reader.onerror = () => reject(new Error("FileReader processing failed"));
     });
   };
 
@@ -189,8 +239,14 @@ export default function StudioWorkspace() {
 
     try {
       const bucketName = 'audio-tracks'; 
-      const fileExt = file.name.split('.').pop();
-      const storageFilePath = `profile-assets/${user.id}-${targetField}-${Date.now()}.${fileExt}`;
+      
+      // Enforce premium resizing blueprints: 400x400 for Avatars, 1200x400 for Landscape Banners
+      const targetWidth = targetField === 'avatar_url' ? 400 : 1200;
+      const targetHeight = targetField === 'avatar_url' ? 400 : 400;
+
+      // Convert any source image seamlessly into a safe optimized JPEG
+      const optimizedJpegFile = await processAndConvertImage(file, targetWidth, targetHeight);
+      const storageFilePath = `profile-assets/${user.id}-${targetField}-${Date.now()}.jpeg`;
 
       // Clean old picture from bucket if replacing
       const currentUrl = profile[targetField];
@@ -202,8 +258,11 @@ export default function StudioWorkspace() {
         }
       }
 
-      // Upload fresh asset
-      const { error: uploadError } = await database.storage.from(bucketName).upload(storageFilePath, file, { cacheControl: '3600', upsert: true });
+      // Upload newly converted JPEG asset smoothly
+      const { error: uploadError } = await database.storage
+        .from(bucketName)
+        .upload(storageFilePath, optimizedJpegFile, { contentType: 'image/jpeg', cacheControl: '3600', upsert: true });
+      
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = database.storage.from(bucketName).getPublicUrl(storageFilePath);
@@ -216,7 +275,6 @@ export default function StudioWorkspace() {
 
       if (updateError) throw updateError;
 
-      // Hot-update current local UI views
       const updatedProfile = { ...profile, [targetField]: publicUrl };
       setProfile(updatedProfile);
       setEditForm(updatedProfile);
@@ -257,7 +315,7 @@ export default function StudioWorkspace() {
       await loadFeedAndProfiles();
     } catch (err: any) {
       alert(`Failed removing picture: ${err.message}`);
-    } {
+    } finally {
       setUploadingImage(false);
     }
   };
@@ -417,7 +475,7 @@ export default function StudioWorkspace() {
   return (
     <div className="min-h-screen bg-[#F3F2EF] text-[#191919] pb-12 font-sans antialiased">
       
-      {/* HIDDEN TARGET FILE SELECTOR PORTALS */}
+      {/* NATIVE INTERACTIVE FORCED INPUT REGISTERS */}
       <input type="file" ref={avatarInputRef} accept="image/*" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleDirectImageUpload(e.target.files[0], 'avatar_url'); }} />
       <input type="file" ref={coverInputRef} accept="image/*" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleDirectImageUpload(e.target.files[0], 'cover_url'); }} />
 
@@ -458,31 +516,34 @@ export default function StudioWorkspace() {
       <div className="max-w-4xl mx-auto mt-6 space-y-4 px-4 sm:px-0">
         {viewMode === 'personal' && (
           <>
-            {/* 📸 FULLY INTERACTIVE LINKEDIN PROFILE CARD WITH CAMERA OVERLAYS */}
+            {/* LINKEDIN DESIGN PROFILE VAULT MATRIX */}
             <div className="bg-white border border-gray-200 rounded-lg overflow-hidden relative shadow-sm">
               
-              {/* Dynamic Landscape Banner Layer */}
+              {/* Landscape Background Cover Component Layer */}
               <div 
-                className="h-40 sm:h-48 bg-[#A0B2C6] bg-cover bg-center flex items-start justify-between p-4 relative group transition-all duration-300" 
+                className="h-40 sm:h-48 bg-[#A0B2C6] bg-cover bg-center flex items-start justify-between p-4 relative transition-all duration-300 group" 
                 style={profile.cover_url ? { backgroundImage: `url('${profile.cover_url}')` } : {}}
               >
-                {/* Visual state loading badge */}
-                {uploadingImage && <div className="absolute inset-0 bg-black/30 flex items-center justify-center text-white text-[11px] font-bold tracking-wider animate-pulse z-20">Syncing Media Asset Box...</div>}
+                {uploadingImage && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-[11px] font-black tracking-widest animate-pulse z-30">
+                    🔄 OPTIMIZING & SYNCING IMAGE CANVAS MASTER...
+                  </div>
+                )}
 
-                {/* Left side banner edit controls area */}
-                <div className="flex gap-1 z-10 opacity-80 hover:opacity-100 transition">
+                {/* Banner overlay control triggers */}
+                <div className="flex gap-1 z-10 opacity-90 group-hover:opacity-100 transition">
                   <button 
                     type="button" 
                     onClick={() => coverInputRef.current?.click()} 
-                    className="bg-black/70 hover:bg-black text-white font-bold px-3 py-1 rounded text-[10px] shadow border border-white/20 uppercase"
+                    className="bg-black/70 hover:bg-black text-white font-bold px-3 py-1.5 rounded text-[10px] border border-white/20 uppercase tracking-wider transition"
                   >
-                    {profile.cover_url ? '📷 Change Banner' : '📷 Upload Banner'}
+                    {profile.cover_url ? '📷 Replace Banner' : '📷 Upload Banner'}
                   </button>
                   {profile.cover_url && (
                     <button 
                       type="button" 
                       onClick={() => handleDeleteImageMedia('cover_url')} 
-                      className="bg-red-600/80 hover:bg-red-600 text-white font-bold px-2 py-1 rounded text-[10px] shadow"
+                      className="bg-red-600 text-white font-bold px-2 py-1.5 rounded text-[10px] hover:bg-red-700 transition"
                     >
                       ✕ Remove
                     </button>
@@ -499,21 +560,24 @@ export default function StudioWorkspace() {
               
               <div className="px-6 pb-6 relative">
                 
-                {/* Overlapping Profile Photo Black Circle Container with full camera action triggers */}
-                <div className="w-28 h-28 bg-[#191919] border-4 border-white rounded-full absolute -top-14 left-6 overflow-hidden flex items-center justify-center text-white font-bold text-4xl shadow-sm group">
+                {/* 🔄 PROFILE AVATAR CONTAINER ENHANCED WITH FULL DIRECT FILE CLICK INTERCEPTOR */}
+                <div 
+                  onClick={() => avatarInputRef.current?.click()}
+                  className="w-28 h-28 bg-[#191919] border-4 border-white rounded-full absolute -top-14 left-6 overflow-hidden flex items-center justify-center text-white font-bold text-4xl shadow-sm cursor-pointer group/avatar"
+                >
                   {profile.avatar_url ? (
-                    <img src={profile.avatar_url} className="w-full h-full object-cover" alt="Profile Avatar" />
+                    <img src={profile.avatar_url} className="w-full h-full object-cover" alt="Profile Headshot" />
                   ) : (
                     <span>{userInitial}</span>
                   )}
 
-                  {/* Direct Avatar file picker button layer overlaid cleanly */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col justify-center items-center cursor-pointer transition duration-200 gap-0.5 select-none" onClick={() => avatarInputRef.current?.click()}>
-                    <span className="text-[10px] uppercase font-black tracking-widest text-white">📷 Change</span>
+                  {/* Absolute camera action layer trigger layout overlay */}
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/avatar:opacity-100 flex flex-col justify-center items-center transition duration-200 select-none text-center">
+                    <span className="text-[9px] uppercase font-black tracking-wider text-white">📷 {profile.avatar_url ? 'Replace' : 'Upload'}</span>
                     {profile.avatar_url && (
                       <span 
                         onClick={(e) => { e.stopPropagation(); handleDeleteImageMedia('avatar_url'); }} 
-                        className="text-[8px] uppercase text-red-400 font-bold hover:text-red-300 underline mt-1"
+                        className="text-[8px] uppercase text-red-400 font-bold hover:text-red-300 block mt-1 hover:underline"
                       >
                         Delete
                       </span>
@@ -532,13 +596,12 @@ export default function StudioWorkspace() {
 
                 <div className="pt-4">
                   <button onClick={() => setEditingProfile(!editingProfile)} className="px-5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-full transition shadow-sm">
-                    Enhance text info
+                    Enhance bio details
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* INTERACTIVE TEXT DETAILS ACCENT FORM DRAWER */}
             {editingProfile && (
               <form onSubmit={handleProfileSave} className="bg-white border border-blue-200 rounded-lg p-5 space-y-3 shadow-sm animate-fadeIn">
                 <h3 className="text-xs font-black uppercase tracking-wider border-b pb-2 text-blue-600">Update Profile Bio Parameters</h3>
@@ -697,7 +760,7 @@ export default function StudioWorkspace() {
               <div className="space-y-2.5">
                 {mySounds.length > 0 ? (
                   mySounds.map((track) => (
-                    <div key={track.id} className="bg-gray-50 p-3 rounded-xl border flex flex-col md:flex-row gap-3 justify-between items-start md:items-center text-xs shadow-inner animate-fadeIn">
+                    <div key={track.id} className="bg-gray-50 p-3 rounded-xl border flex flex-col md:flex-row gap-3 justify-between items-start md:items-center text-xs shadow-inner">
                       <div className="min-w-0 flex-1">
                         <span className="font-bold text-gray-900 truncate block sm:inline">{track.title}</span>
                         <span className="text-[10px] text-gray-400 uppercase font-semibold sm:ml-2">({track.genre} • {track.bpm} BPM • {track.key || 'No Key'})</span>
