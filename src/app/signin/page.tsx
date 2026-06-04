@@ -14,7 +14,7 @@ function AuthFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // FIXED: Default view is now strictly 'signin' for existing users
+  // View states: 'signin' | 'signup' | 'forgot'
   const [view, setView] = useState('signin'); 
   const [username, setUsername] = useState(''); 
   const [email, setEmail] = useState('');
@@ -34,12 +34,14 @@ function AuthFormContent() {
     const urlView = searchParams.get('view');
     if (urlView === 'signup') {
       setView('signup');
+    } else if (urlView === 'forgot') {
+      setView('forgot');
     } else {
       setView('signin');
     }
   }, [searchParams]);
 
-  const handleViewSwitch = (newView: 'signup' | 'signin') => {
+  const handleViewSwitch = (newView: 'signup' | 'signin' | 'forgot') => {
     setStatusMessage('');
     setEmailSent(false);
     router.push(`${window.location.pathname}?view=${newView}`);
@@ -53,6 +55,26 @@ function AuthFormContent() {
 
     const cleanEmail = email.trim().toLowerCase();
 
+    // 1. FORGOT PASSWORD VIEW HANDLING
+    if (view === 'forgot') {
+      try {
+        const { error } = await database.auth.resetPasswordForEmail(cleanEmail, {
+          redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+        });
+
+        if (error) throw error;
+        setEmailSent(true);
+        setStatusMessage('✉️ Reset link sent! Check your inbox.');
+      } catch (err: any) {
+        setIsError(true);
+        setStatusMessage(`❌ Error: ${err.message || 'Could not send reset link.'}`);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // 2. SIGN UP VIEW HANDLING
     if (view === 'signup') {
       const cleanHandle = username.trim().toLowerCase().replace(/\s+/g, '');
       
@@ -96,7 +118,7 @@ function AuthFormContent() {
         setLoading(false);
       }
     } else {
-      // CLEAN SIGN-IN HANDSHAKE
+      // 3. SIGN IN VIEW HANDLING
       try {
         const { data, error } = await database.auth.signInWithPassword({
           email: cleanEmail,
@@ -132,9 +154,9 @@ function AuthFormContent() {
         {emailSent ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
             <div style={{ fontSize: '54px', marginBottom: '20px' }}>✉️</div>
-            <h2 style={{ fontSize: '26px', fontWeight: '800', margin: '0 0 12px 0' }}>Confirm Email</h2>
+            <h2 style={{ fontSize: '26px', fontWeight: '800', margin: '0 0 12px 0' }}>Check Your Email</h2>
             <p style={{ color: '#555555', fontSize: '15px', lineHeight: '1.6', margin: '0 0 24px 0' }}>
-              We sent a validation link to <strong>{email}</strong>. Click it to unlock your profile.
+              We sent a validation link to <strong>{email}</strong>. Follow the link to access your profile settings.
             </p>
             <button type="button" onClick={() => handleViewSwitch('signin')} style={{ background: 'none', border: 'none', color: '#C5A880', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline' }}>Back to Sign In</button>
           </div>
@@ -143,7 +165,9 @@ function AuthFormContent() {
             <header style={{ textAlign: 'center', marginBottom: '28px' }}>
               <h1 style={{ margin: '0 0 8px 0', fontSize: '32px', fontWeight: '800' }}>Producer Saab</h1>
               <p style={{ margin: 0, color: '#777777', fontSize: '14px' }}>
-                {view === 'signup' ? "Join Producer Saab now — it's free!" : 'Access your workstation studio suite'}
+                {view === 'signup' && "Join Producer Saab now — it's free!"}
+                {view === 'signin' && "Access your workstation studio suite"}
+                {view === 'forgot' && "Recover your password credentials"}
               </p>
             </header>
 
@@ -155,7 +179,7 @@ function AuthFormContent() {
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               
-              {/* HIDDEN IN SIGN IN VIEW: Username handle only shows up during Sign Up */}
+              {/* USERNAME INPUT (Only on Sign Up) */}
               {view === 'signup' && (
                 <div>
                   <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Create Unique Handle Username</label>
@@ -163,20 +187,34 @@ function AuthFormContent() {
                 </div>
               )}
 
+              {/* EMAIL INPUT (Always required) */}
               <div>
                 <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Email Address</label>
                 <input type="email" placeholder="name@domain.com" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: '100%', padding: '14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box' }} required />
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Password</label>
-                <div style={{ position: 'relative', width: '100%' }}>
-                  <input type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} style={{ width: '100%', padding: '14px 60px 14px 14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box' }} required />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#C5A880', fontSize: '13px', fontWeight: 'bold' }}>{showPassword ? 'Hide' : 'Show'}</button>
+              {/* PASSWORD INPUT (Only on Sign In / Sign Up) */}
+              {view !== 'forgot' && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555' }}>Password</label>
+                    
+                    {/* NEW FORGOT PASSWORD ACTION BRIDGE */}
+                    {view === 'signin' && (
+                      <button type="button" onClick={() => handleViewSwitch('forgot')} style={{ background: 'none', border: 'none', color: '#C5A880', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
+                        Forgot Password?
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div style={{ position: 'relative', width: '100%' }}>
+                    <input type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} style={{ width: '100%', padding: '14px 60px 14px 14px', border: '1px solid #E8E2D9', borderRadius: '8px', boxSizing: 'border-box' }} required />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#C5A880', fontSize: '13px', fontWeight: 'bold' }}>{showPassword ? 'Hide' : 'Show'}</button>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* HIDDEN IN SIGN IN VIEW: Password confirmation input only shows up during Sign Up */}
+              {/* CONFIRM PASSWORD INPUT (Only on Sign Up) */}
               {view === 'signup' && (
                 <div>
                   <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#555555', marginBottom: '6px' }}>Confirm Password</label>
@@ -188,7 +226,7 @@ function AuthFormContent() {
               )}
 
               <button type="submit" disabled={loading} style={{ width: '100%', padding: '16px', borderRadius: '30px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
-                {loading ? 'Processing...' : view === 'signup' ? 'Agree & Join' : 'Sign In to Studio'}
+                {loading ? 'Processing...' : view === 'signup' ? 'Agree & Join' : view === 'signin' ? 'Sign In to Studio' : 'Send Recovery Link'}
               </button>
             </form>
 
@@ -201,10 +239,10 @@ function AuthFormContent() {
             <button type="button" style={{ width: '100%', padding: '12px 16px', borderRadius: '30px', border: '1px solid #E8E2D9', backgroundColor: '#ffffff', color: '#444444', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>Continue with Google</button>
 
             <footer style={{ marginTop: '32px', textAlign: 'center', fontSize: '13px', color: '#666666' }}>
-              {view === 'signup' ? (
-                <span>Already a member? <button type="button" onClick={() => handleViewSwitch('signin')} style={{ background: 'none', border: 'none', color: '#C5A880', fontWeight: 'bold', padding: 0, textDecoration: 'underline', cursor: 'pointer' }}>Sign in to Studio</button></span>
-              ) : (
+              {view === 'signin' ? (
                 <span>New to the community? <button type="button" onClick={() => handleViewSwitch('signup')} style={{ background: 'none', border: 'none', color: '#C5A880', fontWeight: 'bold', padding: 0, textDecoration: 'underline', cursor: 'pointer' }}>Join now</button></span>
+              ) : (
+                <span>Already a member? <button type="button" onClick={() => handleViewSwitch('signin')} style={{ background: 'none', border: 'none', color: '#C5A880', fontWeight: 'bold', padding: 0, textDecoration: 'underline', cursor: 'pointer' }}>Sign in to Studio</button></span>
               )}
             </footer>
           </>
