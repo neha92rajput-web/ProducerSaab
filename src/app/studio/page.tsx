@@ -47,6 +47,11 @@ export default function StudioWorkspace() {
   const [uploadingImage, setUploadingImage] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // 🎛️ Interactive Drag Positioning Alignment States
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [bannerOffset, setBannerOffset] = useState({ x: 50, y: 50 }); // Tracks percentage offsets (0% to 100%)
+
   const coverInputRef = useRef<HTMLInputElement>(null);
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -71,7 +76,6 @@ export default function StudioWorkspace() {
     });
   };
 
-  // Optimized base64 image compiler to fit perfectly inside the profile DB table
   const resizeAndConvertToBase64 = (file: File, targetWidth: number, targetHeight: number): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -102,13 +106,56 @@ export default function StudioWorkspace() {
           }
 
           ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight);
-          // Compress the base64 output quality to keep the database performance lightning fast
-          resolve(canvas.toDataURL('image/jpeg', 0.75));
+          resolve(canvas.toDataURL('image/jpeg', 0.85));
         };
         img.onerror = () => reject(new Error("Image compilation failed"));
       };
       reader.onerror = () => reject(new Error("File conversion failed"));
     });
+  };
+
+  // 🖱️ BANNER VIEWPORT MOUSE DRAG EVENT CONTROLLERS
+  const handleBannerMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!profile?.cover_url) return;
+    // Don't trigger drag if clicking overlay operational buttons
+    if ((e.target as HTMLElement).closest('button')) return;
+    
+    setIsDragging(true);
+    setDragStart({ x: e.clientX, y: e.clientY });
+    e.preventDefault();
+  };
+
+  const handleBannerMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+
+    const deltaX = e.clientX - dragStart.x;
+    const deltaY = e.clientY - dragStart.y;
+
+    // Convert pixel dragging movements into responsive percentage step mutations
+    setBannerOffset(prev => ({
+      x: Math.max(0, Math.min(100, prev.x - deltaX * 0.15)),
+      y: Math.max(0, Math.min(100, prev.y - deltaY * 0.25))
+    }));
+
+    setDragStart({ x: e.clientX, y: e.clientY });
+  };
+
+  // Saves current drag coordinates straight to Supabase metadata logs
+  const handleBannerMouseUpOrLeave = async () => {
+    if (!isDragging || !user) return;
+    setIsDragging(false);
+
+    try {
+      await database
+        .from('profiles')
+        .update({
+          banner_position_x: bannerOffset.x,
+          banner_position_y: bannerOffset.y
+        })
+        .eq('id', user.id);
+    } catch (err) {
+      console.error("Failed auto-saving layout coordinates:", err);
+    }
   };
 
   async function loadFeedAndProfiles() {
@@ -117,7 +164,7 @@ export default function StudioWorkspace() {
         .from('posts')
         .select(`
           id, content, created_at, profile_id,
-          profiles ( id, username, display_name, avatar_url, headline )
+          profiles ( id, username, display_name, avatar_url, headline, banner_position_x, banner_position_y )
         `)
         .order('created_at', { ascending: false });
 
@@ -125,7 +172,7 @@ export default function StudioWorkspace() {
         .from('sounds')
         .select(`
           id, title, genre, audio_url, bpm, key, mood, created_at, profile_id,
-          profiles ( id, username, display_name, avatar_url, headline )
+          profiles ( id, username, display_name, avatar_url, headline, banner_position_x, banner_position_y )
         `)
         .order('created_at', { ascending: false });
 
@@ -207,11 +254,17 @@ export default function StudioWorkspace() {
         company: 'Independent Studio',
         location: 'Chandigarh, India',
         avatar_url: '',
-        cover_url: ''
+        cover_url: '',
+        banner_position_x: 50,
+        banner_position_y: 50
       };
 
       setProfile(parsedProfile);
       setEditForm(parsedProfile);
+      setBannerOffset({
+        x: parsedProfile.banner_position_x ?? 50,
+        y: parsedProfile.banner_position_y ?? 50
+      });
 
       await loadUserPersonalContent(user.id);
       await loadFeedAndProfiles();
@@ -220,27 +273,31 @@ export default function StudioWorkspace() {
     loadStudioData();
   }, [router]);
 
-  // 📷 Direct Database Storage Engine - Bypasses Storage Buckets to ensure it never fails
   const handleDirectImageUpload = async (file: File, targetField: 'avatar_url' | 'cover_url') => {
     if (!file || !user) return;
     setUploadingImage(true);
 
     try {
-      const targetWidth = targetField === 'avatar_url' ? 300 : 900;
-      const targetHeight = targetField === 'avatar_url' ? 300 : 300;
+      const targetWidth = targetField === 'avatar_url' ? 300 : 1600; // Increased width canvas space for premium dragging resolution
+      const targetHeight = targetField === 'avatar_url' ? 300 : 600;
 
-      // Converts image to pure base64 database string natively
       const compressedBase64 = await resizeAndConvertToBase64(file, targetWidth, targetHeight);
 
-      // Instantly save directly into your profile data rows
+      const updatePayload: any = { [targetField]: compressedBase64 };
+      if (targetField === 'cover_url') {
+        updatePayload.banner_position_x = 50;
+        updatePayload.banner_position_y = 50;
+        setBannerOffset({ x: 50, y: 50 });
+      }
+
       const { error: updateError } = await database
         .from('profiles')
-        .update({ [targetField]: compressedBase64 })
+        .update(updatePayload)
         .eq('id', user.id);
 
       if (updateError) throw updateError;
 
-      const updatedProfile = { ...profile, [targetField]: compressedBase64 };
+      const updatedProfile = { ...profile, ...updatePayload };
       setProfile(updatedProfile);
       setEditForm(updatedProfile);
       await loadFeedAndProfiles();
@@ -429,9 +486,8 @@ export default function StudioWorkspace() {
   return (
     <div className="min-h-screen bg-[#F3F2EF] text-[#191919] pb-12 font-sans antialiased">
       
-      {/* NATIVE FILE SELECTORS */}
       <input type="file" id="avatarFileSelector" accept="image/*" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleDirectImageUpload(e.target.files[0], 'avatar_url'); }} />
-      <input type="file" ref={coverInputRef} accept="image/*" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleDirectImageUpload(e.target.files[0], 'cover_url'); }} />
+      <input type="file" id="coverFileSelector" accept="image/*" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleDirectImageUpload(e.target.files[0], 'cover_url'); }} />
 
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-2">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
@@ -472,25 +528,32 @@ export default function StudioWorkspace() {
           <>
             <div className="bg-white border border-gray-200 rounded-lg overflow-hidden relative shadow-sm">
               
-              {/* Cover Banner Component Container */}
+              {/* 🎯 DRAGGABLE INTERACTIVE BANNER FRAME WITH HOVER-ONLY ACTION CONTROLS */}
               <div 
-                className="h-40 sm:h-48 bg-[#A0B2C6] bg-cover bg-center flex items-start justify-between p-4 relative group" 
-                style={profile.cover_url ? { backgroundImage: `url('${profile.cover_url}')` } : {}}
+                onMouseDown={handleBannerMouseDown}
+                onMouseMove={handleBannerMouseMove}
+                onMouseUp={handleBannerMouseUpOrLeave}
+                onMouseLeave={handleBannerMouseUpOrLeave}
+                className={`h-40 sm:h-48 bg-[#A0B2C6] bg-cover flex items-start justify-start p-4 relative group select-none ${profile.cover_url ? 'cursor-move' : ''}`} 
+                style={{
+                  backgroundImage: profile.cover_url ? `url('${profile.cover_url}')` : 'none',
+                  backgroundPosition: `${bannerOffset.x}% ${bannerOffset.y}%`
+                }}
               >
                 {uploadingImage && (
                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-[11px] font-black tracking-widest animate-pulse z-30">
-                    🔄 PROCESSING LOG DETAILS...
+                    🔄 RECOMPILING VIEWPORT AXIS...
                   </div>
                 )}
 
-                <div className="flex gap-1 z-10 opacity-90 group-hover:opacity-100 transition">
-                  <button 
-                    type="button" 
-                    onClick={() => coverInputRef.current?.click()} 
-                    className="bg-black/70 hover:bg-black text-white font-bold px-3 py-1.5 rounded text-[10px] border border-white/20 uppercase tracking-wider transition"
+                {/* 🔒 HOVER-ONLY ASSET MANAGER HUB (Completely invisible until cursor hovers over banner layout box) */}
+                <div className="flex gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <label 
+                    htmlFor="coverFileSelector"
+                    className="bg-black/70 hover:bg-black text-white font-bold px-3 py-1.5 rounded text-[10px] border border-white/20 uppercase tracking-wider cursor-pointer transition"
                   >
                     {profile.cover_url ? '📷 Change Banner' : '📷 Upload Banner'}
-                  </button>
+                  </label>
                   {profile.cover_url && (
                     <button 
                       type="button" 
@@ -500,19 +563,16 @@ export default function StudioWorkspace() {
                       ✕ Remove
                     </button>
                   )}
+                  {profile.cover_url && (
+                    <div className="bg-black/40 text-white/90 text-[9px] font-medium px-2 py-1.5 rounded pointer-events-none tracking-tight">
+                      ↕ Drag to position picture
+                    </div>
+                  )}
                 </div>
-
-                <button 
-                  onClick={() => setEditingProfile(!editingProfile)} 
-                  className="bg-white hover:bg-gray-50 text-xs font-bold px-4 py-1.5 rounded-full shadow border transition text-gray-700 z-10"
-                >
-                  ✏️ Edit Profile Info
-                </button>
               </div>
               
               <div className="px-6 pb-6 relative">
                 
-                {/* 🔄 NATIVE HTML LABEL CONTAINER ATTACHED DIRECTLY TO AVATAR DISK INPUT */}
                 <label 
                   htmlFor="avatarFileSelector"
                   className="w-28 h-28 bg-[#191919] border-4 border-white rounded-full absolute -top-14 left-6 overflow-hidden flex items-center justify-center text-white font-bold text-4xl shadow-sm cursor-pointer group/avatar block z-20"
@@ -844,7 +904,7 @@ export default function StudioWorkspace() {
                             </div>
                             
                             <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end shrink-0">
-                              <audio controls src={feedItem.audio_url} onPlay={registerAudioPlayback} className="w-44 sm:w-48 h-8 accent-blue-600" />
+                              <audio controls src={feedItem.audio_url} onPlay={registerAudioPlayback} className="w-44 sm:w-56 h-8 accent-blue-600" />
                               
                               {isMyAsset && (
                                 <div className="flex gap-1 shrink-0">
