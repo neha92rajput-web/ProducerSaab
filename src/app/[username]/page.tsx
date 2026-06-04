@@ -38,7 +38,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
     async function checkIdentityAndLoadData() {
       try {
         // 1. Pull the profile information matching the URL handle path
-        const { data: profileData, error: profileErr } = await supabase
+        const { data: profileData } = await supabase
           .from('profiles')
           .select('*')
           .eq('username', displayHandle)
@@ -46,17 +46,17 @@ export default function ProfilePage({ params }: { params: { username: string } }
 
         if (profileData) {
           setProfileId(profileData.id);
-          profileData.role && setProducerRole(profileData.role);
-          profileData.bio && setProfileBio(profileData.bio);
-          profileData.genres && setSelectedGenres(profileData.genres);
+          if (profileData.role) setProducerRole(profileData.role);
+          if (profileData.bio) setProfileBio(profileData.bio);
+          if (profileData.genres) setSelectedGenres(profileData.genres);
           
           // Pull associated tracks if they exist
-          profileData.track_title && setTrackTitle(profileData.track_title);
-          profileData.track_genre && setTrackGenre(profileData.track_genre);
-          profileData.track_bpm && setTrackBpm(profileData.track_bpm);
-          profileData.track_key && setTrackKey(profileData.track_key);
-          profileData.instrument_type && setInstrumentType(profileData.instrument_type);
-          profileData.audio_url && setAudioUrl(profileData.audio_url);
+          if (profileData.track_title) setTrackTitle(profileData.track_title);
+          if (profileData.track_genre) setTrackGenre(profileData.track_genre);
+          if (profileData.track_bpm) setTrackBpm(profileData.track_bpm);
+          if (profileData.track_key) setTrackKey(profileData.track_key);
+          if (profileData.instrument_type) setInstrumentType(profileData.instrument_type);
+          if (profileData.audio_url) setAudioUrl(profileData.audio_url);
         }
 
         // 2. Fetch active browser cookie session tokens
@@ -211,4 +211,108 @@ export default function ProfilePage({ params }: { params: { username: string } }
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div>
                   <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '800' }}>Featured Tracks & Audio Drops</h3>
-                  <p style={{ margin: 0, color: '#777777', fontSize: '13px' }}>Listen to custom
+                  <p style={{ margin: 0, color: '#777777', fontSize: '13px' }}>Listen to custom sound architectures directly inside the browser player.</p>
+                </div>
+                {isOwner && !isEditing && (
+                  <button 
+                    onClick={() => setIsEditing(true)}
+                    style={{ padding: '8px 16px', borderRadius: '20px', border: 'none', backgroundColor: '#FAF6F0', color: '#C5A880', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
+                  >
+                    🔄 Update Audio Asset
+                  </button>
+                )}
+              </div>
+
+              {isEditing ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', backgroundColor: '#FAF6F0', padding: '24px', borderRadius: '16px', border: '1px dashed #C5A880' }}>
+                  <h5 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: '#A3855C' }}>🎛️ Audio Suite Update Form</h5>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <input type="text" placeholder="Track Name" value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #E8E2D9' }} />
+                    <input type="text" placeholder="Genre" value={trackGenre} onChange={(e) => setTrackGenre(e.target.value)} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #E8E2D9' }} />
+                    <input type="text" placeholder="BPM" value={trackBpm} onChange={(e) => setTrackBpm(e.target.value)} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #E8E2D9' }} />
+                    <input type="text" placeholder="Key Scala" value={trackKey} onChange={(e) => setTrackKey(e.target.value)} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #E8E2D9' }} />
+                  </div>
+                  <input type="text" placeholder="Instrument/Stem Class" value={instrumentType} onChange={(e) => setInstrumentType(e.target.value)} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #E8E2D9' }} />
+                  <input type="text" placeholder="Direct Audio File URL (.mp3 Asset)" value={audioUrl} onChange={(e) => setAudioUrl(e.target.value)} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #E8E2D9' }} />
+                  
+                  <button 
+                    onClick={handleProfileUpdate}
+                    style={{ width: '100%', padding: '14px', borderRadius: '30px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', marginTop: '10px' }}
+                  >
+                    💾 Save & Publish Studio Configurations
+                  </button>
+                </div>
+              ) : trackTitle ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px', backgroundColor: '#FAF8F5', borderRadius: '16px', border: '1px solid #E8E2D9' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ width: '48px', height: '48px', backgroundColor: '#111111', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                      💿
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '700', textTransform: 'capitalize' }}>{trackTitle}</h4>
+                      <p style={{ margin: 0, fontSize: '12px', color: '#666' }}>{trackGenre} • {trackBpm} BPM • {trackKey} • {instrumentType}</p>
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#16a34a', fontWeight: 'bold', backgroundColor: '#f0fdf4', padding: '4px 10px', borderRadius: '12px' }}>Live</span>
+                  </div>
+
+                  {audioUrl && (
+                    <div style={{ width: '100%', marginTop: '4px', borderTop: '1px solid #E8E2D9', paddingTop: '12px' }}>
+                      <audio controls src={audioUrl} style={{ width: '100%', accentColor: '#C5A880' }}>
+                        Your browser does not support audio elements.
+                      </audio>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#999', border: '2px dashed #FAF8F5', borderRadius: '16px' }}>
+                  <p style={{ margin: 0, fontWeight: '600' }}>This workspace has no active tracks published.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT SECTION: METRIC BAR ACTIONS */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            <section style={{ backgroundColor: '#ffffff', padding: '28px', borderRadius: '24px', border: '1px solid #E8E2D9', textAlign: 'center' }}>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '800' }}>
+                {isOwner ? 'Your Studio Actions' : 'Connect with Creator'}
+              </h4>
+              <p style={{ margin: '0 0 20px 0', color: '#666666', fontSize: '13px', lineHeight: '1.5' }}>
+                {isOwner ? 'Manage how your audio network interacts with your active loops.' : 'Follow for network feed alerts when new loops or stems launch.'}
+              </p>
+              
+              {isOwner ? (
+                <button 
+                  style={{ width: '100%', padding: '14px', borderRadius: '30px', border: 'none', backgroundColor: '#C5A880', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
+                  onClick={() => setIsEditing(!isEditing)}
+                >
+                  {isEditing ? '📁 Exit Form View' : '⚙️ Custom Editing Layout'}
+                </button>
+              ) : (
+                <button 
+                  style={{ width: '100%', padding: '14px', borderRadius: '30px', border: 'none', backgroundColor: '#111111', color: '#ffffff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }} 
+                  onClick={() => alert('Connected safely!')}
+                >
+                  ＋ Follow Artist
+                </button>
+              )}
+            </section>
+
+            <section style={{ backgroundColor: '#ffffff', padding: '24px', borderRadius: '20px', border: '1px solid #E8E2D9', fontSize: '13px' }}>
+              <h5 style={{ margin: '0 0 12px 0', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', color: '#C5A880', letterSpacing: '0.05em' }}>Studio Credentials</h5>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div><strong>Handle:</strong> @{displayHandle}</div>
+                <div><strong>Trade Spec:</strong> {producerRole}</div>
+              </div>
+            </section>
+
+          </div>
+
+        </div>
+      </main>
+
+    </div>
+  );
+}
