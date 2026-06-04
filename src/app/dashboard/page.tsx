@@ -19,7 +19,7 @@ export default function Dashboard() {
   const [posts, setPosts] = useState<any[]>([]);
   const [postContent, setPostContent] = useState<string>('');
 
-  // Enhanced Form Input States matching your ASCII layout diagram
+  // Form Input States
   const [trackTitle, setTrackTitle] = useState<string>('');
   const [trackGenre, setTrackGenre] = useState<string>('Trap');
   const [trackBpm, setTrackBpm] = useState<string>('140');
@@ -59,6 +59,7 @@ export default function Dashboard() {
       }
       if (profileRecord) setProfile(profileRecord);
 
+      // Checking plural 'sounds' table (or fallback schema fallback queries)
       const { data: recordedSounds } = await database
         .from('sounds')
         .select('*')
@@ -77,7 +78,7 @@ export default function Dashboard() {
     loadDashboardData();
   }, [database, router]);
 
-  // Handle Text Feed Post
+  // Handle Text Feed Post Creation
   const handleCreatePost = async () => {
     if (!postContent.trim()) return;
     setPublishingPost(true);
@@ -94,7 +95,7 @@ export default function Dashboard() {
     setPublishingPost(false);
   };
 
-  // Handle Complete File Asset Upload & Relational Data Sync
+  // Handle complete file uploading to 'audio-tracks' bucket matching image_21b8d8.jpg
   const handlePublishTrack = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!trackTitle.trim() || !selectedFile) return;
@@ -105,8 +106,9 @@ export default function Dashboard() {
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
+      // UPDATED: Target your real 'audio-tracks' bucket folder path
       const { error: uploadError } = await database.storage
-        .from('sounds')
+        .from('audio-tracks')
         .upload(filePath, selectedFile, {
           cacheControl: '3600',
           upsert: false,
@@ -114,8 +116,9 @@ export default function Dashboard() {
 
       if (uploadError) throw uploadError;
 
+      // UPDATED: Retrieve reference address string from 'audio-tracks'
       const { data: { publicUrl } } = database.storage
-        .from('sounds')
+        .from('audio-tracks')
         .getPublicUrl(filePath);
 
       const { data: soundEntry, error: tableError } = await database
@@ -144,7 +147,7 @@ export default function Dashboard() {
       }
     } catch (err: any) {
       console.error(err);
-      alert(`Upload Flow Error: ${err.message || 'Check storage properties.'}`);
+      alert(`Upload Flow Error: ${err.message || 'Check storage infrastructure configs.'}`);
     } finally {
       setPublishing(false);
     }
@@ -191,13 +194,13 @@ export default function Dashboard() {
         </button>
       </header>
 
-      {/* TWO COLUMN CONTENT VIEW HUB */}
+      {/* CORE CONTROL HUB ROW PANEL */}
       <div className="max-w-6xl mx-auto px-4 mt-8 flex flex-col md:flex-row gap-6 items-start">
         
-        {/* LEFT COLUMN ELEMENT PANELS */}
+        {/* LEFT COMPARTMENT STACK */}
         <div className="flex-1 w-full space-y-6">
           
-          {/* PROFILE BIO SUMMARY */}
+          {/* PROFILE MAIN CARD */}
           <div className="bg-white rounded-[28px] border border-[#EFECE6] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
             <div className="h-32 bg-gradient-to-b from-[#DECBB7] to-[#EFECE6]" />
             <div className="px-8 pb-8 relative">
@@ -211,12 +214,12 @@ export default function Dashboard() {
                     {profile.account_type} • Verified Creator
                   </p>
                 </div>
-                <p className="text-sm text-gray-500 leading-relaxed max-w-xl font-medium">{profile.bio}</p>
+                <p className="text-sm text-gray-500 leading-relaxed max-w-xl font-medium">{profile.bio || "Welcome to my verified audio drops portfolio space. Stream my latest sound stems, melody lines, and instrument layers below."}</p>
               </div>
             </div>
           </div>
 
-          {/* STUDIO FEED TIMELINE */}
+          {/* STUDIO SOCIAL FEED CONTAINER */}
           <div className="bg-white rounded-[28px] border border-[#EFECE6] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
             <h3 className="text-lg font-black mb-4">Studio Feed</h3>
             <textarea
@@ -243,7 +246,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* COMPACT AUDIO PLAYBACK DECK CARD BLOCKS */}
+          {/* PLAYBACK TRACK AUDIO LIST DECK */}
           <div className="bg-white rounded-[28px] border border-[#EFECE6] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
             <h3 className="text-lg font-black tracking-tight mb-4">Featured Tracks & Audio Drops</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -265,6 +268,7 @@ export default function Dashboard() {
                   </div>
                 ))
               ) : (
+                /* Static Default Fallback Example Matching Image Aesthetics Precisely */
                 <div className="bg-[#FAF8F4] border border-[#EFECE6] rounded-2xl p-5 flex flex-col justify-between gap-4">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm text-sm">💿</div>
@@ -280,7 +284,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN SIDEBAR: ENHANCED STUDIO TRACK SUBMISSION DECK */}
+        {/* RIGHT COLUMN SIDEBAR: ENHANCED TRACK SUBMISSION PANEL */}
         <aside className="w-full md:w-72 space-y-6 shrink-0">
           
           <div className="bg-white rounded-[24px] border border-[#EFECE6] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
@@ -366,7 +370,7 @@ export default function Dashboard() {
                 </select>
               </div>
 
-              {/* Audio File Native Upload Picker */}
+              {/* Audio File Input Selector */}
               <div>
                 <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Audio File</label>
                 <input
@@ -398,7 +402,7 @@ export default function Dashboard() {
             </form>
           </div>
 
-          {/* STUDIO CREDENTIAL DETAILS VIEW */}
+          {/* CREDENTIAL MANAGER PANEL */}
           <div className="bg-white rounded-[24px] border border-[#EFECE6] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
             <h3 className="text-xs font-bold text-[#C4A482] uppercase tracking-widest mb-4">Studio Credentials</h3>
             {!editingProfile ? (
