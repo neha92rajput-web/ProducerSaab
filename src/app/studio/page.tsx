@@ -276,4 +276,38 @@ export default function StudioWorkspace() {
           
           <div className="flex items-center gap-2">
             <button 
-              onClick={() => { setViewMode('personal');
+              onClick={() => { setViewMode('personal'); setEditingProfile(false); }} 
+              className={`text-xs font-bold px-4 py-1.5 rounded-full transition-all border ${viewMode === 'personal' ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-150'}`}
+            >
+              My Profile 👤
+            </button>
+            
+            <button 
+              onClick={() => { setViewMode('community'); setEditingProfile(false); }} 
+              className={`text-xs font-bold px-4 py-1.5 rounded-full transition-all border ${viewMode === 'community' ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-150'}`}
+            >
+              Producer Community 👥
+            </button>
+
+            <button 
+              onClick={async () => { await database.auth.signOut(); router.push('/'); }} 
+              className="text-xs font-bold text-gray-500 hover:text-red-600 border border-gray-300 px-4 py-1.5 rounded-full bg-white hover:bg-red-50 transition ml-2"
+            >
+              Disconnect
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-4xl mx-auto mt-6 space-y-4 px-4 sm:px-0">
+        
+        {/* VIEW MODE A: MY PERSONAL STUDIO PORTFOLIO CARD LAYOUT */}
+        {viewMode === 'personal' && (
+          <>
+            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden relative shadow-sm">
+              <div className="h-40 sm:h-48 bg-[#A0B2C6] bg-cover bg-center flex items-start justify-end p-4" style={profile.cover_url ? { backgroundImage: `url('${profile.cover_url}')` } : {}}>
+                <button onClick={() => setEditingProfile(true)} className="bg-white hover:bg-gray-50 text-xs font-bold px-4 py-1.5 rounded-full shadow border transition text-gray-700">✏️ Edit Profile</button>
+              </div>
+              
+              <div className="px-6 pb-6 relative">
+                <div className="w
