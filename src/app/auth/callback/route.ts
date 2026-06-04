@@ -1,62 +1,62 @@
-// FORCE NEXT.JS TO USE THE STANDARD NODEJS SERVER ENVIRONMENT
-export const runtime = 'nodejs';
-
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
 
-export async function GET(request: NextRequest) {
-  const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get('code');
+export async function GET(request: Request) {
+  const { searchParams, origin } = new URL(request.url);
   
-  // Track our target directory location (defaults directly to your studio wizard)
-  const nextTarget = requestUrl.searchParams.get('next') || '/dashboard';
+  // Supabase sends either a raw 'code' or a secure 'token_hash'
+  const code = searchParams.get('code');
+  const tokenHash = searchParams.get('token_hash');
+  const type = searchParams.get('type'); // 'signup' or 'recovery'
+  const next = searchParams.get('next') || '/dashboard';
 
-  if (code) {
-    const cookieStore = cookies();
-    
-    // Create the modern official client that handles cookies seamlessly on custom domains
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-          set(name: string, value: string, options: any) {
-            cookieStore.set({ name, value, ...options });
-          },
-          remove(name: string, options: any) {
-            cookieStore.set({ name, value: '', ...options });
-          },
+  const cookieStore = cookies();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
         },
-      }
-    );
+        set(name: string, value: string, options: any) {
+          cookieStore.set({ name, value, ...options });
+        },
+        remove(name: string, options: any) {
+          cookieStore.set({ name, value: '', ...options });
+        },
+      },
+    }
+  );
 
-    try {
-      // 1. Exchange token code for a rock-solid active session cookie
-      const { data } = await supabase.auth.exchangeCodeForSession(code);
-      
-      // 2. Initialize their new database row safely
-      if (data?.user) {
-        const metadataUsername = data.user.user_metadata?.username || `user_${data.user.id.substring(0, 5)}`;
-        const metadataEmail = data.user.email || '';
-        
-        await supabase.from('profiles').upsert({
-          id: data.user.id,
-          username: metadataUsername.toLowerCase().trim(),
-          email: metadataEmail.toLowerCase().trim(),
-          onboarded: false // Flags them for your profile completion setup view
-        });
-      }
-    } catch (err) {
-      console.error('Session handshake failure:', err);
-      return NextResponse.redirect(`${requestUrl.origin}/signin?error=handshake_failed`);
+  // 1. HANDLE STANDARD CODE EXCHANGE (Like Google OAuth or standard Signups)
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error) {
+      return NextResponse.redirect(`${origin}${next}`);
     }
   }
 
-  // 3. Dynamic Forwarding: Takes them directly to /dashboard beautifully!
-  return NextResponse.redirect(`${requestUrl.origin}${nextTarget}`);
+  // 2. HANDLE EMAIL LINKS (Signups, Magic Links, and PASSWORD RECOVERY)
+  if (tokenHash && type) {
+    const { error } = await supabase.auth.verifyOtp({
+      type: type as any,
+      token_hash: tokenHash,
+    });
+
+    if (!error) {
+      // IF THIS IS A PASSWORD RESET: Route them to a page where they can type a new password
+      if (type === 'recovery') {
+        return NextResponse.redirect(`${origin}/dashboard?action=reset-password`);
+      }
+      
+      // Otherwise, carry on to the dashboard
+      return NextResponse.redirect(`${origin}${next}`);
+    }
+  }
+
+  // IF SYSTEM FAILS: Emergency bounce back to signin with an error flag
+  return NextResponse.redirect(`${origin}/signin?error=auth-callback-failed`);
 }
