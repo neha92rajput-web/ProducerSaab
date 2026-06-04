@@ -7,9 +7,17 @@ import { createBrowserClient } from '@supabase/ssr';
 export default function Dashboard() {
   const router = useRouter();
   
+  // Fix 1: Ensure Supabase auth persists session beautifully in browser storage
   const database = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    }
   );
 
   // Core Data States
@@ -33,15 +41,21 @@ export default function Dashboard() {
   const [editingProfile, setEditingProfile] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // Fix 2: Clean layout dependency constraints to stop redirect flickers
   useEffect(() => {
     async function loadDashboardData() {
+      setLoading(true);
+
       const { data: { user } } = await database.auth.getUser();
+
       if (!user) {
-        router.push('/signin');
+        router.replace('/signin');
         return;
       }
+
       setUser(user);
 
+      // Fetch User Profiles
       let { data: profileRecord } = await database
         .from('profiles')
         .select('*')
@@ -59,7 +73,7 @@ export default function Dashboard() {
       }
       if (profileRecord) setProfile(profileRecord);
 
-      // Checking plural 'sounds' table (or fallback schema fallback queries)
+      // Fetch real tracks from your verified public.sounds table
       const { data: recordedSounds } = await database
         .from('sounds')
         .select('*')
@@ -67,6 +81,7 @@ export default function Dashboard() {
         .order('created_at', { ascending: false });
       if (recordedSounds) setMySounds(recordedSounds);
 
+      // Fetch feed posts
       const { data: feedPosts } = await database
         .from('posts')
         .select('*')
@@ -76,7 +91,7 @@ export default function Dashboard() {
       setLoading(false);
     }
     loadDashboardData();
-  }, [database, router]);
+  }, []); // Empty dependency locks it down to run cleanly on mount instance
 
   // Handle Text Feed Post Creation
   const handleCreatePost = async () => {
@@ -95,7 +110,7 @@ export default function Dashboard() {
     setPublishingPost(false);
   };
 
-  // Handle complete file uploading to 'audio-tracks' bucket matching image_21b8d8.jpg
+  // Handle file uploading to 'audio-tracks' bucket
   const handlePublishTrack = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!trackTitle.trim() || !selectedFile) return;
@@ -106,7 +121,6 @@ export default function Dashboard() {
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      // UPDATED: Target your real 'audio-tracks' bucket folder path
       const { error: uploadError } = await database.storage
         .from('audio-tracks')
         .upload(filePath, selectedFile, {
@@ -116,7 +130,6 @@ export default function Dashboard() {
 
       if (uploadError) throw uploadError;
 
-      // UPDATED: Retrieve reference address string from 'audio-tracks'
       const { data: { publicUrl } } = database.storage
         .from('audio-tracks')
         .getPublicUrl(filePath);
@@ -184,23 +197,35 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#FBF9F6] text-[#111111] font-sans antialiased pb-20">
       
-      {/* HEADER NAVBAR */}
+      {/* 1. UPDATED HEADER NAVBAR with integrated Home navigation flex array */}
       <header className="max-w-6xl mx-auto px-6 pt-6 flex items-center justify-between">
         <h1 className="text-xs font-black tracking-[0.25em] uppercase cursor-pointer" onClick={() => router.push('/')}>
           <span className="text-[#C4A482] mr-1">川</span>Producer Saab
         </h1>
-        <button onClick={handleLogOut} className="text-[10px] font-bold tracking-wider uppercase px-4 py-2 bg-white border border-[#EFECE6] hover:bg-gray-50 transition rounded-full shadow-sm">
-          Disconnect
-        </button>
+        
+        <div className="flex gap-2">
+          <button
+            onClick={() => router.push('/')}
+            className="text-[10px] font-bold tracking-wider uppercase px-4 py-2 bg-white border border-[#EFECE6] hover:bg-gray-50 transition rounded-full shadow-sm"
+          >
+            Home
+          </button>
+          <button 
+            onClick={handleLogOut} 
+            className="text-[10px] font-bold tracking-wider uppercase px-4 py-2 bg-white border border-[#EFECE6] hover:bg-gray-50 transition rounded-full shadow-sm"
+          >
+            Disconnect
+          </button>
+        </div>
       </header>
 
-      {/* CORE CONTROL HUB ROW PANEL */}
+      {/* CORE CONTROL HUB GRID */}
       <div className="max-w-6xl mx-auto px-4 mt-8 flex flex-col md:flex-row gap-6 items-start">
         
-        {/* LEFT COMPARTMENT STACK */}
+        {/* LEFT PANEL COLUMN */}
         <div className="flex-1 w-full space-y-6">
           
-          {/* PROFILE MAIN CARD */}
+          {/* PROFILE SUMMARY CARD */}
           <div className="bg-white rounded-[28px] border border-[#EFECE6] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
             <div className="h-32 bg-gradient-to-b from-[#DECBB7] to-[#EFECE6]" />
             <div className="px-8 pb-8 relative">
@@ -214,12 +239,12 @@ export default function Dashboard() {
                     {profile.account_type} • Verified Creator
                   </p>
                 </div>
-                <p className="text-sm text-gray-500 leading-relaxed max-w-xl font-medium">{profile.bio || "Welcome to my verified audio drops portfolio space. Stream my latest sound stems, melody lines, and instrument layers below."}</p>
+                <p className="text-sm text-gray-500 leading-relaxed max-w-xl font-medium">{profile.bio}</p>
               </div>
             </div>
           </div>
 
-          {/* STUDIO SOCIAL FEED CONTAINER */}
+          {/* STUDIO FEED SCROLL */}
           <div className="bg-white rounded-[28px] border border-[#EFECE6] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
             <h3 className="text-lg font-black mb-4">Studio Feed</h3>
             <textarea
@@ -246,73 +271,44 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* PLAYBACK TRACK AUDIO LIST DECK */}
+          {/* PLAYBACK AUDIO TRACK BLOCKS */}
           <div className="bg-white rounded-[28px] border border-[#EFECE6] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
             <h3 className="text-lg font-black tracking-tight mb-4">Featured Tracks & Audio Drops</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {mySounds.length > 0 ? (
-                mySounds.map((track) => (
-                  <div key={track.id} className="bg-[#FAF8F4] border border-[#EFECE6] rounded-2xl p-5 flex flex-col justify-between gap-4">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center text-white font-bold shrink-0 shadow-sm">🎚️</div>
-                      <div className="truncate">
-                        <h4 className="font-bold text-sm text-gray-900 truncate">{track.title}</h4>
-                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1 space-y-0.5">
-                          <div>{track.bpm ? `${track.bpm} BPM` : ''} • {track.genre}</div>
-                          <div className="text-[#C4A482]">{track.key || 'C Major'} • {track.mood || 'Chill'}</div>
-                        </div>
-                      </div>
-                      <span className="ml-auto text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase shrink-0">Live</span>
-                    </div>
-                    <audio controls src={track.audio_url} className="w-full h-8 accent-gray-900 mt-1" />
-                  </div>
-                ))
-              ) : (
-                /* Static Default Fallback Example Matching Image Aesthetics Precisely */
-                <div className="bg-[#FAF8F4] border border-[#EFECE6] rounded-2xl p-5 flex flex-col justify-between gap-4">
+              {mySounds.map((track) => (
+                <div key={track.id} className="bg-[#FAF8F4] border border-[#EFECE6] rounded-2xl p-5 flex flex-col justify-between gap-4">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm text-sm">💿</div>
-                    <div>
-                      <h4 className="font-bold text-sm text-gray-900">Midnight</h4>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">140 BPM • F# Minor • Dark • Trap</p>
+                    <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center text-white font-bold shrink-0 shadow-sm">🎚️</div>
+                    <div className="truncate">
+                      <h4 className="font-bold text-sm text-gray-900 truncate">{track.title}</h4>
+                      <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1 space-y-0.5">
+                        <div>{track.bpm ? `${track.bpm} BPM` : ''} • {track.genre}</div>
+                        <div className="text-[#C4A482]">{track.key || 'C Major'} • {track.mood || 'Chill'}</div>
+                      </div>
                     </div>
-                    <span className="ml-auto text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase">Live</span>
+                    <span className="ml-auto text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase shrink-0">Live</span>
                   </div>
+                  <audio controls src={track.audio_url} className="w-full h-8 accent-gray-900 mt-1" />
                 </div>
-              )}
+              ))}
             </div>
           </div>
         </div>
 
-        {/* RIGHT COLUMN SIDEBAR: ENHANCED TRACK SUBMISSION PANEL */}
+        {/* RIGHT COLUMN SIDEBAR */}
         <aside className="w-full md:w-72 space-y-6 shrink-0">
           
+          {/* TRACK SUBMISSION DECK */}
           <div className="bg-white rounded-[24px] border border-[#EFECE6] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
             <h3 className="text-sm font-black uppercase tracking-wider text-gray-900 mb-4">Upload New Track</h3>
-            
             <form onSubmit={handlePublishTrack} className="space-y-4">
-              
-              {/* Title Field */}
               <div>
                 <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Title</label>
-                <input
-                  type="text"
-                  placeholder="Midnight Drive"
-                  className="w-full text-xs p-3 border border-[#EFECE6] rounded-xl focus:outline-none focus:border-[#C4A482]"
-                  value={trackTitle}
-                  onChange={(e) => setTrackTitle(e.target.value)}
-                  required
-                />
+                <input type="text" placeholder="Midnight Drive" className="w-full text-xs p-3 border border-[#EFECE6] rounded-xl focus:outline-none focus:border-[#C4A482]" value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} required />
               </div>
-
-              {/* Genre Selector */}
               <div>
                 <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Genre</label>
-                <select
-                  className="w-full text-xs p-3 border border-[#EFECE6] rounded-xl bg-white focus:outline-none cursor-pointer"
-                  value={trackGenre}
-                  onChange={(e) => setTrackGenre(e.target.value)}
-                >
+                <select className="w-full text-xs p-3 border border-[#EFECE6] rounded-xl bg-white focus:outline-none cursor-pointer" value={trackGenre} onChange={(e) => setTrackGenre(e.target.value)}>
                   <option value="Trap">Trap</option>
                   <option value="LoFi">LoFi</option>
                   <option value="AfroHouse">AfroHouse</option>
@@ -320,15 +316,9 @@ export default function Dashboard() {
                   <option value="Melody Loop">Melody Loop</option>
                 </select>
               </div>
-
-              {/* BPM Selector */}
               <div>
                 <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">BPM</label>
-                <select
-                  className="w-full text-xs p-3 border border-[#EFECE6] rounded-xl bg-white focus:outline-none cursor-pointer"
-                  value={trackBpm}
-                  onChange={(e) => setTrackBpm(e.target.value)}
-                >
+                <select className="w-full text-xs p-3 border border-[#EFECE6] rounded-xl bg-white focus:outline-none cursor-pointer" value={trackBpm} onChange={(e) => setTrackBpm(e.target.value)}>
                   <option value="80">80</option>
                   <option value="90">90</option>
                   <option value="100">100</option>
@@ -337,15 +327,9 @@ export default function Dashboard() {
                   <option value="150">150</option>
                 </select>
               </div>
-
-              {/* Key Selector */}
               <div>
                 <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Key</label>
-                <select
-                  className="w-full text-xs p-3 border border-[#EFECE6] rounded-xl bg-white focus:outline-none cursor-pointer"
-                  value={trackKey}
-                  onChange={(e) => setTrackKey(e.target.value)}
-                >
+                <select className="w-full text-xs p-3 border border-[#EFECE6] rounded-xl bg-white focus:outline-none cursor-pointer" value={trackKey} onChange={(e) => setTrackKey(e.target.value)}>
                   <option value="F# Minor">F# Minor</option>
                   <option value="A Minor">A Minor</option>
                   <option value="C Major">C Major</option>
@@ -353,15 +337,9 @@ export default function Dashboard() {
                   <option value="G# Major">G# Major</option>
                 </select>
               </div>
-
-              {/* Mood Selector */}
               <div>
                 <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Mood</label>
-                <select
-                  className="w-full text-xs p-3 border border-[#EFECE6] rounded-xl bg-white focus:outline-none cursor-pointer"
-                  value={trackMood}
-                  onChange={(e) => setTrackMood(e.target.value)}
-                >
+                <select className="w-full text-xs p-3 border border-[#EFECE6] rounded-xl bg-white focus:outline-none cursor-pointer" value={trackMood} onChange={(e) => setTrackMood(e.target.value)}>
                   <option value="Dark">Dark</option>
                   <option value="Chill">Chill</option>
                   <option value="Energetic">Energetic</option>
@@ -369,40 +347,18 @@ export default function Dashboard() {
                   <option value="Hypnotic">Hypnotic</option>
                 </select>
               </div>
-
-              {/* Audio File Input Selector */}
               <div>
                 <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Audio File</label>
-                <input
-                  id="audio-file-picker"
-                  type="file"
-                  accept="audio/mp3, audio/mpeg, audio/wav, audio/x-wav"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      setSelectedFile(e.target.files[0]);
-                    }
-                  }}
-                  className="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-bold file:bg-[#FAF8F4] file:text-gray-700 hover:file:bg-gray-100 cursor-pointer"
-                  required
-                />
-                {selectedFile && (
-                  <p className="text-[10px] text-gray-400 font-semibold mt-1.5 truncate">
-                    Selected: {selectedFile.name}
-                  </p>
-                )}
+                <input id="audio-file-picker" type="file" accept="audio/mp3, audio/mpeg, audio/wav, audio/x-wav" onChange={(e) => { if (e.target.files && e.target.files[0]) setSelectedFile(e.target.files[0]); }} className="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-bold file:bg-[#FAF8F4] file:text-gray-700 hover:file:bg-gray-100 cursor-pointer" required />
+                {selectedFile && <p className="text-[10px] text-gray-400 font-semibold mt-1.5 truncate">Selected: {selectedFile.name}</p>}
               </div>
-
-              <button
-                type="submit"
-                disabled={publishing}
-                className="w-full py-3 bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs rounded-xl tracking-wider uppercase transition disabled:opacity-50"
-              >
+              <button type="submit" disabled={publishing} className="w-full py-3 bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs rounded-xl tracking-wider uppercase transition disabled:opacity-50">
                 {publishing ? 'Uploading Track...' : 'Upload Track'}
               </button>
             </form>
           </div>
 
-          {/* CREDENTIAL MANAGER PANEL */}
+          {/* CREDENTIAL COMPONENT */}
           <div className="bg-white rounded-[24px] border border-[#EFECE6] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.015)]">
             <h3 className="text-xs font-bold text-[#C4A482] uppercase tracking-widest mb-4">Studio Credentials</h3>
             {!editingProfile ? (
