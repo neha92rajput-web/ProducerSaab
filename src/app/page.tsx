@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function Home() {
+  const router = useRouter();
   const supabase = createClientComponentClient();
 
   // Dynamic state arrays synced to real database entries
@@ -13,8 +15,16 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadNetworkData() {
+    async function loadNetworkAndSessionData() {
       try {
+        // 1. Persistent Session Check: Auto-forward logged-in users straight to their workspace
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          router.replace('/dashboard');
+          return;
+        }
+
+        // 2. Fetch original trending track entries from your live sounds data index
         const { data: soundRecords } = await supabase
           .from('sounds')
           .select(`
@@ -31,6 +41,7 @@ export default function Home() {
           .limit(3);
         if (soundRecords) setRecentUploads(soundRecords);
 
+        // 3. Fetch original community creators profile entries
         const { data: profileRecords } = await supabase
           .from('profiles')
           .select('id, username, display_name, account_type')
@@ -44,8 +55,8 @@ export default function Home() {
         setLoading(false);
       }
     }
-    loadNetworkData();
-  }, []);
+    loadNetworkAndSessionData();
+  }, [router, supabase]);
 
   return (
     <div className="min-h-screen bg-[#F6F1EA] text-[#5A5550] font-sans antialiased selection:bg-[#E7DED3] selection:text-[#1C1B1A]">
@@ -111,7 +122,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* UPDATED: Increased top padding from pt-8 to pt-16 and added mt-4 to drop the dot indicators comfortably downward */}
             <div className="pt-16 mt-4 grid grid-cols-3 gap-6 max-w-xl text-left border-t border-[#1C1B1A]/10">
               <div className="space-y-1">
                 <h4 className="text-xs font-bold tracking-wide text-[#1C1B1A] flex items-center gap-1.5">
