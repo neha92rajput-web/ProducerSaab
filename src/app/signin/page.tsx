@@ -1,100 +1,118 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { createBrowserClient } from '@supabase/ssr';
+import { useState } from "react";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useRouter } from "next/navigation";
 
-const database = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-function AuthFormContent(): React.JSX.Element {
+export default function SignIn() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
   const router = useRouter();
-  const searchParams = useSearchParams();
-  
-  const [view, setView] = useState<string>('signin'); 
-  const [username, setUsername] = useState<string>(''); 
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [confirmPassword, setConfirmPassword] = useState<string>('');
-  
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
-  
-  const [loading, setLoading] = useState<boolean>(false);
-  const [statusMessage, setStatusMessage] = useState<string>('');
-  const [isError, setIsError] = useState<boolean>(false);
-  const [emailSent, setEmailSent] = useState<boolean>(false);
 
-  useEffect(() => {
-    const urlView = searchParams.get('view');
-    if (urlView === 'signup') {
-      setView('signup');
-    } else if (urlView === 'forgot') {
-      setView('forgot');
-    } else {
-      setView('signin');
-    }
-  }, [searchParams]);
+  // Initialize the client-side Supabase manager
+  const database = createClientComponentClient();
 
-  const handleViewSwitch = (newView: 'signup' | 'signin' | 'forgot'): void => {
-    setStatusMessage('');
-    setEmailSent(false);
-    router.push(`${window.location.pathname}?view=${newView}`);
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setStatusMessage('');
-    setIsError(false);
+    setMessage("");
 
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanEmail = email.trim();
 
-    if (view === 'forgot') {
-      try {
-        const { error } = await database.auth.resetPasswordForEmail(cleanEmail, {
-          redirectTo: `${window.location.origin}/update-password`,
-        });
+    // Authenticate the user against your database instance
+    const { error } = await database.auth.signInWithPassword({
+      email: cleanEmail,
+      password: password,
+    });
 
-        if (error) throw error;
-        setEmailSent(true);
-        setStatusMessage('✉️ Reset link sent! Check your inbox.');
-      } catch (err: any) {
-        setIsError(true);
-        setStatusMessage(`❌ Error: ${err.message || 'Could not send reset link.'}`);
-      } finally {
-        setLoading(false);
-      }
-      return;
+    if (error) {
+      setMessage(`Authentication Error: ${error.message}`);
+    } else {
+      setMessage("Success! Redirecting to dashboard...");
+      router.refresh();
+      router.push("/"); 
     }
+    setLoading(false);
+  };
 
-    if (view === 'signup') {
-      const cleanHandle = username.trim().toLowerCase().replace(/\s+/g, '');
-      
-      if (password !== confirmPassword) {
-        setLoading(false);
-        setIsError(true);
-        setStatusMessage('❌ Passwords do not match!');
-        return;
-      }
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage("");
 
-      try {
-        const { data: existingUser } = await database
-          .from('profiles')
-          .select('username')
-          .eq('username', cleanHandle)
-          .maybeSingle();
+    const cleanEmail = email.trim();
 
-        if (existingUser) {
-          setLoading(false);
-          setIsError(true);
-          setStatusMessage(`❌ The handle @${cleanHandle} is already taken!`);
-          return;
-        }
+    // Register a new user profile securely inside Supabase Auth
+    const { error } = await database.auth.signUp({
+      email: cleanEmail,
+      password: password,
+      options: {
+        emailRedirectTo: `${location.origin}/auth/callback`,
+      },
+    });
 
-        const { error } = await database.auth.signUp({
-          email: cleanEmail,
-          password: password,
-          options:
+    if (error) {
+      setMessage(`Registration Error: ${error.message}`);
+    } else {
+      setMessage("Account created! Check your email inbox for the verification link.");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", fontFamily: "sans-serif" }}>
+      <div style={{ maxWidth: "400px", width: "100%", padding: "2rem", border: "1px solid #ccc", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }}>
+        <h2 style={{ textAlign: "center", marginBottom: "1.5rem" }}>ProducerSaab Gate</h2>
+        
+        <form onSubmit={handleSignIn} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div>
+            <label style={{ display: "block", marginBottom: "0.5rem" }}>Email Address</label>
+            <input 
+              type="email" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              required 
+              style={{ width: "100%", padding: "0.5rem", borderRadius: "4px", border: "1px solid #ccc" }}
+            />
+          </div>
+          
+          <div>
+            <label style={{ display: "block", marginBottom: "0.5rem" }}>Password</label>
+            <input 
+              type="password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+              style={{ width: "100%", padding: "0.5rem", borderRadius: "4px", border: "1px solid #ccc" }}
+            />
+          </div>
+
+          <button 
+            type="submit" 
+            disabled={loading}
+            style={{ padding: "0.75rem", backgroundColor: "#0070f3", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}
+          >
+            {loading ? "Processing..." : "Sign In"}
+          </button>
+
+          <button 
+            type="button"
+            onClick={handleSignUp}
+            disabled={loading}
+            style={{ padding: "0.75rem", backgroundColor: "#10b981", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}
+          >
+            Create Account (Sign Up)
+          </button>
+        </form>
+
+        {message && (
+          <p style={{ marginTop: "1rem", padding: "0.5rem", backgroundColor: "#f3f4f6", borderRadius: "4px", fontSize: "0.9rem", textAlign: "center", color: message.includes("Error") ? "red" : "green" }}>
+            {message}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
