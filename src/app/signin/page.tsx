@@ -2,19 +2,14 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-// DELETE THESE LINES:
-// import { createClient } from '@supabase/supabase-js';
-// const database = createClient(supabaseUrl, supabaseAnonKey);
-
-// PASTE THIS INSTEAD:
+// Modern SSR Browser Client import
 import { createBrowserClient } from '@supabase/ssr';
 
+// Initialize the clean modern client (automatically writes cookie data)
 const database = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const database = createClient(supabaseUrl, supabaseAnonKey);
 
 function AuthFormContent() {
   const router = useRouter();
