@@ -21,7 +21,6 @@ export default function StudioWorkspace() {
     async function init() {
       const { data: { user } } = await database.auth.getUser();
       if (!user) { router.replace('/signin'); return; }
-      
       const { data: p } = await database.from('profiles').select('*').eq('id', user.id).single();
       setProfile(p || {});
       setLoading(false);
@@ -29,6 +28,7 @@ export default function StudioWorkspace() {
     init();
   }, [router]);
 
+  // Fetch sounds
   useEffect(() => {
     async function fetchSounds() {
       if (!profile.id) return;
@@ -40,101 +40,63 @@ export default function StudioWorkspace() {
       setSounds(data || []);
     }
     fetchSounds();
-  }, [activeTab, profile.id, database]);
-
-  const handleSignOut = async () => {
-    await database.auth.signOut();
-    router.push('/');
-  };
+  }, [activeTab, profile.id]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
+    const fileName = `${Math.random()}.${fileExt}`;
     
+    // Upload to 'audio' bucket
     const { error: uploadError } = await database.storage
-      .from('audio')
+      .from('audio') 
       .upload(fileName, file);
 
-    if (uploadError) { alert(uploadError.message); return; }
+    if (uploadError) { 
+      alert("Upload failed: " + uploadError.message); 
+      return; 
+    }
 
-    const { data: publicUrl } = database.storage.from('audio').getPublicUrl(fileName);
+    const { data: urlData } = database.storage.from('audio').getPublicUrl(fileName);
     
     await database.from('sounds').insert({
       profile_id: profile.id,
       title: file.name,
       category: activeTab,
-      audio_url: publicUrl.publicUrl
+      audio_url: urlData.publicUrl
     });
 
     const { data: newSounds } = await database.from('sounds').select('*').eq('profile_id', profile.id).eq('category', activeTab);
     setSounds(newSounds || []);
   };
 
-  const saveProfile = async (field: string, value: string) => {
-    setProfile((prev: any) => ({ ...prev, [field]: value }));
-    await database.from('profiles').update({ [field]: value }).eq('id', profile.id);
-  };
-
-  const fields = [
-    { key: 'networks', label: 'Add networks...', icon: '🔗' },
-    { key: 'instruments', label: 'Add instruments...', icon: '🎹' },
-    { key: 'software', label: 'Add software...', icon: '💻' },
-    { key: 'country', label: 'Add country...', icon: '🌍' },
-    { key: 'city', label: 'Add city...', icon: '📍' },
-  ];
-
   if (loading) return null;
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] p-6">
       <div className="max-w-4xl mx-auto">
-        
-        {/* Navigation */}
         <div className="flex justify-end gap-6 mb-4 text-[13px] font-bold text-[#191919]">
           <button onClick={() => router.push('/studio')} className="hover:opacity-70">My Studio</button>
           <button onClick={() => router.push('/')} className="hover:opacity-70">Community</button>
-          <button onClick={handleSignOut} className="text-[#A4927A] hover:text-[#191919]">Leave Studio</button>
+          <button onClick={() => { database.auth.signOut(); router.push('/'); }} className="text-[#A4927A] hover:text-[#191919]">Leave Studio</button>
         </div>
 
-        {/* Profile Banner */}
         <div className="bg-[#D7C9B7] rounded-[2rem] p-8 shadow-sm flex items-center gap-8 min-h-[250px]">
           <div className="w-28 h-28 bg-[#191919] rounded-full flex items-center justify-center text-white text-4xl italic font-serif flex-shrink-0">
             {String(profile.username || 'N').charAt(0).toUpperCase()}
           </div>
-          <div className="flex-grow space-y-4">
-            {isEditing ? (
-              <input defaultValue={profile.username} onBlur={(e) => saveProfile('username', e.target.value)} className="text-3xl font-black italic bg-white/50 p-2 rounded w-full focus:outline-none" />
-            ) : (
-              <h1 className="text-3xl font-black italic">{profile.username}</h1>
-            )}
-            <div className="space-y-2">
-              {fields.map((f) => (
-                <div key={f.key} className="flex items-center gap-2 text-sm text-[#4B3B2F]">
-                  <span>{f.icon}</span>
-                  {isEditing ? (
-                    <input defaultValue={profile[f.key] || ''} placeholder={f.label} onBlur={(e) => saveProfile(f.key, e.target.value)} className="bg-white/50 p-1 rounded w-full focus:outline-none" />
-                  ) : (
-                    <span>{profile[f.key] || f.label}</span>
-                  )}
-                </div>
-              ))}
-            </div>
+          <div className="flex-grow">
+            <h1 className="text-3xl font-black italic">{profile.username}</h1>
           </div>
         </div>
 
-        <button onClick={() => setIsEditing(!isEditing)} className="mt-6 px-6 py-2 border border-[#191919] rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-[#191919] hover:text-white transition">
-          {isEditing ? 'Finish Editing' : 'Edit Profile Options'}
-        </button>
-
-        {/* Tabbed Library */}
         <div className="mt-12">
           <div className="flex justify-between items-center border-b border-[#E3DEC1] mb-8 pb-1">
             <div className="flex gap-8">
               {['Loops', 'Tracks', 'Collaboration'].map((tab) => (
-                <button key={tab} onClick={() => setActiveTab(tab)} className={`pb-3 text-[11px] font-black uppercase tracking-widest transition-all border-b-2 ${activeTab === tab ? 'text-[#191919] border-[#191919]' : 'text-[#A4927A] border-transparent'}`}>
+                <button key={tab} onClick={() => setActiveTab(tab)} className={`pb-3 text-[11px] font-black uppercase tracking-widest border-b-2 ${activeTab === tab ? 'text-[#191919] border-[#191919]' : 'text-[#A4927A] border-transparent'}`}>
                   {tab}
                 </button>
               ))}
