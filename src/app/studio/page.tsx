@@ -57,22 +57,20 @@ export default function StudioWorkspace() {
 
       <div className="max-w-4xl mx-auto px-6 pt-6">
         
-        {/* Banner Section: Adjusted margin-top to keep banner high */}
-        <div className="relative mt-10 mb-16">
-          {/* Avatar anchored to top-left corner overlap */}
+        {/* Banner Section with mt-7 */}
+        <div className="relative mt-7 mb-16">
+          {/* Avatar anchored to top-left */}
           <div className="absolute -top-16 left-8 w-28 h-28 bg-[#191919] border-4 border-[#FDFBF7] rounded-full flex items-center justify-center text-white text-4xl italic font-serif shadow-lg z-10">
             {String(profile.display_name || 'N').charAt(0).toUpperCase()}
           </div>
           <div className="bg-[#D7C9B7] h-48 w-full rounded-[2rem]" />
         </div>
         
-        {/* Profile Info */}
         <div className="px-8 mb-10">
           <h1 className="text-3xl font-black italic font-serif">{profile.display_name}</h1>
           <p className="text-sm font-bold text-[#A4927A] uppercase tracking-widest mt-1">{profile.headline || 'MUSIC PRODUCER'}</p>
         </div>
 
-        {/* Content Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 px-8">
           <div className="md:col-span-2 space-y-8">
             <h3 className="text-xs font-black uppercase tracking-widest border-b border-[#E3DEC1] pb-4">Featured Audio Drops</h3>
@@ -87,7 +85,6 @@ export default function StudioWorkspace() {
             ))}
           </div>
 
-          {/* Editable Sidebar */}
           <div className="space-y-8">
             {[ { key: 'about_me', label: 'About Me' }, { key: 'instruments', label: 'Instruments' }, { key: 'software', label: 'Software' } ].map((field) => (
               <section key={field.key}>
