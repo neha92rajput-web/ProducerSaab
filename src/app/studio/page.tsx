@@ -45,7 +45,6 @@ export default function StudioWorkspace() {
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#191919] font-sans antialiased pb-20">
       
-      {/* HEADER */}
       <nav className="sticky top-0 z-50 bg-[#FDFBF7]/90 backdrop-blur-md px-8 py-5 border-b border-[#E3DEC1] flex justify-between items-center">
         <span className="font-serif italic font-black text-lg text-[#4B3B2F]">PRODUCER SAAB</span>
         <div className="flex items-center gap-8">
@@ -56,26 +55,25 @@ export default function StudioWorkspace() {
         </div>
       </nav>
 
-      {/* MAIN CONTAINER */}
-      <div className="max-w-4xl mx-auto px-6 pt-6">
+      <div className="max-w-4xl mx-auto px-6 pt-20">
         
-        {/* BANNER SECTION: Relative parent allows absolute positioning of avatar */}
-        <div className="relative mt-24 mb-16">
+        {/* Banner Section matching image_898f02.png */}
+        <div className="relative mt-16 mb-16">
           <div className="bg-[#D7C9B7] h-48 w-full rounded-[2rem]" />
           
-          {/* Avatar anchored to top-left of the banner */}
-          <div className="absolute -top-16 left-8 w-28 h-28 bg-[#191919] border-4 border-[#FDFBF7] rounded-full flex items-center justify-center text-white text-4xl italic font-serif shadow-md">
+          {/* Avatar anchored to top-left corner overlap */}
+          <div className="absolute -top-16 left-8 w-28 h-28 bg-[#191919] border-4 border-[#FDFBF7] rounded-full flex items-center justify-center text-white text-4xl italic font-serif shadow-lg">
             {String(profile.display_name || 'N').charAt(0).toUpperCase()}
           </div>
         </div>
         
-        {/* Profile Info */}
+        {/* Name Section */}
         <div className="px-8 mb-10">
           <h1 className="text-3xl font-black italic font-serif">{profile.display_name}</h1>
           <p className="text-sm font-bold text-[#A4927A] uppercase tracking-widest mt-1">{profile.headline || 'MUSIC PRODUCER'}</p>
         </div>
 
-        {/* CONTENT GRID */}
+        {/* Content Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 px-8">
           <div className="md:col-span-2 space-y-8">
             <h3 className="text-xs font-black uppercase tracking-widest border-b border-[#E3DEC1] pb-4">Featured Audio Drops</h3>
@@ -90,7 +88,7 @@ export default function StudioWorkspace() {
             ))}
           </div>
 
-          {/* EDITABLE SIDEBAR */}
+          {/* Editable Sidebar */}
           <div className="space-y-8">
             {[ { key: 'about_me', label: 'About Me' }, { key: 'instruments', label: 'Instruments' }, { key: 'software', label: 'Software' } ].map((field) => (
               <section key={field.key}>
