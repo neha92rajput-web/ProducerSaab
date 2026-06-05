@@ -29,7 +29,6 @@ export default function StudioWorkspace() {
     init();
   }, [router]);
 
-  // Fetch sounds whenever tab or profile changes
   useEffect(() => {
     async function fetchSounds() {
       if (!profile.id) return;
@@ -70,7 +69,6 @@ export default function StudioWorkspace() {
       audio_url: publicUrl.publicUrl
     });
 
-    // Refresh sounds list
     const { data: newSounds } = await database.from('sounds').select('*').eq('profile_id', profile.id).eq('category', activeTab);
     setSounds(newSounds || []);
   };
@@ -94,14 +92,14 @@ export default function StudioWorkspace() {
     <div className="min-h-screen bg-[#FDFBF7] p-6">
       <div className="max-w-4xl mx-auto">
         
-        {/* Navigation Row */}
+        {/* Navigation */}
         <div className="flex justify-end gap-6 mb-4 text-[13px] font-bold text-[#191919]">
           <button onClick={() => router.push('/studio')} className="hover:opacity-70">My Studio</button>
           <button onClick={() => router.push('/')} className="hover:opacity-70">Community</button>
           <button onClick={handleSignOut} className="text-[#A4927A] hover:text-[#191919]">Leave Studio</button>
         </div>
 
-        {/* Banner Section */}
+        {/* Profile Banner */}
         <div className="bg-[#D7C9B7] rounded-[2rem] p-8 shadow-sm flex items-center gap-8 min-h-[250px]">
           <div className="w-28 h-28 bg-[#191919] rounded-full flex items-center justify-center text-white text-4xl italic font-serif flex-shrink-0">
             {String(profile.username || 'N').charAt(0).toUpperCase()}
@@ -131,32 +129,33 @@ export default function StudioWorkspace() {
           {isEditing ? 'Finish Editing' : 'Edit Profile Options'}
         </button>
 
-        {/* Library Section */}
+        {/* Tabbed Library */}
         <div className="mt-12">
-          <div className="flex justify-between items-end border-b border-[#E3DEC1] mb-6">
+          <div className="flex justify-between items-center border-b border-[#E3DEC1] mb-8 pb-1">
             <div className="flex gap-8">
               {['Loops', 'Tracks', 'Collaboration'].map((tab) => (
-                <button key={tab} onClick={() => setActiveTab(tab)} className={`pb-3 text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'text-[#191919] border-b-2 border-[#191919]' : 'text-[#A4927A]'}`}>
+                <button key={tab} onClick={() => setActiveTab(tab)} className={`pb-3 text-[11px] font-black uppercase tracking-widest transition-all border-b-2 ${activeTab === tab ? 'text-[#191919] border-[#191919]' : 'text-[#A4927A] border-transparent'}`}>
                   {tab}
                 </button>
               ))}
             </div>
-            <label className="cursor-pointer bg-[#191919] text-white px-4 py-1.5 rounded-full text-[9px] font-black uppercase hover:bg-[#4B3B2F] mb-3">
-              + Upload Audio
-              <input type="file" accept="audio/*" onChange={handleUpload} className="hidden" />
-            </label>
+            {(activeTab === 'Loops' || activeTab === 'Tracks') && (
+              <label className="cursor-pointer bg-[#191919] text-white px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-[#4B3B2F] transition-all">
+                + Upload Audio
+                <input type="file" accept="audio/*" onChange={handleUpload} className="hidden" />
+              </label>
+            )}
           </div>
 
           <div className="grid gap-3">
             {sounds.map((sound) => (
               <div key={sound.id} className="p-4 border border-[#E3DEC1] rounded-2xl flex justify-between items-center bg-white/50">
-                <span className="text-sm font-bold text-[#191919]">{sound.title}</span>
+                <span className="text-xs font-bold text-[#191919]">{sound.title}</span>
                 <audio controls src={sound.audio_url} className="h-8" />
               </div>
             ))}
           </div>
         </div>
-
       </div>
     </div>
   );
