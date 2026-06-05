@@ -14,6 +14,7 @@ export default function StudioWorkspace() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>({});
   const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState('Loops'); // NEW: Active tab state
 
   useEffect(() => {
     async function init() {
@@ -31,11 +32,6 @@ export default function StudioWorkspace() {
     router.push('/');
   };
 
-  const saveProfile = async (field: string, value: string) => {
-    setProfile((prev: any) => ({ ...prev, [field]: value }));
-    await database.from('profiles').update({ [field]: value }).eq('id', profile.id);
-  };
-
   const fields = [
     { key: 'networks', label: 'Add networks...', icon: '🔗' },
     { key: 'instruments', label: 'Add instruments...', icon: '🎹' },
@@ -50,7 +46,7 @@ export default function StudioWorkspace() {
     <div className="min-h-screen bg-[#FDFBF7] p-6">
       <div className="max-w-4xl mx-auto">
         
-        {/* Top Navigation */}
+        {/* Navigation Row */}
         <div className="flex justify-end gap-6 mb-4 text-[13px] font-bold text-[#191919]">
           <button onClick={() => router.push('/studio')} className="hover:opacity-70">My Studio</button>
           <button onClick={() => router.push('/')} className="hover:opacity-70">Community</button>
@@ -62,45 +58,46 @@ export default function StudioWorkspace() {
           <div className="w-28 h-28 bg-[#191919] rounded-full flex items-center justify-center text-white text-4xl italic font-serif flex-shrink-0">
             {String(profile.username || 'N').charAt(0).toUpperCase()}
           </div>
-          
           <div className="flex-grow space-y-4">
-            {isEditing ? (
-              <input 
-                defaultValue={profile.username} 
-                onBlur={(e) => saveProfile('username', e.target.value)} 
-                className="text-3xl font-black italic bg-white/50 p-2 rounded w-full focus:outline-none" 
-              />
-            ) : (
-              <h1 className="text-3xl font-black italic">{profile.username}</h1>
-            )}
-            
-            <div className="space-y-2">
+             <h1 className="text-3xl font-black italic">{profile.username}</h1>
+             <div className="space-y-2">
               {fields.map((f) => (
                 <div key={f.key} className="flex items-center gap-2 text-sm text-[#4B3B2F]">
                   <span>{f.icon}</span>
-                  {isEditing ? (
-                    <input 
-                      defaultValue={profile[f.key] || ''} 
-                      placeholder={f.label}
-                      onBlur={(e) => saveProfile(f.key, e.target.value)} 
-                      className="bg-white/50 p-1 rounded w-full focus:outline-none" 
-                    />
-                  ) : (
-                    <span>{profile[f.key] || f.label}</span>
-                  )}
+                  <span>{profile[f.key] || f.label}</span>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Smaller Edit Button */}
         <button 
           onClick={() => setIsEditing(!isEditing)} 
           className="mt-6 px-6 py-2 border border-[#191919] rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-[#191919] hover:text-white transition"
         >
           {isEditing ? 'Finish Editing' : 'Edit Profile Options'}
         </button>
+
+        {/* SUB-LIBRARY TABS */}
+        <div className="mt-12 border-b border-[#E3DEC1] flex gap-8">
+          {['Loops', 'Tracks', 'Collaboration'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`pb-3 text-xs font-black uppercase tracking-widest transition-all ${
+                activeTab === tab ? 'text-[#191919] border-b-2 border-[#191919]' : 'text-[#A4927A] hover:text-[#191919]'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content Display */}
+        <div className="mt-8">
+          <p className="text-[10px] uppercase font-bold text-[#A4927A]">Viewing {activeTab} Library</p>
+          {/* Add your conditional data fetching/mapping logic for each tab here */}
+        </div>
 
       </div>
     </div>
