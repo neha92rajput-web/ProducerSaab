@@ -14,12 +14,14 @@ export default function StudioWorkspace() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>({});
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState('Loops'); // NEW: Active tab state
+  const [activeTab, setActiveTab] = useState('Loops');
+  const [sounds, setSounds] = useState<any[]>([]);
 
   useEffect(() => {
     async function init() {
       const { data: { user } } = await database.auth.getUser();
       if (!user) { router.replace('/signin'); return; }
+      
       const { data: p } = await database.from('profiles').select('*').eq('id', user.id).single();
       setProfile(p || {});
       setLoading(false);
@@ -27,9 +29,55 @@ export default function StudioWorkspace() {
     init();
   }, [router]);
 
+  // Fetch sounds whenever tab or profile changes
+  useEffect(() => {
+    async function fetchSounds() {
+      if (!profile.id) return;
+      const { data } = await database
+        .from('sounds')
+        .select('*')
+        .eq('profile_id', profile.id)
+        .eq('category', activeTab);
+      setSounds(data || []);
+    }
+    fetchSounds();
+  }, [activeTab, profile.id, database]);
+
   const handleSignOut = async () => {
     await database.auth.signOut();
     router.push('/');
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    
+    const { error: uploadError } = await database.storage
+      .from('audio')
+      .upload(fileName, file);
+
+    if (uploadError) { alert(uploadError.message); return; }
+
+    const { data: publicUrl } = database.storage.from('audio').getPublicUrl(fileName);
+    
+    await database.from('sounds').insert({
+      profile_id: profile.id,
+      title: file.name,
+      category: activeTab,
+      audio_url: publicUrl.publicUrl
+    });
+
+    // Refresh sounds list
+    const { data: newSounds } = await database.from('sounds').select('*').eq('profile_id', profile.id).eq('category', activeTab);
+    setSounds(newSounds || []);
+  };
+
+  const saveProfile = async (field: string, value: string) => {
+    setProfile((prev: any) => ({ ...prev, [field]: value }));
+    await database.from('profiles').update({ [field]: value }).eq('id', profile.id);
   };
 
   const fields = [
@@ -59,44 +107,54 @@ export default function StudioWorkspace() {
             {String(profile.username || 'N').charAt(0).toUpperCase()}
           </div>
           <div className="flex-grow space-y-4">
-             <h1 className="text-3xl font-black italic">{profile.username}</h1>
-             <div className="space-y-2">
+            {isEditing ? (
+              <input defaultValue={profile.username} onBlur={(e) => saveProfile('username', e.target.value)} className="text-3xl font-black italic bg-white/50 p-2 rounded w-full focus:outline-none" />
+            ) : (
+              <h1 className="text-3xl font-black italic">{profile.username}</h1>
+            )}
+            <div className="space-y-2">
               {fields.map((f) => (
                 <div key={f.key} className="flex items-center gap-2 text-sm text-[#4B3B2F]">
                   <span>{f.icon}</span>
-                  <span>{profile[f.key] || f.label}</span>
+                  {isEditing ? (
+                    <input defaultValue={profile[f.key] || ''} placeholder={f.label} onBlur={(e) => saveProfile(f.key, e.target.value)} className="bg-white/50 p-1 rounded w-full focus:outline-none" />
+                  ) : (
+                    <span>{profile[f.key] || f.label}</span>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        <button 
-          onClick={() => setIsEditing(!isEditing)} 
-          className="mt-6 px-6 py-2 border border-[#191919] rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-[#191919] hover:text-white transition"
-        >
+        <button onClick={() => setIsEditing(!isEditing)} className="mt-6 px-6 py-2 border border-[#191919] rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-[#191919] hover:text-white transition">
           {isEditing ? 'Finish Editing' : 'Edit Profile Options'}
         </button>
 
-        {/* SUB-LIBRARY TABS */}
-        <div className="mt-12 border-b border-[#E3DEC1] flex gap-8">
-          {['Loops', 'Tracks', 'Collaboration'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-3 text-xs font-black uppercase tracking-widest transition-all ${
-                activeTab === tab ? 'text-[#191919] border-b-2 border-[#191919]' : 'text-[#A4927A] hover:text-[#191919]'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+        {/* Library Section */}
+        <div className="mt-12">
+          <div className="flex justify-between items-end border-b border-[#E3DEC1] mb-6">
+            <div className="flex gap-8">
+              {['Loops', 'Tracks', 'Collaboration'].map((tab) => (
+                <button key={tab} onClick={() => setActiveTab(tab)} className={`pb-3 text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'text-[#191919] border-b-2 border-[#191919]' : 'text-[#A4927A]'}`}>
+                  {tab}
+                </button>
+              ))}
+            </div>
+            <label className="cursor-pointer bg-[#191919] text-white px-4 py-1.5 rounded-full text-[9px] font-black uppercase hover:bg-[#4B3B2F] mb-3">
+              + Upload Audio
+              <input type="file" accept="audio/*" onChange={handleUpload} className="hidden" />
+            </label>
+          </div>
 
-        {/* Tab Content Display */}
-        <div className="mt-8">
-          <p className="text-[10px] uppercase font-bold text-[#A4927A]">Viewing {activeTab} Library</p>
-          {/* Add your conditional data fetching/mapping logic for each tab here */}
+          <div className="grid gap-3">
+            {sounds.map((sound) => (
+              <div key={sound.id} className="p-4 border border-[#E3DEC1] rounded-2xl flex justify-between items-center bg-white/50">
+                <span className="text-sm font-bold text-[#191919]">{sound.title}</span>
+                <audio controls src={sound.audio_url} className="h-8" />
+              </div>
+            ))}
+          </div>
         </div>
 
       </div>
