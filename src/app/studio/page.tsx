@@ -28,7 +28,7 @@ export default function StudioWorkspace() {
         database.from('sounds').select('*').eq('profile_id', user.id).order('created_at', { ascending: false })
       ]);
       
-      setProfile(p.data || { display_name: 'Studio User', location: '', networks: '', instruments: '', software: '' });
+      setProfile(p.data || { username: 'NewUser', networks: '', instruments: '', software: '' });
       setMySounds(s.data || []);
       setLoading(false);
     }
@@ -53,33 +53,39 @@ export default function StudioWorkspace() {
         </button>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-6 pt-6">
+      <div className="max-w-4xl mx-auto px-6">
         
-        {/* BANNER WITH EMBEDDED METADATA */}
-        <div className="relative mt-0 mb-16 bg-[#D7C9B7] rounded-[2rem] p-8 pb-12 shadow-sm">
-          {/* Avatar */}
-          <div className="absolute -top-16 left-8 w-28 h-28 bg-[#191919] border-4 border-[#FDFBF7] rounded-full flex items-center justify-center text-white text-4xl italic font-serif shadow-lg z-10">
-            {String(profile.display_name || 'N').charAt(0).toUpperCase()}
+        {/* BANNER SECTION: mt-0, Avatar Left-Middle */}
+        <div className="relative mt-0 mb-16 bg-[#D7C9B7] rounded-[2rem] p-8 shadow-sm flex items-center gap-8 min-h-[250px]">
+          
+          {/* Avatar at Left Edge and Middle */}
+          <div className="w-28 h-28 bg-[#191919] border-4 border-[#FDFBF7] rounded-full flex items-center justify-center text-white text-4xl italic font-serif shadow-lg flex-shrink-0">
+            {String(profile.username || 'N').charAt(0).toUpperCase()}
           </div>
 
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Left side: Name & Location */}
-            <div>
-              <h1 className="text-4xl font-black italic font-serif text-[#191919]">{profile.display_name}</h1>
-              {isEditing ? (
-                 <input defaultValue={profile.location} onBlur={(e) => saveProfile('location', e.target.value)} placeholder="Location" className="mt-2 bg-white/50 p-1 px-2 rounded text-xs font-bold uppercase tracking-widest w-full" />
-              ) : (
-                 <p className="text-xs font-bold text-[#4B3B2F] uppercase tracking-widest mt-2">{profile.location || 'Add Location'}</p>
-              )}
-            </div>
+          {/* Metadata Section */}
+          <div className="flex-grow space-y-4">
+            {isEditing ? (
+              <input 
+                defaultValue={profile.username} 
+                onBlur={(e) => saveProfile('username', e.target.value)} 
+                className="text-3xl font-black italic font-serif bg-transparent border-b border-black/20 w-full" 
+              />
+            ) : (
+              <h1 className="text-3xl font-black italic font-serif">{profile.username}</h1>
+            )}
 
-            {/* Right side: Networks, Instruments, Software */}
-            <div className="space-y-3 text-sm text-[#4B3B2F]">
+            <div className="space-y-2 text-sm text-[#4B3B2F]">
               {[ { key: 'networks', label: '🔗' }, { key: 'instruments', label: '🎹' }, { key: 'software', label: '💻' } ].map((item) => (
                 <div key={item.key} className="flex gap-2">
                   <span>{item.label}</span>
                   {isEditing ? (
-                    <input defaultValue={profile[item.key]} onBlur={(e) => saveProfile(item.key, e.target.value)} placeholder={item.key} className="bg-white/50 p-1 px-2 rounded w-full text-sm" />
+                    <input 
+                      defaultValue={profile[item.key]} 
+                      onBlur={(e) => saveProfile(item.key, e.target.value)} 
+                      placeholder={`Add ${item.key}...`} 
+                      className="bg-white/50 p-1 rounded w-full" 
+                    />
                   ) : (
                     <span>{profile[item.key] || `Add ${item.key}...`}</span>
                   )}
