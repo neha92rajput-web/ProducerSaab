@@ -392,7 +392,7 @@ export default function StudioWorkspace() {
           
           {viewMode === 'personal' ? (
             <>
-              {/* SPOTIFY RATIO CHRONO SCREEN BANNER */}
+              {/* SPOTIFY RATIO BANNER */}
               <div 
                 onMouseDown={handleBannerMouseDown} onMouseMove={handleBannerMouseMove} onMouseUp={handleBannerMouseUpOrLeave} onMouseLeave={handleBannerMouseUpOrLeave}
                 className="w-full h-[280px] bg-[#C9BFB2] bg-cover relative group cursor-move select-none shadow-inner border-b border-[#E3DEC1]"
@@ -421,7 +421,7 @@ export default function StudioWorkspace() {
                     <p className="text-xs font-bold uppercase tracking-widest text-[#9C8F7A]">{profile.company || 'Verified Platform Creator'} • <span className="text-[#736653]">{profile.location || 'Chandigarh, India'}</span></p>
                   </div>
 
-                  {/* 📊 DYNAMIC MATRIX REAL METRIC REPOSITORY STATS COUNTERS */}
+                  {/* DYNAMIC METRIC REPOSITORY COUNTERS */}
                   <div className="grid grid-cols-2 gap-3 bg-[#FAF7F2] border border-[#E3DEC1] p-3 rounded-2xl shadow-sm min-w-[200px]">
                     <div className="text-center px-4 border-r border-[#EADFCF]">
                       <span className="block font-serif font-black text-base text-[#4B3B2F]">{mySounds.length}</span>
@@ -470,49 +470,58 @@ export default function StudioWorkspace() {
                   {activeSubTab === 'tracks' && (
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-serif italic font-black text-xl text-[#211913]">Latest Catalog Tracks</h3>
+                        <h3 className="font-serif italic font-black text-lg text-[#211913]">Latest Catalog Tracks</h3>
                         <button onClick={() => setShareType(shareType === 'audio' ? 'none' : 'audio')} className="text-xs font-black uppercase bg-[#4B3B2F] text-white px-4 py-2 rounded-xl shadow">+ Bounce Track</button>
                       </div>
 
-                      {/* 🛠️ UPGRADED HIGH-DENSITY GRID LOOP CARDS PANEL */}
+                      {/* 👑 PREMIUM RESIZED COMPACT LIGHT EMBED LOOPS CARDS GRID */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {mySounds.length > 0 ? (
                           mySounds.map((track) => {
                             const isLiked = !!likedItems[track.id];
                             return (
-                              <div key={track.id} className="bg-[#1C1713] text-[#FAF7F2] rounded-2xl overflow-hidden shadow-md border border-[#302720] p-3.5 flex flex-col justify-between h-48 transition-all hover:border-[#52453A] animate-fadeIn relative group/loop">
+                              <div key={track.id} className="bg-[#FCFAF6] text-[#2C241E] rounded-2xl shadow-sm border border-[#E3DEC1] p-4 flex flex-col justify-between h-44 hover:shadow-md hover:border-[#C7BEA8] transition duration-200 animate-fadeIn relative group/loop">
                                 
-                                <button onClick={() => handleDeleteTrack(track.id)} className="absolute top-2.5 right-2.5 opacity-0 group-hover/loop:opacity-100 bg-red-950/80 hover:bg-red-700 text-red-200 font-bold rounded-md text-[9px] p-1 uppercase z-20 transition" title="Delete loop node">
+                                {/* Absolute Delete Trigger Node */}
+                                <button onClick={() => handleDeleteTrack(track.id)} className="absolute top-3 right-3 opacity-0 group-hover/loop:opacity-100 bg-[#FAF5EC] hover:bg-red-50 text-gray-400 hover:text-red-600 border border-[#E3DEC1] font-black rounded-lg text-[10px] w-6 h-6 flex items-center justify-center transition z-20" title="Delete loop">
                                   ✕
                                 </button>
 
-                                <div className="flex gap-2.5 items-start">
-                                  <div className="w-12 h-12 bg-gradient-to-br from-[#A37B55] to-[#4B3B2F] rounded-xl shadow flex items-center justify-center shrink-0 border border-white/10 relative overflow-hidden">
-                                    <button onClick={() => toggleMasterPlayback(track)} className="w-7 h-7 bg-white/95 rounded-full flex items-center justify-center text-black text-xs shadow-md transition transform hover:scale-105 relative z-10 font-black">
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-3">
+                                    {/* Glassmorphic Rounded Play Disk Wrapper */}
+                                    <button onClick={() => toggleMasterPlayback(track)} className="w-9 h-9 bg-[#4B3B2F] hover:bg-[#3D2F24] text-white rounded-full flex items-center justify-center shadow-md transition transform hover:scale-105 font-black text-xs shrink-0">
                                       {currentPlayingTrack?.id === track.id && isPlaying ? '‖' : '▶'}
                                     </button>
-                                  </div>
-
-                                  <div className="space-y-0.5 min-w-0">
-                                    <h5 className="font-serif font-black text-xs truncate text-amber-50 tracking-tight">{track.title}</h5>
-                                    <p className="text-[10px] text-[#A69581] font-bold truncate tracking-tight">{track.genre}</p>
-                                    <div className="flex gap-1 pt-0.5 text-[8px] font-black uppercase">
-                                      <span className="text-amber-400 bg-amber-950/40 px-1 rounded border border-amber-900/20">{track.bpm} BPM</span>
-                                      <span className="text-gray-400 bg-gray-800 px-1 rounded">{track.key || 'Am'}</span>
+                                    <div className="min-w-0 flex-1">
+                                      <h5 className="font-serif font-black text-sm truncate text-[#211913] tracking-tight">{track.title}</h5>
+                                      <p className="text-[10px] text-[#8C7E6B] font-bold uppercase tracking-wider">{track.genre}</p>
                                     </div>
                                   </div>
+
+                                  {/* Vibrant Light Audio Waveform Simulator Graph */}
+                                  <div className="h-10 w-full bg-[#FAF5EE] rounded-xl flex items-end justify-around px-2 py-1.5 border border-[#EADFCF] cursor-pointer" onClick={() => toggleMasterPlayback(track)}>
+                                    <div className="h-3 w-0.5 bg-[#DD833E]/60 rounded"></div>
+                                    <div className="h-6 w-0.5 bg-[#DD833E]/80 rounded"></div>
+                                    <div className="h-8 w-0.5 bg-[#DD833E] rounded"></div>
+                                    <div className="h-4 w-0.5 bg-[#DD833E]/80 rounded"></div>
+                                    <div className="h-7 w-0.5 bg-[#DD833E] rounded"></div>
+                                    <div className="h-2 w-0.5 bg-[#DD833E]/50 rounded"></div>
+                                    <div className="h-5 w-0.5 bg-[#DD833E]/70 rounded"></div>
+                                    <div className="h-8 w-0.5 bg-[#DD833E] rounded"></div>
+                                    <div className="h-3 w-0.5 bg-[#DD833E]/60 rounded"></div>
+                                  </div>
                                 </div>
 
-                                {/* Simplified streamlined waveform graphic bar rows */}
-                                <div className="h-8 w-full bg-[#120F0D] rounded-lg flex items-end justify-around px-2 py-1 border border-white/5 cursor-pointer relative" onClick={() => toggleMasterPlayback(track)}>
-                                  <div className="h-5 w-0.5 bg-amber-500/60 rounded"></div><div className="h-2 w-0.5 bg-amber-500/60 rounded"></div><div className="h-6 w-0.5 bg-amber-400/80 rounded"></div><div className="h-3 w-0.5 bg-amber-400/80 rounded"></div><div className="h-4 w-0.5 bg-amber-500/60 rounded"></div><div className="h-1 w-0.5 bg-amber-500/60 rounded"></div><div className="h-5 w-0.5 bg-amber-400/80 rounded"></div>
-                                </div>
-
-                                <div className="flex items-center justify-between border-t border-white/5 pt-1.5 text-[9px] font-black uppercase tracking-wider text-[#A69581] select-none">
-                                  <button onClick={() => toggleLocalLike(track.id)} className={`flex items-center gap-1 transition ${isLiked ? 'text-red-500' : 'hover:text-white'}`}>
+                                {/* Light Interactive Infrastructure Footer */}
+                                <div className="flex items-center justify-between border-t border-[#FAF5EE] pt-2 text-[10px] font-black uppercase tracking-widest text-[#8C7E6B] select-none">
+                                  <button onClick={() => toggleLocalLike(track.id)} className={`flex items-center gap-1.5 transition ${isLiked ? 'text-red-600 font-bold' : 'hover:text-[#211913]'}`}>
                                     {isLiked ? '❤️ 1' : '🤍 0'}
                                   </button>
-                                  <span className="text-[8px] text-gray-500 font-bold">Real Storage Node</span>
+                                  <div className="flex gap-1.5 text-[9px]">
+                                    <span className="bg-[#EFECE3] border border-[#E1D9C6] text-[#4B3B2F] px-1.5 py-0.5 rounded font-black">{track.bpm || '140'} BPM</span>
+                                    <span className="bg-[#EFECE3] border border-[#E1D9C6] text-[#4B3B2F] px-1.5 py-0.5 rounded font-black">{track.key || 'F#m'}</span>
+                                  </div>
                                 </div>
 
                               </div>
