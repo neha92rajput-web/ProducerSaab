@@ -48,15 +48,12 @@ export default function StudioWorkspace() {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Math.random()}.${fileExt}`;
     
-    // FIX: Changed 'audio' to 'audio-tracks' to match your dashboard
+    // Corrected bucket name: 'audio-tracks'
     const { error: uploadError } = await database.storage
       .from('audio-tracks') 
       .upload(fileName, file);
 
-    if (uploadError) { 
-      alert("Upload failed: " + uploadError.message); 
-      return; 
-    }
+    if (uploadError) { alert("Upload failed: " + uploadError.message); return; }
 
     const { data: urlData } = database.storage.from('audio-tracks').getPublicUrl(fileName);
     
@@ -71,26 +68,63 @@ export default function StudioWorkspace() {
     setSounds(newSounds || []);
   };
 
+  const saveProfile = async (field: string, value: string) => {
+    setProfile((prev: any) => ({ ...prev, [field]: value }));
+    await database.from('profiles').update({ [field]: value }).eq('id', profile.id);
+  };
+
+  const fields = [
+    { key: 'networks', label: 'Add networks...', icon: '🔗' },
+    { key: 'instruments', label: 'Add instruments...', icon: '🎹' },
+    { key: 'software', label: 'Add software...', icon: '💻' },
+    { key: 'country', label: 'Add country...', icon: '🌍' },
+    { key: 'city', label: 'Add city...', icon: '📍' },
+  ];
+
   if (loading) return null;
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] p-6">
       <div className="max-w-4xl mx-auto">
+        
+        {/* Navigation */}
         <div className="flex justify-end gap-6 mb-4 text-[13px] font-bold text-[#191919]">
           <button onClick={() => router.push('/studio')} className="hover:opacity-70">My Studio</button>
           <button onClick={() => router.push('/')} className="hover:opacity-70">Community</button>
           <button onClick={() => { database.auth.signOut(); router.push('/'); }} className="text-[#A4927A] hover:text-[#191919]">Leave Studio</button>
         </div>
 
+        {/* Profile Banner */}
         <div className="bg-[#D7C9B7] rounded-[2rem] p-8 shadow-sm flex items-center gap-8 min-h-[250px]">
           <div className="w-28 h-28 bg-[#191919] rounded-full flex items-center justify-center text-white text-4xl italic font-serif flex-shrink-0">
             {String(profile.username || 'N').charAt(0).toUpperCase()}
           </div>
-          <div className="flex-grow">
-            <h1 className="text-3xl font-black italic">{profile.username}</h1>
+          <div className="flex-grow space-y-4">
+            {isEditing ? (
+              <input defaultValue={profile.username} onBlur={(e) => saveProfile('username', e.target.value)} className="text-3xl font-black italic bg-white/50 p-2 rounded w-full focus:outline-none" />
+            ) : (
+              <h1 className="text-3xl font-black italic">{profile.username}</h1>
+            )}
+            <div className="space-y-2">
+              {fields.map((f) => (
+                <div key={f.key} className="flex items-center gap-2 text-sm text-[#4B3B2F]">
+                  <span>{f.icon}</span>
+                  {isEditing ? (
+                    <input defaultValue={profile[f.key] || ''} placeholder={f.label} onBlur={(e) => saveProfile(f.key, e.target.value)} className="bg-white/50 p-1 rounded w-full focus:outline-none" />
+                  ) : (
+                    <span>{profile[f.key] || f.label}</span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
+        <button onClick={() => setIsEditing(!isEditing)} className="mt-6 px-6 py-2 border border-[#191919] rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-[#191919] hover:text-white transition">
+          {isEditing ? 'Finish Editing' : 'Edit Profile Options'}
+        </button>
+
+        {/* Tabbed Library & Upload */}
         <div className="mt-12">
           <div className="flex justify-between items-center border-b border-[#E3DEC1] mb-8 pb-1">
             <div className="flex gap-8">
@@ -108,6 +142,7 @@ export default function StudioWorkspace() {
             )}
           </div>
 
+          {/* Sound List */}
           <div className="grid gap-3">
             {sounds.map((sound) => (
               <div key={sound.id} className="p-4 border border-[#E3DEC1] rounded-2xl flex justify-between items-center bg-white/50">
