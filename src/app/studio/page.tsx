@@ -55,19 +55,18 @@ export default function StudioWorkspace() {
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-6 pt-20">
+      <div className="max-w-4xl mx-auto px-6 pt-6">
         
-        {/* Banner Section matching image_898f02.png */}
-        <div className="relative mt-16 mb-16">
-          <div className="bg-[#D7C9B7] h-48 w-full rounded-[2rem]" />
-          
+        {/* Banner Section: Adjusted margin-top to keep banner high */}
+        <div className="relative mt-10 mb-16">
           {/* Avatar anchored to top-left corner overlap */}
-          <div className="absolute -top-16 left-8 w-28 h-28 bg-[#191919] border-4 border-[#FDFBF7] rounded-full flex items-center justify-center text-white text-4xl italic font-serif shadow-lg">
+          <div className="absolute -top-16 left-8 w-28 h-28 bg-[#191919] border-4 border-[#FDFBF7] rounded-full flex items-center justify-center text-white text-4xl italic font-serif shadow-lg z-10">
             {String(profile.display_name || 'N').charAt(0).toUpperCase()}
           </div>
+          <div className="bg-[#D7C9B7] h-48 w-full rounded-[2rem]" />
         </div>
         
-        {/* Name Section */}
+        {/* Profile Info */}
         <div className="px-8 mb-10">
           <h1 className="text-3xl font-black italic font-serif">{profile.display_name}</h1>
           <p className="text-sm font-bold text-[#A4927A] uppercase tracking-widest mt-1">{profile.headline || 'MUSIC PRODUCER'}</p>
