@@ -28,7 +28,6 @@ export default function StudioWorkspace() {
     init();
   }, [router]);
 
-  // Fetch sounds
   useEffect(() => {
     async function fetchSounds() {
       if (!profile.id) return;
@@ -49,9 +48,9 @@ export default function StudioWorkspace() {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Math.random()}.${fileExt}`;
     
-    // Upload to 'audio' bucket
+    // FIX: Changed 'audio' to 'audio-tracks' to match your dashboard
     const { error: uploadError } = await database.storage
-      .from('audio') 
+      .from('audio-tracks') 
       .upload(fileName, file);
 
     if (uploadError) { 
@@ -59,7 +58,7 @@ export default function StudioWorkspace() {
       return; 
     }
 
-    const { data: urlData } = database.storage.from('audio').getPublicUrl(fileName);
+    const { data: urlData } = database.storage.from('audio-tracks').getPublicUrl(fileName);
     
     await database.from('sounds').insert({
       profile_id: profile.id,
