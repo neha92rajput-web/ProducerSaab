@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 
@@ -11,80 +11,89 @@ export default function StudioWorkspace() {
   const database = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-    }
+    { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
   );
 
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const [mySounds, setMySounds] = useState<any[]>([]);
-  const [shareType, setShareType] = useState<'none' | 'post' | 'audio'>('none');
-  const [currentPlayingTrack, setCurrentPlayingTrack] = useState<any>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     async function init() {
       const { data: { user } } = await database.auth.getUser();
-      if (!user) { router.replace('/signin'); return; }
+      if (!user) { router.push('/signin'); return; }
       
       const { data: p } = await database.from('profiles').select('*').eq('id', user.id).maybeSingle();
       const { data: s } = await database.from('sounds').select('*').eq('profile_id', user.id).order('created_at', { ascending: false });
       
-      setProfile(p || { display_name: 'Artist Name', username: 'producer', headline: 'Professional Audio Designer.' });
+      setProfile(p || { display_name: '@dashboard Studio', headline: 'Welcome to my verified audio drops portfolio space.' });
       setMySounds(s || []);
       setLoading(false);
     }
     init();
   }, [router]);
 
-  if (loading || !profile) {
-    return <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center text-xs font-bold text-[#A4927A] tracking-widest uppercase">Loading Portfolio...</div>;
-  }
+  if (loading || !profile) return <div className="min-h-screen bg-[#FDFBF7]" />;
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-[#191919] font-sans antialiased pb-24">
-      {/* HEADER */}
-      <header className="sticky top-0 z-50 bg-[#FDFBF7]/80 backdrop-blur-md px-8 py-6 flex justify-between items-center">
-        <span className="font-serif italic font-black text-lg text-[#4B3B2F]">PRODUCER SAAB</span>
-        <button onClick={() => database.auth.signOut().then(() => router.push('/'))} className="text-[10px] font-black uppercase tracking-widest border border-[#D1C9B7] px-5 py-2 rounded-full hover:bg-black hover:text-white transition">Disconnect</button>
-      </header>
+    <div className="min-h-screen bg-[#FDFBF7] text-[#191919] font-sans antialiased">
+      
+      {/* TOP NAVIGATION BAR */}
+      <nav className="w-full bg-[#FDFBF7] border-b border-[#E3DEC1] px-8 py-4 flex justify-between items-center sticky top-0 z-50">
+        <span className="font-serif font-black italic text-lg">PRODUCER SAAB</span>
+        <div className="flex gap-4">
+          <button onClick={() => router.push('/community')} className="text-xs font-bold uppercase tracking-widest hover:text-[#A4927A]">Producer Community</button>
+          <button onClick={() => database.auth.signOut().then(() => router.push('/'))} className="text-xs font-bold uppercase tracking-widest hover:text-red-600">Signing off</button>
+        </div>
+      </nav>
 
-      {/* CENTERED COLUMN */}
-      <div className="max-w-3xl mx-auto px-6">
+      <div className="max-w-[1200px] mx-auto p-6 grid grid-cols-12 gap-8">
         
-        {/* CINEMATIC HERO */}
-        <div className="relative w-full h-[320px] bg-[#E3DEC1] rounded-[2rem] overflow-hidden shadow-sm mb-12">
-           <div className="absolute inset-0 bg-gradient-to-t from-[#FDFBF7] to-transparent z-10" />
-           <div className="absolute bottom-8 left-8 z-20 flex items-center gap-6">
-             <div className="w-28 h-28 rounded-full border-4 border-[#FDFBF7] bg-[#191919] flex items-center justify-center text-white text-4xl italic font-serif shadow-xl">
-               {profile.display_name.charAt(0)}
-             </div>
-             <div>
-               <h1 className="text-4xl font-black italic font-serif">{profile.display_name} <span className="text-xl align-top">✓</span></h1>
-               <p className="text-xs font-bold text-[#A4927A] uppercase tracking-widest mt-2">{profile.company || 'Music Producer'}</p>
-             </div>
+        {/* LEFT SIDEBAR (As seen in image_9adc24.jpg) */}
+        <aside className="col-span-2 space-y-8">
+           <div className="space-y-4">
+             <p className="text-[10px] font-black uppercase text-[#A4927A] tracking-widest">Browsing Profile</p>
+             <button className="flex items-center gap-2 text-sm font-medium">🏠 Return Home</button>
+             <button className="flex items-center gap-2 text-sm font-medium">🌐 Global Library</button>
            </div>
-        </div>
+        </aside>
 
-        {/* ACTIONS */}
-        <div className="flex gap-3 mb-12">
-          <button onClick={() => setShareType(shareType === 'audio' ? 'none' : 'audio')} className="bg-[#4B3B2F] text-white px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-[#3D2F24] transition">➕ Bounce Track</button>
-        </div>
+        {/* MAIN PROFILE AREA */}
+        <main className="col-span-7 space-y-8">
+          <div className="bg-white border border-[#E3DEC1] rounded-2xl shadow-sm overflow-hidden">
+             <div className="h-40 bg-gradient-to-r from-[#D7C9B7] to-[#BCAD98]" />
+             <div className="p-8">
+               <div className="w-24 h-24 bg-black rounded-full border-4 border-white -mt-20 mb-4" />
+               <h1 className="text-2xl font-black">{profile.display_name}</h1>
+               <p className="text-xs font-bold text-[#A4927A] uppercase mt-1">Music Producer • Verified Creator</p>
+               <p className="text-sm mt-4 text-[#54493D]">{profile.headline}</p>
+             </div>
+          </div>
+          
+          {/* TRACKS LIST */}
+          <div className="bg-white border border-[#E3DEC1] rounded-2xl p-8 shadow-sm">
+             <h3 className="font-black text-sm mb-4">Featured Tracks & Audio Drops</h3>
+             {mySounds.map(track => (
+               <div key={track.id} className="py-4 border-b border-[#E3DEC1]">
+                 <h4 className="font-bold text-sm">{track.title}</h4>
+                 <p className="text-[10px] text-gray-500 uppercase">{track.genre} • {track.bpm} BPM</p>
+               </div>
+             ))}
+          </div>
+        </main>
 
-        {/* TRACKS GRID */}
-        <div className="space-y-4">
-          <h3 className="text-xs font-black uppercase tracking-widest text-[#4B3B2F] mb-6 border-b border-[#E3DEC1] pb-4">Featured Audio Drops</h3>
-          {mySounds.map((track) => (
-            <div key={track.id} className="group flex items-center gap-6 py-4 border-b border-[#E3DEC1] hover:bg-[#F9F6F0] transition-colors">
-              <div className="w-16 h-16 bg-[#D7C9B7] rounded-lg shadow-sm flex items-center justify-center font-bold">▶</div>
-              <div className="flex-1">
-                <h4 className="font-serif font-bold text-xl">{track.title}</h4>
-                <p className="text-[10px] text-[#8C7E6B] font-mono uppercase tracking-widest">{track.bpm || '140'} BPM • {track.genre}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        {/* RIGHT SIDEBAR */}
+        <aside className="col-span-3 space-y-6">
+           <div className="bg-white border border-[#E3DEC1] p-6 rounded-2xl shadow-sm">
+             <h4 className="font-bold text-sm mb-2">Connect with Creator</h4>
+             <button className="w-full bg-black text-white py-2 rounded-full text-xs font-bold">+ Follow Artist</button>
+           </div>
+           <div className="bg-white border border-[#E3DEC1] p-6 rounded-2xl shadow-sm">
+             <h4 className="font-black text-[10px] uppercase text-[#A4927A] mb-2">Studio Credentials</h4>
+             <p className="text-xs">Handle: {profile.username}</p>
+           </div>
+        </aside>
+
       </div>
     </div>
   );
