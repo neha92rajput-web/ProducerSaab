@@ -31,6 +31,11 @@ export default function StudioWorkspace() {
     router.push('/');
   };
 
+  const saveProfile = async (field: string, value: string) => {
+    setProfile((prev: any) => ({ ...prev, [field]: value }));
+    await database.from('profiles').update({ [field]: value }).eq('id', profile.id);
+  };
+
   const fields = [
     { key: 'networks', label: 'Add networks...', icon: '🔗' },
     { key: 'instruments', label: 'Add instruments...', icon: '🎹' },
@@ -45,10 +50,10 @@ export default function StudioWorkspace() {
     <div className="min-h-screen bg-[#FDFBF7] p-6">
       <div className="max-w-4xl mx-auto">
         
-        {/* NEW NAVIGATION ROW */}
-        <div className="flex justify-end gap-6 mb-6 text-[10px] font-black uppercase tracking-widest text-[#191919]">
-          <button onClick={() => router.push('/studio')} className="hover:underline">My Studio</button>
-          <button onClick={() => router.push('/')} className="hover:underline">Community</button>
+        {/* Top Navigation */}
+        <div className="flex justify-end gap-6 mb-4 text-[13px] font-bold text-[#191919]">
+          <button onClick={() => router.push('/studio')} className="hover:opacity-70">My Studio</button>
+          <button onClick={() => router.push('/')} className="hover:opacity-70">Community</button>
           <button onClick={handleSignOut} className="text-[#A4927A] hover:text-[#191919]">Leave Studio</button>
         </div>
 
@@ -60,7 +65,11 @@ export default function StudioWorkspace() {
           
           <div className="flex-grow space-y-4">
             {isEditing ? (
-              <input defaultValue={profile.username} onBlur={(e) => { /* save logic */ }} className="text-3xl font-black italic bg-white/50 p-2 rounded w-full" />
+              <input 
+                defaultValue={profile.username} 
+                onBlur={(e) => saveProfile('username', e.target.value)} 
+                className="text-3xl font-black italic bg-white/50 p-2 rounded w-full focus:outline-none" 
+              />
             ) : (
               <h1 className="text-3xl font-black italic">{profile.username}</h1>
             )}
@@ -70,7 +79,12 @@ export default function StudioWorkspace() {
                 <div key={f.key} className="flex items-center gap-2 text-sm text-[#4B3B2F]">
                   <span>{f.icon}</span>
                   {isEditing ? (
-                    <input defaultValue={profile[f.key] || ''} placeholder={f.label} className="bg-white/50 p-1 rounded w-full" />
+                    <input 
+                      defaultValue={profile[f.key] || ''} 
+                      placeholder={f.label}
+                      onBlur={(e) => saveProfile(f.key, e.target.value)} 
+                      className="bg-white/50 p-1 rounded w-full focus:outline-none" 
+                    />
                   ) : (
                     <span>{profile[f.key] || f.label}</span>
                   )}
@@ -80,13 +94,14 @@ export default function StudioWorkspace() {
           </div>
         </div>
 
-        {/* Edit Button */}
+        {/* Smaller Edit Button */}
         <button 
           onClick={() => setIsEditing(!isEditing)} 
-          className="mt-6 px-6 py-2 border border-[#191919] rounded-full font-black text-xs uppercase tracking-widest hover:bg-[#191919] hover:text-white transition"
+          className="mt-6 px-6 py-2 border border-[#191919] rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-[#191919] hover:text-white transition"
         >
           {isEditing ? 'Finish Editing' : 'Edit Profile Options'}
         </button>
+
       </div>
     </div>
   );
