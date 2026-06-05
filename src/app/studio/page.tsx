@@ -66,7 +66,6 @@ export default function StudioWorkspace() {
   const globalAudioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Synchronize bottom audio element state hooks dynamically
     if (globalAudioPlayerRef.current) {
       if (isPlaying) {
         globalAudioPlayerRef.current.play().catch(() => setIsPlaying(false));
@@ -184,9 +183,11 @@ export default function StudioWorkspace() {
   }
 
   async function loadUserPersonalContent(userId: string) {
-    const { data: sounds } = await database.from('sounds').select('*').eq('profile_id', userId).order('created_at', { ascending: false });
+    const { data: sounds } = await database.from('sounds').select('*').eq('profile_id', userId)
+    .order('created_at', { ascending: false });
     if (sounds) setMySounds(sounds);
-    const { data: posts } = await database.from('posts').select('*').eq('profile_id', userId).order('created_at', { ascending: false });
+    const { data: posts } = await database.from('posts').select('*').eq('profile_id', userId)
+    .order('created_at', { ascending: false });
     if (posts) setMyPosts(posts);
   }
 
@@ -336,10 +337,11 @@ export default function StudioWorkspace() {
 
   if (loading || !profile) return <div className="min-h-screen bg-[#F9F6F0] flex items-center justify-center text-xs font-bold text-[#A4927A] tracking-widest uppercase">Opening Streaming Desk...</div>;
 
+  const userInitial = String(profile.display_name || profile.username || 'P').charAt(0).toUpperCase();
+
   return (
     <div className="min-h-screen bg-[#F6F3EC] text-[#2D2621] pb-28 font-sans antialiased relative">
       
-      {/* GLOBAL AUDIO NODE ELEMENT FOR STREAM BAR */}
       {currentPlayingTrack && (
         <audio ref={globalAudioPlayerRef} src={currentPlayingTrack.audio_url} onEnded={() => setIsPlaying(false)} className="hidden" />
       )}
@@ -347,7 +349,7 @@ export default function StudioWorkspace() {
       <input type="file" id="avatarFileSelector" accept="image/*" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleDirectImageUpload(e.target.files[0], 'avatar_url'); }} />
       <input type="file" id="coverFileSelector" accept="image/*" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleDirectImageUpload(e.target.files[0], 'cover_url'); }} />
 
-      {/* FIXED PLATFORM HEADER CONSOLE */}
+      {/* HEADER PLATFORM CONSOLE */}
       <header className="w-full bg-[#FAF7F2] border-b border-[#E3DEC1] sticky top-0 z-40 px-6 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-2 max-w-sm w-full">
           <span className="font-serif italic font-black text-lg tracking-tight text-[#4B3B2F] mr-4">PRODUCER SAAB</span>
@@ -361,10 +363,9 @@ export default function StudioWorkspace() {
         </div>
       </header>
 
-      {/* CORE TWO-COLUMN GRID SYSTEM PIPELINE */}
       <div className="max-w-[1440px] mx-auto flex min-h-screen relative">
         
-        {/* 1. LEFT NAVIGATION PANEL SIDEBAR */}
+        {/* SIDEBAR PANEL */}
         <aside className="w-64 border-r border-[#E3DEC1] p-6 hidden md:block space-y-8 bg-[#FAF7F2]/40">
           <div className="space-y-2">
             <span className="text-[10px] font-black uppercase tracking-widest text-[#9C8F7A] px-3 block">Navigation</span>
@@ -386,12 +387,12 @@ export default function StudioWorkspace() {
           </div>
         </aside>
 
-        {/* MAIN HUB INTERFACE MODULE */}
+        {/* MAIN HUD INTERFACE MODULE */}
         <main className="flex-1 pb-16 overflow-x-hidden">
           
           {viewMode === 'personal' ? (
             <>
-              {/* PROPORTIONATE DRAGGABLE STREAMING COVER AREA */}
+              {/* SPOTIFY RATIO BANNER */}
               <div 
                 onMouseDown={handleBannerMouseDown} onMouseMove={handleBannerMouseMove} onMouseUp={handleBannerMouseUpOrLeave} onMouseLeave={handleBannerMouseUpOrLeave}
                 className="w-full h-[280px] bg-[#C9BFB2] bg-cover relative group cursor-move select-none shadow-inner border-b border-[#E3DEC1]"
@@ -403,16 +404,14 @@ export default function StudioWorkspace() {
                 </div>
               </div>
 
-              {/* CENTER CONSOLE PROFILE CONTAINER BLOCK */}
+              {/* CORE PROFILE HERO DETAILS DISPLAY */}
               <div className="px-8 relative max-w-5xl mx-auto">
                 
-                {/* BRAND AVATAR DISK CONTROLLER */}
                 <label htmlFor="avatarFileSelector" className="w-28 h-28 bg-[#211913] border-4 border-[#FAF7F2] rounded-full absolute -top-14 left-8 overflow-hidden flex items-center justify-center shadow-xl cursor-pointer group z-20">
-                  {profile.avatar_url ? <img src={profile.avatar_url} className="w-full h-full object-cover" alt="Profile avatar picture" /> : <span className="text-white font-serif font-bold text-3xl italic">{userInitial}</span>}
+                  {profile.avatar_url ? <img src={profile.avatar_url} className="w-full h-full object-cover" alt="Avatar" /> : <span className="text-white font-serif font-bold text-3xl italic">{userInitial}</span>}
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[10px] font-black uppercase tracking-wider transition">📷 Upload</div>
                 </label>
 
-                {/* META INFO GRID GRID PRIMITIVE ARRAYS */}
                 <div className="pt-16 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-[#E3DEC1] pb-6">
                   <div className="space-y-1">
                     <div className="flex items-center gap-1.5">
@@ -422,28 +421,19 @@ export default function StudioWorkspace() {
                     <p className="text-xs font-bold uppercase tracking-widest text-[#9C8F7A]">{profile.company || 'Verified Platform Creator'} • <span className="text-[#736653]">{profile.location || 'Chandigarh, India'}</span></p>
                   </div>
 
-                  {/* 📊 PLATFORM STATISTICS COUNTER LAYER MATRICES */}
-                  <div className="grid grid-cols-4 gap-3 bg-[#FAF7F2] border border-[#E3DEC1] p-3 rounded-2xl shadow-sm">
-                    <div className="text-center px-2 border-r border-[#EADFCF]">
+                  {/* DYNAMIC METRIC REPOSITORY COUNTERS */}
+                  <div className="grid grid-cols-2 gap-3 bg-[#FAF7F2] border border-[#E3DEC1] p-3 rounded-2xl shadow-sm min-w-[200px]">
+                    <div className="text-center px-4 border-r border-[#EADFCF]">
                       <span className="block font-serif font-black text-base text-[#4B3B2F]">{mySounds.length}</span>
                       <span className="text-[9px] font-black uppercase tracking-wider text-[#A19582]">Tracks</span>
                     </div>
-                    <div className="text-center px-2 border-r border-[#EADFCF]">
-                      <span className="block font-serif font-black text-base text-[#4B3B2F]">8.6K</span>
-                      <span className="text-[9px] font-black uppercase tracking-wider text-[#A19582]">Followers</span>
-                    </div>
-                    <div className="text-center px-2 border-r border-[#EADFCF]">
-                      <span className="block font-serif font-black text-base text-[#4B3B2F]">312</span>
-                      <span className="text-[9px] font-black uppercase tracking-wider text-[#A19582]">Following</span>
-                    </div>
-                    <div className="text-center px-2">
-                      <span className="block font-serif font-black text-base text-[#4B3B2F]">221K</span>
-                      <span className="text-[9px] font-black uppercase tracking-wider text-[#A19582]">Plays</span>
+                    <div className="text-center px-4">
+                      <span className="block font-serif font-black text-base text-[#4B3B2F]">{myPosts.length}</span>
+                      <span className="text-[9px] font-black uppercase tracking-wider text-[#A19582]">Thoughts</span>
                     </div>
                   </div>
                 </div>
 
-                {/* LOCAL REPOSITORY INPUT DRAWER HUB PIPELINE */}
                 <div className="mt-4">
                   <div className="flex gap-2 bg-[#FAF7F2] p-2 rounded-2xl border border-[#E3DEC1] w-max">
                     <button onClick={() => { setActiveSubTab('tracks'); setShareType('none'); }} className={`px-5 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition ${activeSubTab === 'tracks' ? 'bg-[#4B3B2F] text-white shadow' : 'text-[#706456] hover:bg-[#EFECE3]'}`}>Tracks Index</button>
@@ -477,59 +467,68 @@ export default function StudioWorkspace() {
                     </div>
                   )}
 
-                  {/* SUBTAB ROUTER CONDITIONAL RENDERERS */}
                   {activeSubTab === 'tracks' && (
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-serif italic font-black text-xl text-[#211913]">Latest Catalog Tracks</h3>
+                        <h3 className="font-serif italic font-black text-lg text-[#211913]">Latest Catalog Tracks</h3>
                         <button onClick={() => setShareType(shareType === 'audio' ? 'none' : 'audio')} className="text-xs font-black uppercase bg-[#4B3B2F] text-white px-4 py-2 rounded-xl shadow">+ Bounce Track</button>
                       </div>
 
-                      {/* 👑 ACCENTUATED HIGH-END MUSIC GRID OF LOOPS CARDS */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      {/* 👑 PREMIUM RESIZED COMPACT LIGHT EMBED LOOPS CARDS GRID */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {mySounds.length > 0 ? (
                           mySounds.map((track) => {
                             const isLiked = !!likedItems[track.id];
                             return (
-                              <div key={track.id} className="bg-[#1C1713] text-[#FAF7F2] rounded-3xl overflow-hidden shadow-xl border border-[#302720] p-4 flex flex-col justify-between h-72 animate-fadeIn relative group/loop">
+                              <div key={track.id} className="bg-[#FCFAF6] text-[#2C241E] rounded-2xl shadow-sm border border-[#E3DEC1] p-4 flex flex-col justify-between h-44 hover:shadow-md hover:border-[#C7BEA8] transition duration-200 animate-fadeIn relative group/loop">
                                 
-                                <div className="absolute right-3 top-3 opacity-0 group-hover/loop:opacity-100 flex gap-1 z-20 transition">
-                                  <button onClick={() => handleDeleteTrack(track.id)} className="bg-red-900/80 hover:bg-red-700 text-white font-black rounded-lg text-[9px] px-2 py-1 uppercase">🗑️</button>
-                                </div>
+                                {/* Absolute Delete Trigger Node */}
+                                <button onClick={() => handleDeleteTrack(track.id)} className="absolute top-3 right-3 opacity-0 group-hover/loop:opacity-100 bg-[#FAF5EC] hover:bg-red-50 text-gray-400 hover:text-red-600 border border-[#E3DEC1] font-black rounded-lg text-[10px] w-6 h-6 flex items-center justify-center transition z-20" title="Delete loop">
+                                  ✕
+                                </button>
 
-                                <div className="flex gap-3 items-start">
-                                  {/* Dynamic cover art graphic box layout primitives */}
-                                  <div className="w-20 h-20 bg-gradient-to-br from-[#A37B55] to-[#4B3B2F] rounded-2xl shadow flex items-center justify-center shrink-0 border border-white/10 relative overflow-hidden">
-                                    <div className="absolute inset-0 opacity-40 bg-cover bg-center" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=150&auto=format&fit=crop&q=60')` }} />
-                                    <button onClick={() => toggleMasterPlayback(track)} className="w-9 h-9 bg-white/90 rounded-full flex items-center justify-center text-black font-bold shadow-md hover:scale-105 transition relative z-10">
-                                      {currentPlayingTrack?.id === track.id && isPlaying ? '⏸' : '▶'}
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-3">
+                                    {/* Glassmorphic Rounded Play Disk Wrapper */}
+                                    <button onClick={() => toggleMasterPlayback(track)} className="w-9 h-9 bg-[#4B3B2F] hover:bg-[#3D2F24] text-white rounded-full flex items-center justify-center shadow-md transition transform hover:scale-105 font-black text-xs shrink-0">
+                                      {currentPlayingTrack?.id === track.id && isPlaying ? '‖' : '▶'}
                                     </button>
+                                    <div className="min-w-0 flex-1">
+                                      <h5 className="font-serif font-black text-sm truncate text-[#211913] tracking-tight">{track.title}</h5>
+                                      <p className="text-[10px] text-[#8C7E6B] font-bold uppercase tracking-wider">{track.genre}</p>
+                                    </div>
                                   </div>
 
-                                  <div className="space-y-1 min-w-0">
-                                    <span className="text-[9px] font-black uppercase tracking-wider text-amber-400 bg-amber-950/50 px-2 py-0.5 rounded border border-amber-900/30">Master Bounce</span>
-                                    <h5 className="font-serif font-black text-sm truncate text-amber-50 pt-1">{track.title}</h5>
-                                    <p className="text-[10px] text-[#A69581] font-medium tracking-tight truncate">Scale: {track.key || 'F# Minor'} • Genre: {track.genre}</p>
+                                  {/* Vibrant Light Audio Waveform Simulator Graph */}
+                                  <div className="h-10 w-full bg-[#FAF5EE] rounded-xl flex items-end justify-around px-2 py-1.5 border border-[#EADFCF] cursor-pointer" onClick={() => toggleMasterPlayback(track)}>
+                                    <div className="h-3 w-0.5 bg-[#DD833E]/60 rounded"></div>
+                                    <div className="h-6 w-0.5 bg-[#DD833E]/80 rounded"></div>
+                                    <div className="h-8 w-0.5 bg-[#DD833E] rounded"></div>
+                                    <div className="h-4 w-0.5 bg-[#DD833E]/80 rounded"></div>
+                                    <div className="h-7 w-0.5 bg-[#DD833E] rounded"></div>
+                                    <div className="h-2 w-0.5 bg-[#DD833E]/50 rounded"></div>
+                                    <div className="h-5 w-0.5 bg-[#DD833E]/70 rounded"></div>
+                                    <div className="h-8 w-0.5 bg-[#DD833E] rounded"></div>
+                                    <div className="h-3 w-0.5 bg-[#DD833E]/60 rounded"></div>
                                   </div>
                                 </div>
 
-                                {/* Simulated grid waveform placeholder visual arrays */}
-                                <div className="h-16 w-full bg-[#120F0D] rounded-xl flex items-end justify-around px-2 py-1 border border-white/5 relative group/wave cursor-pointer" onClick={() => toggleMasterPlayback(track)}>
-                                  <div className="h-10 w-0.5 bg-amber-500/70 rounded"></div><div className="h-4 w-0.5 bg-amber-500/70 rounded"></div><div className="h-12 w-0.5 bg-amber-400/90 rounded"></div><div className="h-7 w-0.5 bg-amber-400/90 rounded"></div><div className="h-9 w-0.5 bg-amber-500/70 rounded"></div><div className="h-3 w-0.5 bg-amber-500/70 rounded"></div><div className="h-11 w-0.5 bg-amber-500/70 rounded"></div><div className="h-6 w-0.5 bg-amber-400/90 rounded"></div><div className="h-14 w-0.5 bg-amber-400 rounded"></div><div className="h-8 w-0.5 bg-amber-500/70 rounded"></div><div className="h-4 w-0.5 bg-amber-500/70 rounded"></div>
-                                </div>
-
-                                <div className="flex items-center justify-between border-t border-white/10 pt-2 text-[10px] font-black uppercase tracking-wider text-[#A69581] select-none">
-                                  <button onClick={() => toggleLocalLike(track.id)} className={`flex items-center gap-1 transition ${isLiked ? 'text-red-500 scale-105' : 'hover:text-white'}`}>
+                                {/* Light Interactive Infrastructure Footer */}
+                                <div className="flex items-center justify-between border-t border-[#FAF5EE] pt-2 text-[10px] font-black uppercase tracking-widest text-[#8C7E6B] select-none">
+                                  <button onClick={() => toggleLocalLike(track.id)} className={`flex items-center gap-1.5 transition ${isLiked ? 'text-red-600 font-bold' : 'hover:text-[#211913]'}`}>
                                     {isLiked ? '❤️ 1' : '🤍 0'}
                                   </button>
-                                  <span className="text-[#6E6354]">{track.bpm || '140'} BPM</span>
+                                  <div className="flex gap-1.5 text-[9px]">
+                                    <span className="bg-[#EFECE3] border border-[#E1D9C6] text-[#4B3B2F] px-1.5 py-0.5 rounded font-black">{track.bpm || '140'} BPM</span>
+                                    <span className="bg-[#EFECE3] border border-[#E1D9C6] text-[#4B3B2F] px-1.5 py-0.5 rounded font-black">{track.key || 'F#m'}</span>
+                                  </div>
                                 </div>
 
                               </div>
                             );
                           })
                         ) : (
-                          <div className="col-span-2 text-center py-12 border-2 border-dashed border-[#D1C9B7] rounded-3xl text-xs italic text-[#8A7F6E]">Your music archive index cells are currently empty.</div>
+                          <div className="col-span-full text-center py-12 border-2 border-dashed border-[#D1C9B7] rounded-3xl text-xs italic text-[#8A7F6E]">Your music archive index cells are currently empty.</div>
                         )}
                       </div>
                     </div>
@@ -570,7 +569,6 @@ export default function StudioWorkspace() {
               </div>
             </>
           ) : (
-            /* COMMUNITY SHARED MATRIX CHRONOLOGICAL LOG VIEWER */
             <div className="p-8 space-y-4 max-w-4xl mx-auto animate-fadeIn">
               <div className="bg-[#4B3B2F] border border-[#3A2E24] rounded-3xl p-6 text-white shadow-xl">
                 <h3 className="font-serif italic font-black text-xl text-amber-50">🌐 Producer Community Broadcast Line</h3>
@@ -615,36 +613,27 @@ export default function StudioWorkspace() {
 
         </main>
 
-        {/* 2. RIGHT SIDEBAR USER DATA COMPONENT MODULE */}
+        {/* RIGHT SIDEBAR PANEL */}
         <aside className="w-80 border-l border-[#E3DEC1] p-6 hidden lg:block space-y-6 bg-[#FAF7F2]/20 shrink-0">
-          
-          {/* About Widget Panel Box Wrapper */}
           <div className="bg-white border border-[#E3DEC1] p-5 rounded-2xl shadow-sm space-y-2.5">
             <h4 className="text-[10px] font-black uppercase tracking-widest text-[#9C8F7A]">✨ About Producer</h4>
             <p className="text-xs text-[#54493D] font-medium leading-relaxed">
               {profile.headline || 'Electronic music producer specializing in Trap, Lo-fi and Experimental sounds.'}
             </p>
-            <div className="flex flex-wrap gap-1 pt-1">
-              <span className="bg-[#F5EFEB] text-[#5C4531] text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border">Trap</span>
-              <span className="bg-[#F5EFEB] text-[#5C4531] text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border">Lo-Fi</span>
-              <span className="bg-[#F5EFEB] text-[#5C4531] text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border">Experimental</span>
-            </div>
           </div>
 
-          {/* Trending Panel Node */}
           <div className="bg-white border border-[#E3DEC1] p-5 rounded-2xl shadow-sm space-y-3.5">
             <h4 className="text-[10px] font-black uppercase tracking-widest text-[#9C8F7A]">🔥 Trending Verified Producers</h4>
             <div className="space-y-3">
               <div className="flex items-center justify-between text-xs"><div className="flex items-center gap-2"><div className="w-7 h-7 rounded-lg bg-gray-300 overflow-hidden"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop" className="w-full h-full object-cover" /></div><div><span className="block font-serif font-black">Jay Beats</span><span className="text-[9px] text-gray-400 block font-sans">@jaybeats</span></div></div><button className="text-[9px] font-black uppercase tracking-wider border px-2.5 py-1 rounded-full bg-[#EFECE3]">Follow</button></div>
               <div className="flex items-center justify-between text-xs"><div className="flex items-center gap-2"><div className="w-7 h-7 rounded-lg bg-gray-300 overflow-hidden"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop" className="w-full h-full object-cover" /></div><div><span className="block font-serif font-black">Karan On The Beat</span><span className="text-[9px] text-gray-400 block font-sans">@karanonthebeat</span></div></div><button className="text-[9px] font-black uppercase tracking-wider border px-2.5 py-1 rounded-full bg-[#EFECE3]">Follow</button></div>
-              <div className="flex items-center justify-between text-xs"><div className="flex items-center gap-2"><div className="w-7 h-7 rounded-lg bg-gray-300 overflow-hidden"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop" className="w-full h-full object-cover" /></div><div><span className="block font-serif font-black">Mystic Soundz</span><span className="text-[9px] text-gray-400 block font-sans">@mysticsoundz</span></div></div><button className="text-[9px] font-black uppercase tracking-wider border px-2.5 py-1 rounded-full bg-[#EFECE3]">Follow</button></div>
             </div>
           </div>
         </aside>
 
       </div>
 
-      {/* 3. FIXED BOTTOM MEDIA PLAYER BAR ACTION BLOCK CONTROLLER */}
+      {/* FIXED BOTTOM STREAM CONTROLLER */}
       <footer className="w-full bg-[#1C1713]/95 text-[#FAF7F2] backdrop-blur-md border-t-2 border-[#383028] fixed bottom-0 left-0 z-50 p-4 shadow-xl">
         <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-6">
           
