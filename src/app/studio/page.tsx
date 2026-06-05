@@ -59,12 +59,12 @@ export default function StudioWorkspace() {
       {/* MAIN CONTAINER */}
       <div className="max-w-4xl mx-auto px-6 pt-6">
         
-        {/* BANNER SECTION WITH ABSOLUTE AVATAR */}
-        <div className="relative mb-24">
+        {/* BANNER SECTION: Relative parent allows absolute positioning of avatar */}
+        <div className="relative mt-24 mb-16">
           <div className="bg-[#D7C9B7] h-48 w-full rounded-[2rem]" />
           
-          {/* Avatar positioned at the top of the banner/name intersection */}
-          <div className="absolute -bottom-16 left-8 w-28 h-28 bg-[#191919] border-4 border-[#FDFBF7] rounded-full flex items-center justify-center text-white text-4xl italic font-serif">
+          {/* Avatar anchored to top-left of the banner */}
+          <div className="absolute -top-16 left-8 w-28 h-28 bg-[#191919] border-4 border-[#FDFBF7] rounded-full flex items-center justify-center text-white text-4xl italic font-serif shadow-md">
             {String(profile.display_name || 'N').charAt(0).toUpperCase()}
           </div>
         </div>
