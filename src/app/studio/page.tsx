@@ -36,8 +36,9 @@ export default function StudioWorkspace() {
   }, [router]);
 
   const saveProfile = async (field: string, value: string) => {
+    // Optimistically update
+    setProfile(prev => ({ ...prev, [field]: value }));
     await database.from('profiles').update({ [field]: value }).eq('id', profile.id);
-    setProfile({ ...profile, [field]: value });
   };
 
   if (loading) return <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center text-xs font-black uppercase tracking-widest text-[#A4927A]">Opening Studio...</div>;
@@ -48,28 +49,22 @@ export default function StudioWorkspace() {
       {/* HEADER */}
       <nav className="sticky top-0 z-50 bg-[#FDFBF7]/90 backdrop-blur-md px-8 py-5 border-b border-[#E3DEC1] flex justify-between items-center">
         <span className="font-serif italic font-black text-lg text-[#4B3B2F]">PRODUCER SAAB</span>
-        <button onClick={() => setIsEditing(!isEditing)} className="text-[10px] font-black uppercase tracking-widest text-[#A4927A] hover:text-black">
-          {isEditing ? 'Save Profile' : 'Edit Profile'}
-        </button>
       </nav>
 
       <div className="max-w-4xl mx-auto px-6">
         
-        {/* BANNER SECTION: mt-0, Avatar Left-Middle */}
-        <div className="relative mt-0 mb-16 bg-[#D7C9B7] rounded-[2rem] p-8 shadow-sm flex items-center gap-8 min-h-[250px]">
-          
-          {/* Avatar at Left Edge and Middle */}
+        {/* BANNER SECTION */}
+        <div className="relative mt-0 mb-4 bg-[#D7C9B7] rounded-[2rem] p-8 shadow-sm flex items-center gap-8 min-h-[250px]">
           <div className="w-28 h-28 bg-[#191919] border-4 border-[#FDFBF7] rounded-full flex items-center justify-center text-white text-4xl italic font-serif shadow-lg flex-shrink-0">
             {String(profile.username || 'N').charAt(0).toUpperCase()}
           </div>
 
-          {/* Metadata Section */}
           <div className="flex-grow space-y-4">
             {isEditing ? (
               <input 
                 defaultValue={profile.username} 
                 onBlur={(e) => saveProfile('username', e.target.value)} 
-                className="text-3xl font-black italic font-serif bg-transparent border-b border-black/20 w-full" 
+                className="text-3xl font-black italic font-serif bg-white/50 p-2 rounded w-full" 
               />
             ) : (
               <h1 className="text-3xl font-black italic font-serif">{profile.username}</h1>
@@ -93,6 +88,16 @@ export default function StudioWorkspace() {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* NEW EDIT BUTTON LOCATION */}
+        <div className="mb-12 px-2">
+          <button 
+            onClick={() => setIsEditing(!isEditing)} 
+            className="text-[10px] font-black uppercase tracking-widest text-[#A4927A] border border-[#A4927A] px-6 py-2 rounded-full hover:bg-[#A4927A] hover:text-white transition"
+          >
+            {isEditing ? 'Finish Editing' : 'Edit Profile Options'}
+          </button>
         </div>
 
         {/* TRACKS */}
