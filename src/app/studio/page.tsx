@@ -28,7 +28,7 @@ export default function StudioWorkspace() {
         database.from('sounds').select('*').eq('profile_id', user.id).order('created_at', { ascending: false })
       ]);
       
-      setProfile(p.data || { display_name: 'Studio User', about_me: '', instruments: '', software: '' });
+      setProfile(p.data || { display_name: 'Studio User', location: '', networks: '', instruments: '', software: '' });
       setMySounds(s.data || []);
       setLoading(false);
     }
@@ -45,64 +45,59 @@ export default function StudioWorkspace() {
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#191919] font-sans antialiased pb-20">
       
+      {/* HEADER */}
       <nav className="sticky top-0 z-50 bg-[#FDFBF7]/90 backdrop-blur-md px-8 py-5 border-b border-[#E3DEC1] flex justify-between items-center">
         <span className="font-serif italic font-black text-lg text-[#4B3B2F]">PRODUCER SAAB</span>
-        <div className="flex items-center gap-8">
-          <button onClick={() => router.push('/studio')} className="text-[10px] font-black uppercase tracking-widest hover:text-[#A4927A]">My Studio</button>
-          <button onClick={() => setIsEditing(!isEditing)} className="text-[10px] font-black uppercase tracking-widest text-[#A4927A] hover:text-black">
-            {isEditing ? 'Save Profile' : 'Edit Profile'}
-          </button>
-        </div>
+        <button onClick={() => setIsEditing(!isEditing)} className="text-[10px] font-black uppercase tracking-widest text-[#A4927A] hover:text-black">
+          {isEditing ? 'Save Profile' : 'Edit Profile'}
+        </button>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-6">
+      <div className="max-w-4xl mx-auto px-6 pt-6">
         
-        {/* Banner Section: mt-0 keeps it flush with the content above */}
-        <div className="relative mt-0 mb-20">
-          <div className="bg-[#D7C9B7] h-48 w-full rounded-[2rem]" />
-          
-          {/* Avatar anchored to Left-Middle of the banner */}
-          <div className="absolute top-24 left-8 w-28 h-28 bg-[#191919] border-4 border-[#FDFBF7] rounded-full flex items-center justify-center text-white text-4xl italic font-serif shadow-lg z-10">
+        {/* BANNER WITH EMBEDDED METADATA */}
+        <div className="relative mt-0 mb-16 bg-[#D7C9B7] rounded-[2rem] p-8 pb-12 shadow-sm">
+          {/* Avatar */}
+          <div className="absolute -top-16 left-8 w-28 h-28 bg-[#191919] border-4 border-[#FDFBF7] rounded-full flex items-center justify-center text-white text-4xl italic font-serif shadow-lg z-10">
             {String(profile.display_name || 'N').charAt(0).toUpperCase()}
           </div>
-        </div>
-        
-        {/* Profile Info shifted right to clear the avatar space */}
-        <div className="px-8 pl-40 mb-10">
-          <h1 className="text-3xl font-black italic font-serif">{profile.display_name}</h1>
-          <p className="text-sm font-bold text-[#A4927A] uppercase tracking-widest mt-1">{profile.headline || 'MUSIC PRODUCER'}</p>
+
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Left side: Name & Location */}
+            <div>
+              <h1 className="text-4xl font-black italic font-serif text-[#191919]">{profile.display_name}</h1>
+              {isEditing ? (
+                 <input defaultValue={profile.location} onBlur={(e) => saveProfile('location', e.target.value)} placeholder="Location" className="mt-2 bg-white/50 p-1 px-2 rounded text-xs font-bold uppercase tracking-widest w-full" />
+              ) : (
+                 <p className="text-xs font-bold text-[#4B3B2F] uppercase tracking-widest mt-2">{profile.location || 'Add Location'}</p>
+              )}
+            </div>
+
+            {/* Right side: Networks, Instruments, Software */}
+            <div className="space-y-3 text-sm text-[#4B3B2F]">
+              {[ { key: 'networks', label: '🔗' }, { key: 'instruments', label: '🎹' }, { key: 'software', label: '💻' } ].map((item) => (
+                <div key={item.key} className="flex gap-2">
+                  <span>{item.label}</span>
+                  {isEditing ? (
+                    <input defaultValue={profile[item.key]} onBlur={(e) => saveProfile(item.key, e.target.value)} placeholder={item.key} className="bg-white/50 p-1 px-2 rounded w-full text-sm" />
+                  ) : (
+                    <span>{profile[item.key] || `Add ${item.key}...`}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 px-8">
-          <div className="md:col-span-2 space-y-8">
-            <h3 className="text-xs font-black uppercase tracking-widest border-b border-[#E3DEC1] pb-4">Featured Audio Drops</h3>
+        {/* TRACKS */}
+        <div className="px-6">
+            <h3 className="text-xs font-black uppercase tracking-widest border-b border-[#E3DEC1] pb-4 mb-4">Featured Audio Drops</h3>
             {mySounds.map(track => (
-              <div key={track.id} className="flex items-center gap-6 py-4 border-b border-[#E3DEC1] hover:bg-[#F9F6F0] transition">
+              <div key={track.id} className="flex items-center gap-6 py-4 border-b border-[#E3DEC1]">
                 <div className="w-12 h-12 bg-[#F6F3EC] rounded-lg flex items-center justify-center font-bold">▶</div>
-                <div>
-                  <h4 className="font-bold text-sm">{track.title}</h4>
-                  <p className="text-[10px] text-gray-500 uppercase font-bold">{track.genre} • {track.bpm} BPM</p>
-                </div>
+                <h4 className="font-bold text-sm">{track.title}</h4>
               </div>
             ))}
-          </div>
-
-          <div className="space-y-8">
-            {[ { key: 'about_me', label: 'About Me' }, { key: 'instruments', label: 'Instruments' }, { key: 'software', label: 'Software' } ].map((field) => (
-              <section key={field.key}>
-                <h4 className="font-black text-xs uppercase mb-3 text-[#A4927A]">{field.label}</h4>
-                {isEditing ? (
-                  <textarea 
-                    defaultValue={profile[field.key]}
-                    onBlur={(e) => saveProfile(field.key, e.target.value)}
-                    className="w-full p-2 border border-[#E3DEC1] rounded-lg text-sm bg-white"
-                  />
-                ) : (
-                  <p className="text-sm text-[#54493D] leading-relaxed">{profile[field.key] || `Add your ${field.label.toLowerCase()}...`}</p>
-                )}
-              </section>
-            ))}
-          </div>
         </div>
       </div>
     </div>
