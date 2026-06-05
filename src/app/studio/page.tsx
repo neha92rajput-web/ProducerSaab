@@ -1,97 +1,73 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { createBrowserClient } from '@supabase/ssr';
-
-export const dynamic = 'force-dynamic';
+import React, { useState } from 'react';
 
 export default function StudioWorkspace() {
-  const router = useRouter();
-  const database = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
-  );
-
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
-  const [mySounds, setMySounds] = useState<any[]>([]);
-
-  useEffect(() => {
-    async function init() {
-      const { data: { user } } = await database.auth.getUser();
-      if (!user) { router.push('/signin'); return; }
-      
-      const { data: p } = await database.from('profiles').select('*').eq('id', user.id).maybeSingle();
-      const { data: s } = await database.from('sounds').select('*').eq('profile_id', user.id).order('created_at', { ascending: false });
-      
-      setProfile(p || { display_name: '@dashboard Studio', headline: 'Welcome to my verified audio drops portfolio space.' });
-      setMySounds(s || []);
-      setLoading(false);
-    }
-    init();
-  }, [router]);
-
-  if (loading || !profile) return <div className="min-h-screen bg-[#FDFBF7]" />;
+  // Use your existing state management here
+  const [profile] = useState({ 
+    display_name: 'neha92rajput', 
+    headline: 'Independent producer from Chandigarh. Specializing in Trap, Lo-fi and Ambient vibes.' 
+  });
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#191919] font-sans antialiased">
       
-      {/* TOP NAVIGATION BAR */}
-      <nav className="w-full bg-[#FDFBF7] border-b border-[#E3DEC1] px-8 py-4 flex justify-between items-center sticky top-0 z-50">
-        <span className="font-serif font-black italic text-lg">PRODUCER SAAB</span>
-        <div className="flex gap-4">
-          <button onClick={() => router.push('/community')} className="text-xs font-bold uppercase tracking-widest hover:text-[#A4927A]">Producer Community</button>
-          <button onClick={() => database.auth.signOut().then(() => router.push('/'))} className="text-xs font-bold uppercase tracking-widest hover:text-red-600">Signing off</button>
-        </div>
-      </nav>
-
-      <div className="max-w-[1200px] mx-auto p-6 grid grid-cols-12 gap-8">
+      {/* Centered Main Container */}
+      <div className="max-w-6xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
         
-        {/* LEFT SIDEBAR (As seen in image_9adc24.jpg) */}
-        <aside className="col-span-2 space-y-8">
-           <div className="space-y-4">
-             <p className="text-[10px] font-black uppercase text-[#A4927A] tracking-widest">Browsing Profile</p>
-             <button className="flex items-center gap-2 text-sm font-medium">🏠 Return Home</button>
-             <button className="flex items-center gap-2 text-sm font-medium">🌐 Global Library</button>
-           </div>
-        </aside>
-
-        {/* MAIN PROFILE AREA */}
-        <main className="col-span-7 space-y-8">
-          <div className="bg-white border border-[#E3DEC1] rounded-2xl shadow-sm overflow-hidden">
-             <div className="h-40 bg-gradient-to-r from-[#D7C9B7] to-[#BCAD98]" />
-             <div className="p-8">
-               <div className="w-24 h-24 bg-black rounded-full border-4 border-white -mt-20 mb-4" />
-               <h1 className="text-2xl font-black">{profile.display_name}</h1>
-               <p className="text-xs font-bold text-[#A4927A] uppercase mt-1">Music Producer • Verified Creator</p>
-               <p className="text-sm mt-4 text-[#54493D]">{profile.headline}</p>
-             </div>
+        {/* LEFT/CENTER: PRIMARY CONTENT (70% width) */}
+        <main className="lg:col-span-8 space-y-8">
+          {/* Hero Profile Block */}
+          <div className="flex items-start gap-6">
+            <div className="w-24 h-24 rounded-full bg-black flex items-center justify-center text-white font-serif text-3xl italic">NR</div>
+            <div className="flex-1">
+              <h1 className="text-3xl font-black italic">{profile.display_name} <span className="text-blue-500 text-sm">✓</span></h1>
+              <p className="text-sm text-gray-500 mt-1">Music Producer • Verified Creator</p>
+              <p className="text-sm mt-4 text-[#54493D]">{profile.headline}</p>
+            </div>
+            <div className="flex gap-2">
+              <button className="px-6 py-2 rounded-full border border-[#E3DEC1] text-xs font-bold uppercase">Follow</button>
+              <button className="px-6 py-2 rounded-full border border-[#E3DEC1] text-xs font-bold uppercase">Message</button>
+            </div>
           </div>
-          
-          {/* TRACKS LIST */}
-          <div className="bg-white border border-[#E3DEC1] rounded-2xl p-8 shadow-sm">
-             <h3 className="font-black text-sm mb-4">Featured Tracks & Audio Drops</h3>
-             {mySounds.map(track => (
-               <div key={track.id} className="py-4 border-b border-[#E3DEC1]">
-                 <h4 className="font-bold text-sm">{track.title}</h4>
-                 <p className="text-[10px] text-gray-500 uppercase">{track.genre} • {track.bpm} BPM</p>
-               </div>
-             ))}
+
+          {/* Featured Tracks Row */}
+          <div>
+            <h3 className="font-black text-sm uppercase tracking-widest mb-6">Featured Tracks</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="aspect-square bg-[#E3DEC1] rounded-xl" />
+              ))}
+            </div>
+          </div>
+
+          {/* Recent Tracks List */}
+          <div className="space-y-2">
+             <h3 className="font-black text-sm uppercase tracking-widest mb-4">Recent Tracks</h3>
+             {/* List of track components */}
+             <div className="p-4 border-b border-[#E3DEC1] flex justify-between">
+                <span>Midnight Thoughts</span>
+                <span>02:48</span>
+             </div>
           </div>
         </main>
 
-        {/* RIGHT SIDEBAR */}
-        <aside className="col-span-3 space-y-6">
-           <div className="bg-white border border-[#E3DEC1] p-6 rounded-2xl shadow-sm">
-             <h4 className="font-bold text-sm mb-2">Connect with Creator</h4>
-             <button className="w-full bg-black text-white py-2 rounded-full text-xs font-bold">+ Follow Artist</button>
-           </div>
-           <div className="bg-white border border-[#E3DEC1] p-6 rounded-2xl shadow-sm">
-             <h4 className="font-black text-[10px] uppercase text-[#A4927A] mb-2">Studio Credentials</h4>
-             <p className="text-xs">Handle: {profile.username}</p>
-           </div>
+        {/* RIGHT: METADATA SIDEBAR (30% width) */}
+        <aside className="lg:col-span-4 space-y-8">
+          <div className="bg-white border border-[#E3DEC1] p-6 rounded-2xl shadow-sm">
+            <h4 className="font-bold text-sm mb-4">About</h4>
+            <p className="text-xs text-gray-500">{profile.headline}</p>
+            <button className="text-xs font-bold underline mt-4">View full bio</button>
+          </div>
+
+          <div className="bg-white border border-[#E3DEC1] p-6 rounded-2xl shadow-sm">
+            <h4 className="font-bold text-sm mb-4">Genres</h4>
+            <div className="flex flex-wrap gap-2">
+              {['Trap', 'Lo-fi', 'Ambient', 'Drill'].map(g => (
+                <span key={g} className="px-3 py-1 border border-[#E3DEC1] rounded-full text-[10px] font-bold uppercase">{g}</span>
+              ))}
+            </div>
+          </div>
         </aside>
 
       </div>
