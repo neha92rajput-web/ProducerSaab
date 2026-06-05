@@ -46,16 +46,19 @@ export default function StudioWorkspace() {
     if (!file) return;
 
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
+    const fileName = `${Date.now()}.${fileExt}`;
     
-    // Corrected bucket name: 'audio-tracks'
+    // Ensure this matches your bucket name 'audio' exactly
     const { error: uploadError } = await database.storage
-      .from('audio-tracks') 
+      .from('audio') 
       .upload(fileName, file);
 
-    if (uploadError) { alert("Upload failed: " + uploadError.message); return; }
+    if (uploadError) { 
+      alert("Upload failed: " + uploadError.message); 
+      return; 
+    }
 
-    const { data: urlData } = database.storage.from('audio-tracks').getPublicUrl(fileName);
+    const { data: urlData } = database.storage.from('audio').getPublicUrl(fileName);
     
     await database.from('sounds').insert({
       profile_id: profile.id,
