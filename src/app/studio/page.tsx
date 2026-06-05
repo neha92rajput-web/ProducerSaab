@@ -268,7 +268,7 @@ export default function StudioWorkspace() {
     setUploadingImage(true);
 
     try {
-      const targetWidth = targetField === 'avatar_url' ? 300 : 1920; // Expanded to support high-end screens
+      const targetWidth = targetField === 'avatar_url' ? 300 : 1920; 
       const targetHeight = targetField === 'avatar_url' ? 300 : 600;
       const compressedBase64 = await resizeAndConvertToBase64(file, targetWidth, targetHeight);
 
@@ -423,7 +423,7 @@ export default function StudioWorkspace() {
 
       const { data: { publicUrl } } = database.storage.from('audio-tracks').getPublicUrl(fileName);
       
-      const { error: tableError } = await database.from('sounds').insert([{ 
+      const { error: tableError = null } = await database.from('sounds').insert([{ 
         title: trackTitle.trim(), 
         genre: trackGenre, 
         audio_url: publicUrl, 
@@ -475,18 +475,15 @@ export default function StudioWorkspace() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#F5EFEB] via-[#EFE5DC] to-[#E5D7CB] text-[#3D3126] pb-16 font-sans antialiased relative overflow-x-hidden selection:bg-[#A37B55] selection:text-white">
       
-      {/* FLOATING MUSIC ELEMENTS LAYER */}
+      {/* BACKGROUND ELEMENTS */}
       <div className="absolute top-36 left-[-60px] w-96 h-96 opacity-[0.03] text-[#4A3319] pointer-events-none transform -rotate-12 select-none z-0">
         <svg viewBox="0 0 512 512" fill="currentColor" className="w-full h-full"><path d="M495.2 16.8a48 48 0 0 0-67.9 0L381.5 62.6a145 145 0 0 1 31.7 43l42-42a48 48 0 0 0 0-66.8zm-113 77.2L42.6 433.6a48 48 0 0 0 0 67.9 48 48 0 0 0 67.9 0l339.6-339.6c-24-28.7-43-43-67.9-67.9z"/></svg>
-      </div>
-      <div className="absolute bottom-24 right-[-80px] w-80 h-80 opacity-[0.03] text-[#4A3319] pointer-events-none transform rotate-45 select-none z-0">
-        <svg viewBox="0 0 512 512" fill="currentColor" className="w-full h-full"><path d="M256 0a128 128 0 0 0-128 128v128a128 128 0 0 0 256 0V128A128 128 0 0 0 256 0zm96 256a96 96 0 0 1-192 0V128a96 96 0 0 1 192 0z"/></svg>
       </div>
 
       <input type="file" id="avatarFileSelector" accept="image/*" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleDirectImageUpload(e.target.files[0], 'avatar_url'); }} />
       <input type="file" id="coverFileSelector" accept="image/*" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleDirectImageUpload(e.target.files[0], 'cover_url'); }} />
 
-      {/* HEADER CONTROL BAR */}
+      {/* HEADER BAR */}
       <header className="sticky top-0 z-50 bg-[#FCFAF7]/90 backdrop-blur-xl border-b-2 border-[#E3D4C1] px-6 py-3.5 shadow-md">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 flex-1 max-w-xs">
@@ -519,17 +516,17 @@ export default function StudioWorkspace() {
         </div>
       </header>
 
-      {/* 👑 FULL EDGE-TO-EDGE OVERLAY CONTAINER FOR PERSONAL VIEWS */}
+      {/* 👑 PROPORTIONATE FULL-WIDTH HERO HEADER SPLIT */}
       {viewMode === 'personal' && (
-        <div className="w-full bg-transparent border-b border-[#DCD0BE]">
+        <div className="w-full bg-transparent border-b border-[#DCD0BE] mb-6">
           
-          {/* DRAGGABLE VIEWPORT BANNER BOX - EXTENDS COMPLETELY EDGE TO EDGE */}
+          {/* DRAGGABLE FULL-WIDTH COVER BANNER - SECURED VERTICAL RATIO */}
           <div 
             onMouseDown={handleBannerMouseDown}
             onMouseMove={handleBannerMouseMove}
             onMouseUp={handleBannerMouseUpOrLeave}
             onMouseLeave={handleBannerMouseUpOrLeave}
-            className={`w-full h-56 sm:h-64 bg-gradient-to-r from-[#C2B29D] to-[#A3917B] bg-cover flex items-start justify-start p-6 relative group transition-all duration-300 ${profile.cover_url ? 'cursor-move' : ''}`} 
+            className={`w-full h-64 sm:h-80 bg-gradient-to-r from-[#C2B29D] to-[#A3917B] bg-cover flex items-start justify-start p-6 relative group transition-all duration-300 ${profile.cover_url ? 'cursor-move' : ''}`} 
             style={{
               backgroundImage: profile.cover_url ? `url('${profile.cover_url}')` : 'none',
               backgroundPosition: `${bannerOffset.x}% ${bannerOffset.y}%`
@@ -567,8 +564,8 @@ export default function StudioWorkspace() {
             </div>
           </div>
 
-          {/* MASTER CENTER ALIGNED COMPONENT LOGISTICS TRACK CARD */}
-          <div className="max-w-4xl mx-auto px-4 sm:px-0 relative pb-8">
+          {/* MAIN PROFILE AVATAR & INFO LAYER */}
+          <div className="max-w-4xl mx-auto px-4 sm:px-0 relative pb-6">
             
             <label 
               htmlFor="avatarFileSelector"
@@ -608,7 +605,7 @@ export default function StudioWorkspace() {
               </p>
             </div>
 
-            <div className="pt-6">
+            <div className="pt-5">
               <button onClick={() => setEditingProfile(!editingProfile)} className="px-6 py-2.5 bg-[#5C4531] hover:bg-[#453324] text-[#FFF9F2] text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-md transform hover:-translate-y-0.5">
                 Enhance Bio Details
               </button>
@@ -617,8 +614,8 @@ export default function StudioWorkspace() {
         </div>
       )}
 
-      {/* RENDER DYNAMIC CATALOG COMPONENTS AND TIMELINES UNDERNEATH */}
-      <div className="max-w-4xl mx-auto mt-6 space-y-6 px-4 sm:px-0 relative z-10">
+      {/* CORE WORKSPACE MODULES CONTAINER */}
+      <div className="max-w-4xl mx-auto space-y-6 px-4 sm:px-0 relative z-10">
         
         {viewMode === 'personal' && (
           <>
@@ -654,7 +651,7 @@ export default function StudioWorkspace() {
             {editingTrack && (
               <form onSubmit={handleUpdateTrackMetadata} className="bg-white border-2 border-[#C2A383] rounded-2xl p-6 space-y-4 shadow-2xl animate-fadeIn">
                 <div className="flex items-center justify-between border-b border-[#E3D4C1] pb-2">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-[#A67B55]">✏️ Edit Track Attributes</h3>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-[#A37B55]">✏️ Edit Track Attributes</h3>
                   <button type="button" onClick={() => setEditingTrack(null)} className="text-xs text-[#A69580] hover:text-black font-black">✕</button>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -878,7 +875,7 @@ export default function StudioWorkspace() {
                             <div className="text-sm font-black text-[#261E17] hover:text-[#A37B55] cursor-pointer font-serif" onClick={() => router.push(`/profile/${itemCreator.id}`)}>
                               {itemCreator.display_name || `@${itemCreator.username}`}
                             </div>
-                            <div className="text-[10px] text-[#A69580] font-black uppercase tracking-widest mt-0.5 select-none">
+                            <div className="text-[9px] text-[#A69580] font-black uppercase tracking-widest mt-0.5 select-none">
                               🛰️ Telemetry Sync: {formatExactDateTime(feedItem.created_at)}
                             </div>
                           </div>
