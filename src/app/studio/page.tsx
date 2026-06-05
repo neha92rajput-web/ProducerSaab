@@ -268,7 +268,7 @@ export default function StudioWorkspace() {
     setUploadingImage(true);
 
     try {
-      const targetWidth = targetField === 'avatar_url' ? 300 : 1600; 
+      const targetWidth = targetField === 'avatar_url' ? 300 : 1920; // Expanded to support high-end screens
       const targetHeight = targetField === 'avatar_url' ? 300 : 600;
       const compressedBase64 = await resizeAndConvertToBase64(file, targetWidth, targetHeight);
 
@@ -467,40 +467,31 @@ export default function StudioWorkspace() {
   };
 
   if (loading || !profile) {
-    return <div className="min-h-screen bg-[#F3ECE0] flex items-center justify-center text-xs font-black text-[#A67C52] tracking-widest uppercase animate-pulse">Initializing Analog Rack Console...</div>;
+    return <div className="min-h-screen bg-[#F5EFEB] flex items-center justify-center text-xs font-black text-[#967655] tracking-widest uppercase animate-pulse">Initializing Console Views...</div>;
   }
 
   const userInitial = String(profile.display_name || profile.username || 'P').charAt(0).toUpperCase();
 
   return (
-    // 🎨 LIVELY WARM INSTRUMENT DRIVEN STUDIO ENVIRONMENT
-    <div className="min-h-screen bg-gradient-to-b from-[#F5EFEB] via-[#EFE5DC] to-[#E5D7CB] text-[#3D3126] pb-16 font-sans antialiased relative overflow-hidden selection:bg-[#A37B55] selection:text-white">
+    <div className="min-h-screen bg-gradient-to-b from-[#F5EFEB] via-[#EFE5DC] to-[#E5D7CB] text-[#3D3126] pb-16 font-sans antialiased relative overflow-x-hidden selection:bg-[#A37B55] selection:text-white">
       
-      {/* FLOATING INSTRUMENT SILHOUETTES */}
-      <div className="absolute top-24 left-[-80px] w-96 h-96 opacity-[0.04] text-[#4A3319] pointer-events-none transform -rotate-12 select-none">
-        {/* Guitar Vector */}
+      {/* FLOATING MUSIC ELEMENTS LAYER */}
+      <div className="absolute top-36 left-[-60px] w-96 h-96 opacity-[0.03] text-[#4A3319] pointer-events-none transform -rotate-12 select-none z-0">
         <svg viewBox="0 0 512 512" fill="currentColor" className="w-full h-full"><path d="M495.2 16.8a48 48 0 0 0-67.9 0L381.5 62.6a145 145 0 0 1 31.7 43l42-42a48 48 0 0 0 0-66.8zm-113 77.2L42.6 433.6a48 48 0 0 0 0 67.9 48 48 0 0 0 67.9 0l339.6-339.6c-24-28.7-43-43-67.9-67.9z"/></svg>
       </div>
-      <div className="absolute top-1/3 right-[-100px] w-80 h-80 opacity-[0.03] text-[#4A3319] pointer-events-none transform rotate-12 select-none">
-        {/* Keys Vector */}
-        <svg viewBox="0 0 512 512" fill="currentColor" className="w-full h-full"><path d="M432 64H80a48 48 0 0 0-48 48v288a48 48 0 0 0 48 48h352a48 48 0 0 0 48-48V112a48 48 0 0 0-48-48zm-16 336H96V112h320v288z"/></svg>
-      </div>
-      <div className="absolute bottom-16 left-[-60px] w-72 h-72 opacity-[0.04] text-[#4A3319] pointer-events-none transform rotate-45 select-none">
-        {/* Microphone Vector */}
+      <div className="absolute bottom-24 right-[-80px] w-80 h-80 opacity-[0.03] text-[#4A3319] pointer-events-none transform rotate-45 select-none z-0">
         <svg viewBox="0 0 512 512" fill="currentColor" className="w-full h-full"><path d="M256 0a128 128 0 0 0-128 128v128a128 128 0 0 0 256 0V128A128 128 0 0 0 256 0zm96 256a96 96 0 0 1-192 0V128a96 96 0 0 1 192 0z"/></svg>
       </div>
 
       <input type="file" id="avatarFileSelector" accept="image/*" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleDirectImageUpload(e.target.files[0], 'avatar_url'); }} />
       <input type="file" id="coverFileSelector" accept="image/*" className="hidden" onChange={(e) => { if(e.target.files?.[0]) handleDirectImageUpload(e.target.files[0], 'cover_url'); }} />
 
-      {/* RACK NAV CONSOLE PANEL */}
+      {/* HEADER CONTROL BAR */}
       <header className="sticky top-0 z-50 bg-[#FCFAF7]/90 backdrop-blur-xl border-b-2 border-[#E3D4C1] px-6 py-3.5 shadow-md">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 flex-1 max-w-xs">
-            <button onClick={() => router.push('/')} className="text-[#967655] hover:text-[#523B24] font-black text-lg pr-1 transition">
-              ←
-            </button>
-            <input type="text" placeholder="Search rack telemetry..." className="w-full bg-[#FAF5EE] text-xs py-2 px-3.5 rounded-xl border border-[#D9C6AF] text-[#3D3126] focus:outline-none placeholder-[#A69580] shadow-inner" disabled />
+            <button onClick={() => router.push('/')} className="text-[#967655] hover:text-[#523B24] font-black text-lg pr-1 transition">←</button>
+            <input type="text" placeholder="Search parameters..." className="w-full bg-[#FAF5EE] text-xs py-2 px-3.5 rounded-xl border border-[#D9C6AF] text-[#3D3126] focus:outline-none placeholder-[#A69580] shadow-inner" disabled />
           </div>
           
           <div className="flex items-center gap-2.5">
@@ -528,99 +519,109 @@ export default function StudioWorkspace() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto mt-8 space-y-6 px-4 sm:px-0 relative z-10">
-        {viewMode === 'personal' && (
-          <>
-            {/* WARM ACCENTUATED STUDIO WORKSPACE CARD */}
-            <div className="bg-[#FFFDFB] border border-[#DCD0BE] rounded-3xl overflow-hidden relative shadow-2xl transition duration-300">
-              
-              <div 
-                onMouseDown={handleBannerMouseDown}
-                onMouseMove={handleBannerMouseMove}
-                onMouseUp={handleBannerMouseUpOrLeave}
-                onMouseLeave={handleBannerMouseUpOrLeave}
-                className={`h-48 sm:h-56 bg-gradient-to-r from-[#C2B29D] to-[#A3917B] bg-cover flex items-start justify-start p-5 relative group transition-all duration-300 ${profile.cover_url ? 'cursor-move' : ''}`} 
-                style={{
-                  backgroundImage: profile.cover_url ? `url('${profile.cover_url}')` : 'none',
-                  backgroundPosition: `${bannerOffset.x}% ${bannerOffset.y}%`
-                }}
-              >
-                {uploadingImage && (
-                  <div className="absolute inset-0 bg-[#291F16]/70 flex items-center justify-center text-[#FFF9F2] text-xs font-black tracking-widest animate-pulse z-30 backdrop-blur-sm">
-                    🎛️ ADJUSTING DRAG COORDINATES MATRIX...
+      {/* 👑 FULL EDGE-TO-EDGE OVERLAY CONTAINER FOR PERSONAL VIEWS */}
+      {viewMode === 'personal' && (
+        <div className="w-full bg-transparent border-b border-[#DCD0BE]">
+          
+          {/* DRAGGABLE VIEWPORT BANNER BOX - EXTENDS COMPLETELY EDGE TO EDGE */}
+          <div 
+            onMouseDown={handleBannerMouseDown}
+            onMouseMove={handleBannerMouseMove}
+            onMouseUp={handleBannerMouseUpOrLeave}
+            onMouseLeave={handleBannerMouseUpOrLeave}
+            className={`w-full h-56 sm:h-64 bg-gradient-to-r from-[#C2B29D] to-[#A3917B] bg-cover flex items-start justify-start p-6 relative group transition-all duration-300 ${profile.cover_url ? 'cursor-move' : ''}`} 
+            style={{
+              backgroundImage: profile.cover_url ? `url('${profile.cover_url}')` : 'none',
+              backgroundPosition: `${bannerOffset.x}% ${bannerOffset.y}%`
+            }}
+          >
+            {uploadingImage && (
+              <div className="absolute inset-0 bg-[#291F16]/70 flex items-center justify-center text-[#FFF9F2] text-xs font-black tracking-widest animate-pulse z-30 backdrop-blur-sm">
+                🎛️ ADJUSTING DRAG COORDINATES MATRIX...
+              </div>
+            )}
+
+            <div className="max-w-4xl w-full mx-auto relative h-full flex items-start justify-start">
+              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <label 
+                  htmlFor="coverFileSelector"
+                  className="bg-[#3D2C1E]/90 hover:bg-[#3D2C1E] text-[#FFF9F2] font-black px-4 py-2 rounded-xl text-[10px] border border-white/20 uppercase tracking-widest cursor-pointer shadow-xl transition"
+                >
+                  {profile.cover_url ? '📷 Change Banner' : '📷 Upload Banner'}
+                </label>
+                {profile.cover_url && (
+                  <button 
+                    type="button" 
+                    onClick={() => handleDeleteImageMedia('cover_url')} 
+                    className="bg-red-700 text-white font-black px-3 py-2 rounded-xl text-[10px] hover:bg-red-800 shadow-xl transition uppercase tracking-wider"
+                  >
+                    ✕ Remove
+                  </button>
+                )}
+                {profile.cover_url && (
+                  <div className="bg-[#FFFDFB]/95 text-[#5C4531] text-[10px] font-black uppercase tracking-widest px-3 py-2 rounded-xl border border-[#DCD0BE] shadow-xl pointer-events-none">
+                    ↕ Drag Frame
                   </div>
                 )}
-
-                <div className="flex gap-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <label 
-                    htmlFor="coverFileSelector"
-                    className="bg-[#3D2C1E]/90 hover:bg-[#3D2C1E] text-[#FFF9F2] font-black px-4 py-2 rounded-xl text-[10px] border border-white/20 uppercase tracking-widest cursor-pointer shadow-xl transition"
-                  >
-                    {profile.cover_url ? '📷 Change Banner' : '📷 Upload Banner'}
-                  </label>
-                  {profile.cover_url && (
-                    <button 
-                      type="button" 
-                      onClick={() => handleDeleteImageMedia('cover_url')} 
-                      className="bg-red-700 text-white font-black px-3 py-2 rounded-xl text-[10px] hover:bg-red-800 shadow-xl transition uppercase tracking-wider"
-                    >
-                      ✕ Remove
-                    </button>
-                  )}
-                  {profile.cover_url && (
-                    <div className="bg-[#FFFDFB]/95 text-[#5C4531] text-[10px] font-black uppercase tracking-widest px-3 py-2 rounded-xl border border-[#DCD0BE] shadow-xl pointer-events-none">
-                      ↕ Drag Frame
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="px-8 pb-8 relative bg-gradient-to-b from-white to-[#FAF6F0]">
-                
-                <label 
-                  htmlFor="avatarFileSelector"
-                  className="w-32 h-32 bg-[#3D2C1E] border-4 border-white rounded-2xl absolute -top-16 left-8 overflow-hidden flex items-center justify-center text-white font-bold text-5xl shadow-2xl cursor-pointer group/avatar block z-20 transition transform hover:scale-105"
-                >
-                  {profile.avatar_url ? (
-                    <img src={profile.avatar_url} className="w-full h-full object-cover" alt="Avatar" />
-                  ) : (
-                    <span className="font-serif italic text-[#FFFDFB] tracking-wide">{userInitial}</span>
-                  )}
-
-                  <div className="absolute inset-0 bg-black/70 opacity-0 group-hover/avatar:opacity-100 flex flex-col justify-center items-center transition duration-200 select-none text-center">
-                    <span className="text-[10px] uppercase font-black tracking-widest text-white">📷 Change</span>
-                    {profile.avatar_url && (
-                      <span 
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteImageMedia('avatar_url'); }} 
-                        className="text-[9px] uppercase text-red-400 font-bold hover:text-red-300 block mt-2 hover:underline"
-                      >
-                        Delete
-                      </span>
-                    )}
-                  </div>
-                </label>
-                
-                <div className="pt-20 space-y-2">
-                  <div className="flex items-baseline gap-2">
-                    <h2 className="text-2xl font-black text-[#261E17] tracking-tight font-serif">
-                      {profile.display_name || profile.username}
-                    </h2>
-                    {profile.pronouns && (
-                      <span className="text-xs text-[#967655] font-black tracking-wider">({profile.pronouns})</span>
-                    )}
-                  </div>
-                  <p className="text-sm text-[#523B24] font-semibold max-w-xl">{profile.headline || 'Music Producer | Mixer'}</p>
-                  <p className="text-xs text-[#A6917A] font-black uppercase tracking-widest bg-[#F5EFEB] px-2.5 py-1 rounded-md border border-[#E3D4C1] w-max">{profile.company || 'Independent Studio'} • <span className="text-[#967655]">{profile.location || 'Chandigarh, India'}</span></p>
-                </div>
-
-                <div className="pt-6">
-                  <button onClick={() => setEditingProfile(!editingProfile)} className="px-6 py-2.5 bg-[#5C4531] hover:bg-[#453324] text-[#FFF9F2] text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-md transform hover:-translate-y-0.5">
-                    Enhance Bio Details
-                  </button>
-                </div>
               </div>
             </div>
+          </div>
 
+          {/* MASTER CENTER ALIGNED COMPONENT LOGISTICS TRACK CARD */}
+          <div className="max-w-4xl mx-auto px-4 sm:px-0 relative pb-8">
+            
+            <label 
+              htmlFor="avatarFileSelector"
+              className="w-32 h-32 bg-[#3D2C1E] border-4 border-white rounded-2xl absolute -top-16 left-4 sm:left-0 overflow-hidden flex items-center justify-center text-white font-bold text-5xl shadow-2xl cursor-pointer group/avatar block z-20 transition transform hover:scale-105"
+            >
+              {profile.avatar_url ? (
+                <img src={profile.avatar_url} className="w-full h-full object-cover" alt="Avatar" />
+              ) : (
+                <span className="font-serif italic text-[#FFFDFB] tracking-wide">{userInitial}</span>
+              )}
+
+              <div className="absolute inset-0 bg-black/70 opacity-0 group-hover/avatar:opacity-100 flex flex-col justify-center items-center transition duration-200 select-none text-center">
+                <span className="text-[10px] uppercase font-black tracking-widest text-white">📷 Change</span>
+                {profile.avatar_url && (
+                  <span 
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteImageMedia('avatar_url'); }} 
+                    className="text-[9px] uppercase text-red-400 font-bold hover:text-red-300 block mt-2 hover:underline"
+                  >
+                    Delete
+                  </span>
+                )}
+              </div>
+            </label>
+            
+            <div className="pt-20 space-y-2">
+              <div className="flex items-baseline gap-2">
+                <h2 className="text-2xl font-black text-[#261E17] tracking-tight font-serif">
+                  {profile.display_name || profile.username}
+                </h2>
+                {profile.pronouns && (
+                  <span className="text-xs text-[#967655] font-black tracking-wider">({profile.pronouns})</span>
+                )}
+              </div>
+              <p className="text-sm text-[#523B24] font-semibold max-w-xl">{profile.headline || 'Music Producer | Mixer'}</p>
+              <p className="text-xs text-[#A6917A] font-black uppercase tracking-widest bg-[#FFFDFB] px-3 py-1.5 rounded-xl border border-[#E3D4C1] w-max shadow-sm">
+                {profile.company || 'Independent Studio'} • <span className="text-[#967655]">{profile.location || 'Chandigarh, India'}</span>
+              </p>
+            </div>
+
+            <div className="pt-6">
+              <button onClick={() => setEditingProfile(!editingProfile)} className="px-6 py-2.5 bg-[#5C4531] hover:bg-[#453324] text-[#FFF9F2] text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-md transform hover:-translate-y-0.5">
+                Enhance Bio Details
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RENDER DYNAMIC CATALOG COMPONENTS AND TIMELINES UNDERNEATH */}
+      <div className="max-w-4xl mx-auto mt-6 space-y-6 px-4 sm:px-0 relative z-10">
+        
+        {viewMode === 'personal' && (
+          <>
             {editingProfile && (
               <form onSubmit={handleProfileSave} className="bg-[#FFFDFB] border border-[#DCD0BE] rounded-2xl p-6 space-y-4 shadow-xl animate-fadeIn">
                 <h3 className="text-xs font-black uppercase tracking-widest text-[#5C4531] border-b border-[#E3D4C1] pb-2">Modify Console Metadata</h3>
@@ -706,7 +707,6 @@ export default function StudioWorkspace() {
               </form>
             )}
 
-            {/* LIVE CONSOLE INTERACTION BAY */}
             <div className="bg-[#FAF5EE] border border-[#DCD0BE] rounded-3xl p-5 shadow-lg space-y-4">
               <div className="flex items-center gap-3">
                 <span className="text-xs font-black text-[#967655] uppercase tracking-widest">Studio Engine:</span>
@@ -775,7 +775,6 @@ export default function StudioWorkspace() {
               )}
             </div>
 
-            {/* AUDIO CATALOG PANEL DECK */}
             <div className="bg-[#FFFDFB] border border-[#DCD0BE] rounded-3xl p-6 shadow-xl space-y-4">
               <h3 className="text-xs font-black uppercase tracking-widest text-[#967655]">🎸 Audio Vault Catalog</h3>
               <div className="space-y-3">
@@ -823,7 +822,6 @@ export default function StudioWorkspace() {
               </div>
             </div>
 
-            {/* MY BROADCAST UPDATES PANEL */}
             <div className="bg-[#FFFDFB] border border-[#DCD0BE] rounded-3xl p-6 shadow-xl space-y-4">
               <h3 className="text-xs font-black uppercase tracking-widest text-[#967655]">📝 Workspace Micro-Logs</h3>
               <div className="space-y-3">
@@ -855,14 +853,9 @@ export default function StudioWorkspace() {
           </>
         )}
 
-        {/* =================================================================== */}
-        {/* VIEW MODE B: HIGH-VIBRANCY COMMUNITY TIMELINE TIMELINE FEED */}
         {viewMode === 'community' && (
           <div className="space-y-4 animate-fadeIn">
             <div className="bg-gradient-to-r from-[#423122] via-[#5C4531] to-[#735943] border border-[#423122] rounded-3xl p-6 shadow-2xl text-[#FFF9F2] relative overflow-hidden">
-              <div className="absolute right-4 top-[-20px] w-36 h-36 opacity-[0.08] pointer-events-none text-white rotate-12">
-                <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full"><path d="M12 2A2 2 0 0 0 10 4v3.38l-4.5-1.5a1 1 0 0 0-1.27.64l-1.5 4.5A1 1 0 0 0 3.38 12.3l2.84.95-1.37 4.1a1 1 0 0 0 .64 1.27l4.5 1.5A1 1 0 0 0 11.27 19.5l1.37-4.1 2.84.95a1 1 0 0 0 1.27-.64l1.5-4.5a1 1 0 0 0-.64-1.27l-4.5-1.5V4a2 2 0 0 0-2-2z" /></svg>
-              </div>
               <h3 className="text-base font-black uppercase tracking-widest text-[#FFFDFB] mb-1 font-serif">🌐 Communal Network Stream</h3>
               <p className="text-xs text-[#EBE3D5] font-semibold tracking-wide">Monitoring incoming audio drops, arrangement stencils, and telemetry records.</p>
             </div>
@@ -892,7 +885,7 @@ export default function StudioWorkspace() {
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <span className={`text-[8px] font-black tracking-widest uppercase px-2.5 py-1 rounded-md border ${feedItem.itemType === 'audio' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
+                          <span className={`text-[8px] font-black tracking-widest uppercase px-2.5 py-1 rounded-md border ${feedItem.itemType === 'audio' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
                             {feedItem.itemType === 'audio' ? '🎵 Audio Bounce' : '✍️ Broadcast'}
                           </span>
                           
