@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
+import CollaborationHub from '@/components/CollaborationHub';
 
 export default function StudioWorkspace() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function StudioWorkspace() {
   const [isEditingTrack, setIsEditingTrack] = useState(false);
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
   
-  // Form Field Input States (With new mandatory form fields)
+  // Form Field Input States
   const [formTitle, setFormTitle] = useState('');
   const [formInstrument, setFormInstrument] = useState('Drums');
   const [formBpm, setFormBpm] = useState('');
@@ -34,8 +35,6 @@ export default function StudioWorkspace() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  // Ref map to store all active audio elements on the screen for mutual exclusion
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
 
   useEffect(() => {
@@ -71,7 +70,6 @@ export default function StudioWorkspace() {
     fetchSounds();
   }, [activeTab, profile.id]);
 
-  // Stops all other audio players when a new track begins playing
   const handleAudioPlay = (currentSoundId: string) => {
     Object.keys(audioRefs.current).forEach((id) => {
       if (id !== currentSoundId && audioRefs.current[id]) {
@@ -119,7 +117,6 @@ export default function StudioWorkspace() {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // MANDATORY STRIP VALIDATIONS
     if (!formTitle.trim()) return alert("Track Name is required.");
     if (!formInstrument) return alert("Please specify a Core Instrument Source.");
     if (!formBpm.trim() || isNaN(Number(formBpm)) || Number(formBpm) <= 0) {
@@ -203,7 +200,7 @@ export default function StudioWorkspace() {
     } catch (err: any) {
       console.error("Submission failed:", err);
       alert("Error: " + err.message);
-    } finally {
+    } filter {
       setIsSubmitting(false);
     }
   };
@@ -228,7 +225,7 @@ export default function StudioWorkspace() {
           <button onClick={() => { database.auth.signOut(); router.push('/'); }} className="text-[#A4927A] hover:text-[#191919]">Leave Studio</button>
         </div>
 
-        {/* Studio Profile Card Banner */}
+        {/* Dynamic Studio Profile Card Banner */}
         <div className="bg-[#D7C9B7] rounded-[2rem] p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-8 min-h-[250px]">
           <div className="w-24 h-24 sm:w-28 sm:h-28 bg-[#191919] rounded-full flex items-center justify-center text-white text-4xl italic font-serif flex-shrink-0">
             {String(profile.username || 'N').charAt(0).toUpperCase()}
@@ -294,7 +291,7 @@ export default function StudioWorkspace() {
                 <textarea 
                   defaultValue={profile.bio || ''} 
                   onBlur={(e) => saveProfileField('bio', e.target.value)} 
-                  placeholder="Tell the community about your style, release stats, or gear setup..."
+                  placeholder="Tell the community about your style..."
                   className="w-full text-xs font-medium p-3 rounded-xl bg-white/60 border-none focus:outline-none text-black resize-none"
                   rows={2}
                 />
@@ -363,11 +360,7 @@ export default function StudioWorkspace() {
           {/* Sound Card Items Render Loop List */}
           <div className="grid gap-4">
             {activeTab === 'Collaboration' ? (
-              <div className="text-center p-12 border border-dashed border-[#E3DEC1] rounded-2xl bg-white/40">
-                <div className="text-2xl mb-2">💬</div>
-                <h4 className="text-sm font-bold text-gray-700 mb-1">Collaboration Hub Active</h4>
-                <p className="text-xs text-gray-400 font-medium max-w-sm mx-auto">This area holds your collective project workspace tracking rows.</p>
-              </div>
+              <CollaborationHub profileId={profile.id} />
             ) : sounds.length > 0 ? (
               sounds.map((sound) => (
                 <div key={sound.id} className="p-5 border border-[#E3DEC1] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/70 shadow-sm relative group animate-fadeIn">
@@ -382,7 +375,6 @@ export default function StudioWorkspace() {
                   </div>
                   
                   <div className="flex items-center gap-4">
-                    {/* AUDIO INTERLOCK: Wired onPlay hook tracking references to clear overlapping layers */}
                     <audio 
                       controls 
                       src={sound.audio_url} 
@@ -434,7 +426,6 @@ export default function StudioWorkspace() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                {/* Core Instrument Selection (Mandatory) */}
                 <div className="space-y-1.5">
                   <label className="block uppercase tracking-wider text-[10px]">Core Instrument (*)</label>
                   <select value={formInstrument} onChange={(e) => setFormInstrument(e.target.value)} className="w-full border border-[#E3DEC1] p-3 rounded-xl bg-white focus:outline-none text-black font-semibold">
@@ -447,7 +438,6 @@ export default function StudioWorkspace() {
                   </select>
                 </div>
 
-                {/* Track Genre Picker (Mandatory) */}
                 <div className="space-y-1.5">
                   <label className="block uppercase tracking-wider text-[10px]">Track Genre (*)</label>
                   <select value={formGenre} onChange={(e) => setFormGenre(e.target.value)} className="w-full border border-[#E3DEC1] p-3 rounded-xl bg-white focus:outline-none text-black font-semibold">
@@ -462,13 +452,11 @@ export default function StudioWorkspace() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                {/* Tempo BPM Input (Mandatory) */}
                 <div className="space-y-1.5">
                   <label className="block uppercase tracking-wider text-[10px]">Tempo (BPM) (*)</label>
                   <input type="number" value={formBpm} onChange={(e) => setFormBpm(e.target.value)} placeholder="e.g., 140" className="w-full border border-[#E3DEC1] p-3 rounded-xl focus:outline-none text-black font-semibold" />
                 </div>
 
-                {/* Key Scale Selection (Mandatory) */}
                 <div className="space-y-1.5">
                   <label className="block uppercase tracking-wider text-[10px]">Musical Key (*)</label>
                   <select value={formKey} onChange={(e) => setFormKey(e.target.value)} className="w-full border border-[#E3DEC1] p-3 rounded-xl bg-white focus:outline-none text-black font-semibold">
@@ -483,13 +471,11 @@ export default function StudioWorkspace() {
                 </div>
               </div>
 
-              {/* Summary Description */}
               <div className="space-y-1.5">
                 <label className="block uppercase tracking-wider text-[10px]">Track Summary / Vibe</label>
-                <textarea rows={2} value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder="Describe the sample style layers or plugins used..." className="w-full border border-[#E3DEC1] p-3 rounded-xl focus:outline-none text-black font-medium resize-none" />
+                <textarea rows={2} value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder="Describe the sample style layers used..." className="w-full border border-[#E3DEC1] p-3 rounded-xl focus:outline-none text-black font-medium resize-none" />
               </div>
 
-              {/* Submit Action */}
               <button type="submit" disabled={isSubmitting} className="w-full bg-[#111111] text-white py-3.5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#4B3B2F] transition-all disabled:opacity-50 mt-2 cursor-pointer">
                 {isSubmitting ? "Uploading asset variables..." : isEditingTrack ? "💾 Save Asset Metadata" : "🚀 Publish to Studio Library"}
               </button>
