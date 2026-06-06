@@ -48,7 +48,7 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
         .select('id, status, message, sounds(title), profiles!collaboration_requests_receiver_id_fkey(username, account_type)')
         .eq('sender_id', profileId);
 
-      // Fetch opportunities matching your personal ID or are open across the ecosystem
+      // Fetch opportunities that either belong to you OR are open across the network
       const { data: opps } = await database
         .from('collaboration_opportunities')
         .select('*, profiles(username, account_type)')
@@ -87,6 +87,7 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
     if (!oppTitle.trim() || !oppBpm.trim()) return alert("Please fill out mandatory project info slots.");
 
     try {
+      // 🔥 EXPLICIT VALUE FORCED: Guaranteed to write 'open' string values to database
       const { error } = await database.from('collaboration_opportunities').insert({
         creator_id: profileId,
         role_needed: oppRole,
@@ -95,7 +96,7 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
         bpm: Number(oppBpm),
         musical_key: oppKey,
         message: oppMessage,
-        status: 'open'
+        status: 'open' 
       });
 
       if (error) throw error;
@@ -150,17 +151,15 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
   return (
     <div className="space-y-6 text-black w-full text-left animate-fadeIn">
       
-      {/* 🧭 RENAMED TAB HEADER */}
+      {/* NAVIGATION TABS ARRAY */}
       <div className="flex flex-wrap border-b border-[#E3DEC1] gap-6 text-[10px] font-black uppercase tracking-widest pb-px">
         <button onClick={() => setSubTab('active')} className={`pb-2 border-b-2 ${subTab === 'active' ? 'text-black border-black' : 'text-[#A4927A] border-transparent'}`}>🤝 Active Projects</button>
         <button onClick={() => setSubTab('messages')} className={`pb-2 border-b-2 ${subTab === 'messages' ? 'text-black border-black' : 'text-[#A4927A] border-transparent'}`}>📨 Messages</button>
         <button onClick={() => setSubTab('find')} className={`pb-2 border-b-2 ${subTab === 'find' ? 'text-black border-black' : 'text-[#A4927A] border-transparent'}`}>🔎 Find Creators</button>
-        
-        {/* Updated label below to display: Collaboration Post */}
         <button onClick={() => setSubTab('opportunities')} className={`pb-2 border-b-2 ${subTab === 'opportunities' ? 'text-black border-black' : 'text-[#A4927A] border-transparent'}`}>🎯 Collaboration Post</button>
       </div>
 
-      {/* ACTIVE WORKSPACES PANEL */}
+      {/* ACTIVE PROJECTS PANEL */}
       {subTab === 'active' && (
         <div className="p-8 border border-[#E3DEC1] rounded-2xl bg-white/50 text-center space-y-4">
           <h4 className="text-xs font-black uppercase tracking-wider text-gray-400">No active collaborations yet.</h4>
@@ -169,7 +168,7 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
         </div>
       )}
 
-      {/* MESSAGES INBOX */}
+      {/* MESSAGES BOX */}
       {subTab === 'messages' && (
         <div className="space-y-6">
           <div className="space-y-3">
@@ -206,7 +205,7 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
         </div>
       )}
 
-      {/* BROWSE TALENTS */}
+      {/* BROWSE CREATORS SECTION */}
       {subTab === 'find' && (
         <div className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-white/50 p-4 border border-[#E3DEC1] rounded-2xl text-xs font-bold text-gray-500">
@@ -236,7 +235,7 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
         </div>
       )}
 
-      {/* 🎯 COLLABORATION POST PANEL VIEW */}
+      {/* 🎯 COLLABORATION POST PANEL */}
       {subTab === 'opportunities' && (
         <div className="space-y-4 w-full">
           <div className="flex justify-between items-center">
@@ -293,7 +292,7 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
             </form>
           )}
 
-          {/* Cards Render Row Grid */}
+          {/* Cards Grid */}
           <div className="grid md:grid-cols-2 gap-4">
             {opportunities.length === 0 ? (
               <p className="text-xs text-gray-400 font-medium italic py-6">No active project briefs found.</p>
@@ -338,7 +337,7 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
                       )
                     ) : (
                       <button 
-                        onClick={() => alert(`Applying to @${opp.profiles?.username}'s request loop brief parameters...`)}
+                        onClick={() => alert(`Applying to @${opp.profiles?.username}'s request brief...`)}
                         className="w-full py-2.5 border border-black hover:bg-black hover:text-white transition rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer"
                       >
                         Apply for Session
