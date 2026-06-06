@@ -85,13 +85,11 @@ export default function StudioWorkspace() {
     });
   };
 
-  // 🔥 WORKFLOW FIXED: Permanent Cascade Deletion Across Profile and Feed Channel Indexes
   const handleDeleteTrack = async (soundId: string, audioUrl: string) => {
     const confirmDestruction = window.confirm("⚠️ Are you sure you want to permanently delete this track from your studio and the public feed? This action cannot be undone.");
     if (!confirmDestruction) return;
 
     try {
-      // 1. Wipe hard storage audio item references from storage bucket channels
       if (audioUrl) {
         const urlParts = audioUrl.split('/storage/v1/object/public/audio/');
         if (urlParts.length === 2) {
@@ -100,10 +98,8 @@ export default function StudioWorkspace() {
         }
       }
 
-      // 2. Clear out relative collaboration inquiries referencing this audio file block row
       await database.from('collaboration_requests').delete().eq('sound_id', soundId);
 
-      // 3. Execute definitive row deletion from sounds table
       const { error } = await database.from('sounds').delete().eq('id', soundId);
       if (error) throw error;
 
@@ -280,7 +276,7 @@ export default function StudioWorkspace() {
           <button onClick={() => router.push('/studio')} className="hover:opacity-70">My Studio</button>
           <button onClick={() => router.push('/feed')} className="hover:opacity-70">Community Feed</button>
           
-          {/* Real-time Notification Bell icon link placement mapping */}
+          {/* Real-time Notification Bell */}
           {profile.id && <NotificationCenter profileId={profile.id} />}
           
           <button onClick={() => { database.auth.signOut(); router.push('/'); }} className="text-[#A4927A] hover:text-[#191919]">Leave Studio</button>
@@ -434,7 +430,7 @@ export default function StudioWorkspace() {
             </div>
           </div>
 
-          {/* Tucked Audio Upload Action Link Anchor text */}
+          {/* Upload Action Button */}
           <div className="flex justify-end h-9 items-center px-2 mt-2 mb-1">
             {activeTab === 'Loops / Tracks' && (
               <button 
@@ -471,7 +467,7 @@ export default function StudioWorkspace() {
                       onPlay={() => handleAudioPlay(sound.id)}
                     />
                     
-                    {/* ⚙️ INTEGRATED LAYOUT UPGRADE: Clean 3-Dot Dropdown Actions wrapper */}
+                    {/* Minimal 3-Dot Dropdown Actions */}
                     <div className="relative" onClick={(e) => e.stopPropagation()}>
                       <button 
                         onClick={() => setActiveMenuId(activeMenuId === sound.id ? null : sound.id)}
@@ -482,18 +478,20 @@ export default function StudioWorkspace() {
                       </button>
 
                       {activeMenuId === sound.id && (
-                        <div className="absolute right-0 bottom-full mb-2 w-28 bg-white border border-[#E3DEC1] rounded-xl py-1.5 shadow-lg z-30 animate-fadeIn text-left">
+                        <div className="absolute right-0 bottom-full mb-2 w-32 bg-white border border-[#E3DEC1] rounded-xl py-1.5 shadow-lg z-30 animate-fadeIn text-left">
                           <button 
                             onClick={() => openEditModal(sound)}
-                            className="w-full text-left px-4 py-1.5 text-xs text-gray-700 font-bold hover:bg-gray-50 flex items-center gap-1.5"
+                            className="w-full text-left px-4 py-1.5 text-xs text-gray-700 font-bold hover:bg-gray-50 flex items-center gap-1.5 cursor-pointer"
                           >
-                            ✏️ Edit info
+                            Edit info
                           </button>
+                          
+                          {/* Minimal black text option with no extra trash/bin icons */}
                           <button 
                             onClick={() => handleDeleteTrack(sound.id, sound.audio_url)}
-                            className="w-full text-left px-4 py-1.5 text-xs text-red-600 font-black hover:bg-red-50 flex items-center gap-1.5"
+                            className="w-full text-left px-4 py-1.5 text-xs text-black font-bold hover:bg-gray-50 flex items-center gap-1.5 cursor-pointer"
                           >
-                            🗑️ Delete File
+                            Delete File
                           </button>
                         </div>
                       )}
@@ -511,7 +509,7 @@ export default function StudioWorkspace() {
         </div>
       </div>
 
-      {/* Input Metadata Dialog Overlay Overlay Form Elements */}
+      {/* Input Metadata Dialog Overlay */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-[#E3DEC1] rounded-[2rem] w-full max-w-md p-8 shadow-2xl relative animate-fadeIn max-h-[90vh] overflow-y-auto text-black">
