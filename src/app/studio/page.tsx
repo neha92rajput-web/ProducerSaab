@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import CollaborationHub from '@/components/CollaborationHub';
+import NotificationCenter from '@/components/NotificationCenter';
 
 export default function StudioWorkspace() {
   const router = useRouter();
@@ -75,13 +76,12 @@ export default function StudioWorkspace() {
     });
   };
 
-  // 🗑️ WORKFLOW ACTION 1: SECURE AUDIO FILE DELETION
+  // Secure Audio File Deletion Hook
   const handleDeleteTrack = async (soundId: string, audioUrl: string) => {
     const confirmDestruction = window.confirm("⚠️ Are you sure you want to permanently delete this track from your studio and the public feed? This action cannot be undone.");
     if (!confirmDestruction) return;
 
     try {
-      // 1. If an audio url exists, attempt storage file extraction cleanup
       if (audioUrl) {
         const urlParts = audioUrl.split('/storage/v1/object/public/audio/');
         if (urlParts.length === 2) {
@@ -90,7 +90,6 @@ export default function StudioWorkspace() {
         }
       }
 
-      // 2. Erase the database record row row context
       const { error } = await database.from('sounds').delete().eq('id', soundId);
       if (error) throw error;
 
@@ -101,7 +100,7 @@ export default function StudioWorkspace() {
     }
   };
 
-  // 🚨 WORKFLOW ACTION 2: PERMANENT ACCOUNT ERASURE
+  // Permanent Account Erasure Hook
   const handleDeleteAccount = async () => {
     const doubleCheck = window.confirm("🛑 CRITICAL ACTION!\nAre you absolutely sure you want to wipe out your production profile? This will permanently delete your username, tracks, open opportunities, and project credits. This action is irreversible.");
     if (!doubleCheck) return;
@@ -114,11 +113,9 @@ export default function StudioWorkspace() {
     try {
       setLoading(true);
       
-      // Clear personal profile metadata row (cascade rules handle standard audio rows)
       const { error } = await database.from('profiles').delete().eq('id', profile.id);
       if (error) throw error;
 
-      // Log out current session authentication cookies tracking
       await database.auth.signOut();
       alert("✅ Your account and assets have been permanently erased from the network server maps.");
       router.replace('/');
@@ -265,10 +262,14 @@ export default function StudioWorkspace() {
     <div className="min-h-screen bg-[#FDFBF7] p-6 text-black relative">
       <div className="max-w-4xl mx-auto">
         
-        {/* Navigation Headbars */}
-        <div className="flex justify-end gap-6 mb-4 text-[13px] font-bold text-[#191919]">
+        {/* Navigation Action Header */}
+        <div className="flex justify-end items-center gap-6 mb-4 text-[13px] font-bold text-[#191919]">
           <button onClick={() => router.push('/studio')} className="hover:opacity-70">My Studio</button>
           <button onClick={() => router.push('/feed')} className="hover:opacity-70">Community Feed</button>
+          
+          {/* Real-time Notification Bell Center Trigger */}
+          {profile.id && <NotificationCenter profileId={profile.id} />}
+          
           <button onClick={() => { database.auth.signOut(); router.push('/'); }} className="text-[#A4927A] hover:text-[#191919]">Leave Studio</button>
         </div>
 
@@ -349,7 +350,7 @@ export default function StudioWorkspace() {
                     </select>
                   </div>
 
-                  {/* 🚨 RED DANGER ACTION LOGOUT TRIGGER BUTTON */}
+                  {/* Absolute Data Purge Trigger Button */}
                   <button 
                     type="button"
                     onClick={handleDeleteAccount}
@@ -369,7 +370,7 @@ export default function StudioWorkspace() {
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="space-y-1">
+                <div className="space-y-1 text-left">
                   <h1 className="text-3xl sm:text-4xl font-serif font-normal italic tracking-tight text-[#191919]">
                     {profile.username || 'nthakur'}
                   </h1>
@@ -377,6 +378,7 @@ export default function StudioWorkspace() {
                     <span className="bg-[#191919] text-white text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider">
                       {profile.account_type || '🎹 Producer'}
                     </span>
+                    {/* Conditional Banner Badge Visibility Filter */}
                     {profile.is_open_to_collab !== null && profile.is_open_to_collab !== undefined && (
                       <span className={`text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider ${profile.is_open_to_collab === true ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
                         {profile.is_open_to_collab === true ? '🟢 Open To Collaborate' : '🔴 Not Taking Requests'}
@@ -385,14 +387,14 @@ export default function StudioWorkspace() {
                   </div>
                 </div>
                 
-                <div className="space-y-1 text-xs text-[#4B3B2F] font-bold pt-0.5">
+                <div className="space-y-1 text-xs text-[#4B3B2F] font-bold pt-0.5 text-left">
                   <div>🎹 DAW/Style: {profile.software || 'logic, fl'}</div>
                   <div>🎵 Primary Genre: {profile.primary_genre || 'Trap'}</div>
                   <div>🌍 Location: {profile.country || 'India'}</div>
                 </div>
 
                 {profile.bio && (
-                  <p className="text-xs text-[#3E3227] font-medium leading-relaxed bg-white/20 p-3 rounded-xl max-w-xl italic mt-1">
+                  <p className="text-xs text-[#3E3227] font-medium leading-relaxed bg-white/20 p-3 rounded-xl max-w-xl italic mt-1 text-left">
                     {profile.bio}
                   </p>
                 )}
@@ -401,10 +403,10 @@ export default function StudioWorkspace() {
           </div>
         </div>
 
-        {/* Sync Toggles */}
+        {/* Sync Controls */}
         <button 
           onClick={() => setIsEditingProfile(!isEditingProfile)} 
-          className="mt-6 px-6 py-2 border border-[#191919] rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-[#191919] hover:text-white transition"
+          className="mt-6 px-6 py-2 border border-[#191919] rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-[#191919] hover:text-white transition flex"
         >
           {isEditingProfile ? 'Finish Profile Sync' : 'Edit Profile Options'}
         </button>
@@ -421,7 +423,7 @@ export default function StudioWorkspace() {
             </div>
           </div>
 
-          {/* Hidden Upload Button link slot */}
+          {/* Upload Link Area */}
           <div className="flex justify-end h-9 items-center px-2 mt-2 mb-1">
             {activeTab === 'Loops / Tracks' && (
               <button 
@@ -462,7 +464,7 @@ export default function StudioWorkspace() {
                       ✏️
                     </button>
 
-                    {/* 🗑️ NEW SUBTLE DELETION CROSS BUTTON ENTRY */}
+                    {/* Trash Can Deletion Anchor */}
                     <button 
                       onClick={() => handleDeleteTrack(sound.id, sound.audio_url)} 
                       className="p-2 border border-red-200 text-red-500 rounded-xl hover:bg-red-50 transition text-xs font-bold"
@@ -482,7 +484,7 @@ export default function StudioWorkspace() {
         </div>
       </div>
 
-      {/* Modal Dialog Overlay Overlay Form Elements */}
+      {/* Input Metadata Dialog Overlay Overlay Form Elements */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-[#E3DEC1] rounded-[2rem] w-full max-w-md p-8 shadow-2xl relative animate-fadeIn max-h-[90vh] overflow-y-auto text-black">
@@ -493,7 +495,7 @@ export default function StudioWorkspace() {
 
             <form onSubmit={handleFormSubmit} className="space-y-4 text-xs font-bold text-gray-600">
               {!isEditingTrack && (
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 text-left">
                   <label className="block uppercase tracking-wider text-[10px]">Select Audio File (*)</label>
                   <div onClick={() => fileInputRef.current?.click()} className="p-4 border-2 border-dashed border-[#E3DEC1] rounded-xl text-center cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
                     <input type="file" ref={fileInputRef} accept="audio/*" onChange={handleFileSelection} className="hidden" />
@@ -502,12 +504,12 @@ export default function StudioWorkspace() {
                 </div>
               )}
 
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 text-left">
                 <label className="block uppercase tracking-wider text-[10px]">Track / Loop Name (*)</label>
                 <input type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="e.g., Logic_Synth_Pluck" className="w-full border border-[#E3DEC1] p-3 rounded-xl focus:outline-none text-black font-semibold text-sm" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 text-left">
                 <div className="space-y-1.5">
                   <label className="block uppercase tracking-wider text-[10px]">Core Instrument (*)</label>
                   <select value={formInstrument} onChange={(e) => setFormInstrument(e.target.value)} className="w-full border border-[#E3DEC1] p-3 rounded-xl bg-white focus:outline-none text-black font-semibold">
@@ -533,7 +535,7 @@ export default function StudioWorkspace() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 text-left">
                 <div className="space-y-1.5">
                   <label className="block uppercase tracking-wider text-[10px]">Tempo (BPM) (*)</label>
                   <input type="number" value={formBpm} onChange={(e) => setFormBpm(e.target.value)} placeholder="e.g., 140" className="w-full border border-[#E3DEC1] p-3 rounded-xl focus:outline-none text-black font-semibold" />
@@ -553,7 +555,7 @@ export default function StudioWorkspace() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 text-left">
                 <label className="block uppercase tracking-wider text-[10px]">Track Summary / Vibe</label>
                 <textarea rows={2} value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder="Describe the sample style layers used..." className="w-full border border-[#E3DEC1] p-3 rounded-xl focus:outline-none text-black font-medium resize-none" />
               </div>
