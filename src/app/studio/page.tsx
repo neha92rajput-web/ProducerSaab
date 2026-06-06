@@ -15,7 +15,7 @@ export default function StudioWorkspace() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>({});
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [activeTab, setActiveTab] = useState('Loops');
+  const [activeTab, setActiveTab] = useState('Loops / Tracks'); // Refined down to 2 option slots
   const [sounds, setSounds] = useState<any[]>([]);
 
   // Form Modal Management States
@@ -25,7 +25,6 @@ export default function StudioWorkspace() {
   
   // Form Field Input States
   const [formTitle, setFormTitle] = useState('');
-  const [formCategory, setFormCategory] = useState('Loops');
   const [formInstrument, setFormInstrument] = useState('Drums');
   const [formBpm, setFormBpm] = useState('');
   const [formKey, setFormKey] = useState('C Min');
@@ -73,7 +72,6 @@ export default function StudioWorkspace() {
     setIsEditingTrack(false);
     setSelectedTrackId(null);
     setFormTitle('');
-    setFormCategory(activeTab);
     setFormInstrument('Drums');
     setFormBpm('');
     setFormKey('C Min');
@@ -87,12 +85,11 @@ export default function StudioWorkspace() {
     setIsEditingTrack(true);
     setSelectedTrackId(track.id);
     setFormTitle(track.title || '');
-    setFormCategory(track.category || 'Loops');
     setFormInstrument(track.instrument || 'Drums');
     setFormBpm(track.bpm || '');
     setFormKey(track.key_signature || 'C Min');
     setFormDescription(track.description || '');
-    setSelectedFile(null); // No file change needed unless re-uploading
+    setSelectedFile(null);
     setIsModalOpen(true);
   };
 
@@ -101,7 +98,7 @@ export default function StudioWorkspace() {
     if (file) {
       setSelectedFile(file);
       if (!formTitle) {
-        setFormTitle(file.name.replace(/\.[^/.]+$/, "")); // Set default name without extension
+        setFormTitle(file.name.replace(/\.[^/.]+$/, ""));
       }
     }
   };
@@ -115,7 +112,6 @@ export default function StudioWorkspace() {
     try {
       let finalAudioUrl = '';
 
-      // If we are uploading a new file or changing an existing file
       if (selectedFile) {
         const fileExt = selectedFile.name.split('.').pop();
         const fileName = `${Date.now()}.${fileExt}`;
@@ -131,10 +127,9 @@ export default function StudioWorkspace() {
       }
 
       if (isEditingTrack && selectedTrackId) {
-        // 1. Process Database Update Logic
         const updateData: any = {
           title: formTitle,
-          category: formCategory,
+          category: activeTab, // Synchronized cleanly to track/loop category context
           instrument: formInstrument,
           bpm: formBpm ? Number(formBpm) : null,
           key_signature: formKey,
@@ -153,7 +148,6 @@ export default function StudioWorkspace() {
         if (updateError) throw updateError;
         alert("🎉 Track updates successfully saved!");
       } else {
-        // 2. Process Brand New Insertion Logic
         if (!selectedFile) {
           setIsSubmitting(false);
           return alert("Please select an audio file to upload.");
@@ -162,7 +156,7 @@ export default function StudioWorkspace() {
         const { error: insertError } = await database.from('sounds').insert({
           profile_id: profile.id,
           title: formTitle,
-          category: formCategory,
+          category: activeTab,
           instrument: formInstrument,
           bpm: formBpm ? Number(formBpm) : null,
           key_signature: formKey,
@@ -171,10 +165,9 @@ export default function StudioWorkspace() {
         });
 
         if (insertError) throw insertError;
-        alert("🚀 Fresh sound entry published distributed successfully!");
+        alert("🚀 Fresh sound entry published successfully!");
       }
 
-      // Close modal and refresh listings layout array
       setIsModalOpen(false);
       const { data: refreshedSounds } = await database
         .from('sounds')
@@ -205,14 +198,14 @@ export default function StudioWorkspace() {
     <div className="min-h-screen bg-[#FDFBF7] p-6 text-black relative">
       <div className="max-w-4xl mx-auto">
         
-        {/* Top bar navigation */}
+        {/* Navigation Actions */}
         <div className="flex justify-end gap-6 mb-4 text-[13px] font-bold text-[#191919]">
           <button onClick={() => router.push('/studio')} className="hover:opacity-70">My Studio</button>
           <button onClick={() => router.push('/')} className="hover:opacity-70">Community Feed</button>
           <button onClick={() => { database.auth.signOut(); router.push('/'); }} className="text-[#A4927A] hover:text-[#191919]">Leave Studio</button>
         </div>
 
-        {/* Profile Details Header Section */}
+        {/* Profile Card Banner */}
         <div className="bg-[#D7C9B7] rounded-[2rem] p-8 shadow-sm flex items-center gap-8 min-h-[250px]">
           <div className="w-28 h-28 bg-[#191919] rounded-full flex items-center justify-center text-white text-4xl italic font-serif flex-shrink-0">
             {String(profile.username || 'N').charAt(0).toUpperCase()}
@@ -225,7 +218,7 @@ export default function StudioWorkspace() {
             )}
             <div className="space-y-1 text-sm text-[#4B3B2F]">
               <div>🎹 DAW/Style: {profile.software || 'Add production setup...'}</div>
-              <div>🌍 Location: {profile.country || 'Add global tracking coordinates...'}</div>
+              <div>🌍 Location: {profile.country || 'Add location details...'}</div>
             </div>
           </div>
         </div>
@@ -234,26 +227,36 @@ export default function StudioWorkspace() {
           {isEditingProfile ? 'Finish Profile Sync' : 'Edit Profile Options'}
         </button>
 
-        {/* Catalog Control row */}
+        {/* Dynamic Nav Tabs Row */}
         <div className="mt-12">
           <div className="flex justify-between items-center border-b border-[#E3DEC1] mb-8 pb-1">
             <div className="flex gap-8">
-              {['Loops', 'Tracks', 'Collaboration'].map((tab) => (
+              {['Loops / Tracks', 'Collaboration'].map((tab) => (
                 <button key={tab} onClick={() => setActiveTab(tab)} className={`pb-3 text-[11px] font-black uppercase tracking-widest border-b-2 ${activeTab === tab ? 'text-[#191919] border-[#191919]' : 'text-[#A4927A] border-transparent'}`}>
                   {tab}
                 </button>
               ))}
             </div>
-            <button onClick={openUploadModal} className="bg-[#191919] text-white px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-[#4B3B2F] transition-all">
-              + Upload Audio
-            </button>
+            
+            {/* Conditional Check: Upload only renders when Loops / Tracks is actively selected */}
+            {activeTab === 'Loops / Tracks' && (
+              <button onClick={openUploadModal} className="bg-[#191919] text-white px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-[#4B3B2F] transition-all">
+                + Upload Audio
+              </button>
+            )}
           </div>
 
-          {/* Sound Card Library Layout Grid */}
+          {/* Sound Card Items Render Loop List */}
           <div className="grid gap-4">
-            {sounds.length > 0 ? (
+            {activeTab === 'Collaboration' ? (
+              <div className="text-center p-12 border border-dashed border-[#E3DEC1] rounded-2xl bg-white/40">
+                <div className="text-2xl mb-2">💬</div>
+                <h4 className="text-sm font-bold text-gray-700 mb-1">Collaboration Hub Hub Active</h4>
+                <p className="text-xs text-gray-400 font-medium max-w-sm mx-auto">This area holds your collective project workspace tracking rows. Direct mix audio uploads are disabled inside this tab view channel.</p>
+              </div>
+            ) : sounds.length > 0 ? (
               sounds.map((sound) => (
-                <div key={sound.id} className="p-5 border border-[#E3DEC1] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/70 shadow-sm relative group">
+                <div key={sound.id} className="p-5 border border-[#E3DEC1] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/70 shadow-sm relative group animate-fadeIn">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-black text-[#191919]">{sound.title}</span>
@@ -265,7 +268,7 @@ export default function StudioWorkspace() {
                   
                   <div className="flex items-center gap-4">
                     <audio controls src={sound.audio_url} className="h-8" />
-                    <button onClick={() => openEditModal(sound)} className="p-2 border border-[#E3DEC1] rounded-xl hover:bg-[#191919] hover:text-white text-gray-500 transition text-xs font-bold" title="Edit Track Metadata">
+                    <button onClick={() => openEditModal(sound)} className="p-2 border border-[#E3DEC1] rounded-xl hover:bg-[#191919] hover:text-white text-gray-500 transition text-xs font-bold">
                       ✏️ Edit
                     </button>
                   </div>
@@ -280,19 +283,18 @@ export default function StudioWorkspace() {
         </div>
       </div>
 
-      {/* 📥 DYNAMIC METADATA FORM MODAL OVERLAY */}
+      {/* 📥 DYNAMIC INPUT METADATA DIALOG OVERLAY */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#E3DEC1] rounded-[2rem] w-full max-w-md p-8 shadow-2xl relative animate-fadeIn max-h-[90vh] overflow-y-auto">
+          <div className="bg-white border border-[#E3DEC1] rounded-[2rem] w-full max-w-md p-8 shadow-2xl relative animate-fadeIn max-h-[90vh] overflow-y-auto text-black">
             <button onClick={() => setIsModalOpen(false)} className="absolute right-6 top-6 text-gray-400 hover:text-black font-bold">✕</button>
             
             <h3 className="text-lg font-black tracking-tight mb-4 text-[#191919]">
-              {isEditingTrack ? "📝 Edit Sound Asset Details" : "📤 Setup Sound Publication Details"}
+              {isEditingTrack ? "📝 Edit Audio Details" : "📤 Setup Publication Details"}
             </h3>
 
             <form onSubmit={handleFormSubmit} className="space-y-4 text-xs font-bold text-gray-600">
               
-              {/* File Selector Input Slot */}
               {!isEditingTrack && (
                 <div className="space-y-1.5">
                   <label className="block uppercase tracking-wider text-[10px]">Select Audio File (*)</label>
@@ -305,45 +307,33 @@ export default function StudioWorkspace() {
 
               {/* Track Name */}
               <div className="space-y-1.5">
-                <label className="block uppercase tracking-wider text-[10px]">Track / Phrase Name</label>
+                <label className="block uppercase tracking-wider text-[10px]">Track / Loop Name</label>
                 <input type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="e.g., Logic_Synth_Pluck" className="w-full border border-[#E3DEC1] p-3 rounded-xl focus:outline-none text-black font-semibold text-sm" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                {/* Category Type */}
-                <div className="space-y-1.5">
-                  <label className="block uppercase tracking-wider text-[10px]">Asset Category</label>
-                  <select value={formCategory} onChange={(e) => setFormCategory(e.target.value)} className="w-full border border-[#E3DEC1] p-3 rounded-xl bg-white focus:outline-none text-black font-semibold">
-                    <option value="Loops">Loops</option>
-                    <option value="Tracks">Tracks</option>
-                    <option value="Collaboration">Collaboration</option>
-                  </select>
-                </div>
-
-                {/* Instrument Categorization */}
-                <div className="space-y-1.5">
-                  <label className="block uppercase tracking-wider text-[10px]">Core Instrument Source</label>
-                  <select value={formInstrument} onChange={(e) => setFormInstrument(e.target.value)} className="w-full border border-[#E3DEC1] p-3 rounded-xl bg-white focus:outline-none text-black font-semibold">
-                    <option value="Drums">Drums / Perc</option>
-                    <option value="Guitar">Guitar / Plucked</option>
-                    <option value="Piano">Piano / Keys</option>
-                    <option value="Synth">Synth / FX</option>
-                    <option value="Bass">Sub / Bassline</option>
-                    <option value="Vocal">Vocals / Chops</option>
-                  </select>
-                </div>
+              {/* Instrument Selection Row */}
+              <div className="space-y-1.5">
+                <label className="block uppercase tracking-wider text-[10px]">Core Instrument Source</label>
+                <select value={formInstrument} onChange={(e) => setFormInstrument(e.target.value)} className="w-full border border-[#E3DEC1] p-3 rounded-xl bg-white focus:outline-none text-black font-semibold">
+                  <option value="Drums">Drums / Percussion</option>
+                  <option value="Guitar">Guitar / String Layers</option>
+                  <option value="Piano">Piano / Rhyp Keys</option>
+                  <option value="Synth">Synth / Lead FX</option>
+                  <option value="Bass">Sub / 808 Basslines</option>
+                  <option value="Vocal">Vocals / Chop Hooks</option>
+                </select>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 {/* Tempo (BPM) */}
                 <div className="space-y-1.5">
                   <label className="block uppercase tracking-wider text-[10px]">Tempo (BPM)</label>
-                  <input type="number" value={formBpm} onChange={(e) => setFormBpm(e.target.value)} placeholder="e.g., 128" className="w-full border border-[#E3DEC1] p-3 rounded-xl focus:outline-none text-black font-semibold" />
+                  <input type="number" value={formBpm} onChange={(e) => setFormBpm(e.target.value)} placeholder="e.g., 140" className="w-full border border-[#E3DEC1] p-3 rounded-xl focus:outline-none text-black font-semibold" />
                 </div>
 
-                {/* Key Signature */}
+                {/* Key Scale */}
                 <div className="space-y-1.5">
-                  <label className="block uppercase tracking-wider text-[10px]">Scale Key</label>
+                  <label className="block uppercase tracking-wider text-[10px]">Musical Key</label>
                   <select value={formKey} onChange={(e) => setFormKey(e.target.value)} className="w-full border border-[#E3DEC1] p-3 rounded-xl bg-white focus:outline-none text-black font-semibold">
                     <option value="C Maj">C Maj</option><option value="C Min">C Min</option>
                     <option value="D Maj">D Maj</option><option value="D Min">D Min</option>
@@ -356,15 +346,15 @@ export default function StudioWorkspace() {
                 </div>
               </div>
 
-              {/* Bio / Description */}
+              {/* Summary */}
               <div className="space-y-1.5">
-                <label className="block uppercase tracking-wider text-[10px]">Track Summary / Bio</label>
-                <textarea rows={2} value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder="Cleared transient melody layer. Great for trap or alternative lo-fi bounces..." className="w-full border border-[#E3DEC1] p-3 rounded-xl focus:outline-none text-black font-medium resize-none" />
+                <label className="block uppercase tracking-wider text-[10px]">Track Summary / Vibe</label>
+                <textarea rows={2} value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder="Describe the sample style layers or plugins used..." className="w-full border border-[#E3DEC1] p-3 rounded-xl focus:outline-none text-black font-medium resize-none" />
               </div>
 
-              {/* Submission Button Trigger */}
+              {/* Submit Action */}
               <button type="submit" disabled={isSubmitting} className="w-full bg-[#111111] text-white py-3.5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#4B3B2F] transition-all disabled:opacity-50 mt-2 cursor-pointer">
-                {isSubmitting ? "Processing Transaction Check..." : isEditingTrack ? "💾 Save Configuration Changes" : "🚀 Distribute Sound Asset"}
+                {isSubmitting ? "Uploading asset variables..." : isEditingTrack ? "💾 Save Asset Metadata" : "🚀 Publish to Studio Library"}
               </button>
             </form>
           </div>
