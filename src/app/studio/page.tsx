@@ -183,7 +183,7 @@ export default function StudioWorkspace() {
     }
   };
 
-  const saveProfile = async (field: string, value: string) => {
+  const saveProfileField = async (field: string, value: string) => {
     setProfile((prev: any) => ({ ...prev, [field]: value }));
     await database.from('profiles').update({ [field]: value }).eq('id', profile.id);
   };
@@ -203,25 +203,95 @@ export default function StudioWorkspace() {
           <button onClick={() => { database.auth.signOut(); router.push('/'); }} className="text-[#A4927A] hover:text-[#191919]">Leave Studio</button>
         </div>
 
-        {/* Profile Card Banner */}
-        <div className="bg-[#D7C9B7] rounded-[2rem] p-8 shadow-sm flex items-center gap-8 min-h-[250px]">
-          <div className="w-28 h-28 bg-[#191919] rounded-full flex items-center justify-center text-white text-4xl italic font-serif flex-shrink-0">
+        {/* Dynamic Studio Profile Card Banner */}
+        <div className="bg-[#D7C9B7] rounded-[2rem] p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-8 min-h-[250px]">
+          <div className="w-24 h-24 sm:w-28 sm:h-28 bg-[#191919] rounded-full flex items-center justify-center text-white text-4xl italic font-serif flex-shrink-0">
             {String(profile.username || 'N').charAt(0).toUpperCase()}
           </div>
-          <div className="flex-grow space-y-4">
+          
+          <div className="flex-grow space-y-3 w-full">
             {isEditingProfile ? (
-              <input defaultValue={profile.username} onBlur={(e) => saveProfile('username', e.target.value)} className="text-3xl font-black italic bg-white/50 p-2 rounded w-full focus:outline-none" />
+              <div className="space-y-3 max-w-xl">
+                {/* Username */}
+                <input 
+                  type="text"
+                  defaultValue={profile.username} 
+                  onBlur={(e) => saveProfileField('username', e.target.value)} 
+                  className="text-2xl sm:text-3xl font-black italic tracking-tight bg-white/60 px-3 py-1 rounded-xl w-full focus:outline-none text-black" 
+                  placeholder="Username"
+                />
+                
+                {/* Creator Categories Dropdown Row */}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <select 
+                    value={profile.account_type || '🎹 Producer'} 
+                    onChange={(e) => saveProfileField('account_type', e.target.value)}
+                    className="text-xs font-bold bg-white/60 p-2.5 rounded-xl focus:outline-none text-black border-none"
+                  >
+                    <option value="🎹 Producer">🎹 Producer</option>
+                    <option value="🎤 Artist / Singer">🎤 Artist / Singer</option>
+                    <option value="✍️ Songwriter">✍️ Songwriter</option>
+                    <option value="🎚️ Engineer">🎚️ Engineer</option>
+                    <option value="🎸 Musician">🎸 Musician</option>
+                    <option value="🎧 DJ">🎧 DJ</option>
+                    <option value="🎬 Fan / Listener">🎬 Fan / Listener</option>
+                  </select>
+
+                  <input 
+                    type="text"
+                    defaultValue={profile.software || 'logic, fl'} 
+                    onBlur={(e) => saveProfileField('software', e.target.value)} 
+                    className="text-xs font-semibold bg-white/60 p-2.5 rounded-xl focus:outline-none text-black placeholder-gray-500 flex-grow"
+                    placeholder="Production Software / Setup"
+                  />
+                  <input 
+                    type="text"
+                    defaultValue={profile.country || 'india'} 
+                    onBlur={(e) => saveProfileField('country', e.target.value)} 
+                    className="text-xs font-semibold bg-white/60 p-2.5 rounded-xl focus:outline-none text-black placeholder-gray-500 w-32"
+                    placeholder="Location"
+                  />
+                </div>
+
+                {/* Text and Numbers Bio Input Field */}
+                <textarea 
+                  defaultValue={profile.bio || ''} 
+                  onBlur={(e) => saveProfileField('bio', e.target.value)} 
+                  placeholder="Tell the community about your style, release stats, or gear setup (Supports numbers & letters)..."
+                  className="w-full text-xs font-medium p-3 rounded-xl bg-white/60 border-none focus:outline-none text-black resize-none"
+                  rows={2}
+                />
+              </div>
             ) : (
-              <h1 className="text-3xl font-black italic">{profile.username || 'Anonymous Producer'}</h1>
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  <h1 className="text-3xl font-black italic tracking-tight">{profile.username || 'nthakur'}</h1>
+                  <span className="bg-[#191919] text-white text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider">
+                    {profile.account_type || '🎹 Producer'}
+                  </span>
+                </div>
+                
+                <div className="space-y-1 text-xs text-[#4B3B2F] font-bold">
+                  <div>🎹 DAW/Style: {profile.software || 'logic, fl'}</div>
+                  <div>🌍 Location: {profile.country || 'india'}</div>
+                </div>
+
+                {/* Flexible Bio Display Element */}
+                {profile.bio && (
+                  <p className="text-xs text-[#3E3227] font-medium leading-relaxed bg-white/20 p-3 rounded-xl max-w-xl italic mt-2">
+                    {profile.bio}
+                  </p>
+                )}
+              </div>
             )}
-            <div className="space-y-1 text-sm text-[#4B3B2F]">
-              <div>🎹 DAW/Style: {profile.software || 'Add production setup...'}</div>
-              <div>🌍 Location: {profile.country || 'Add location details...'}</div>
-            </div>
           </div>
         </div>
 
-        <button onClick={() => setIsEditingProfile(!isEditingProfile)} className="mt-6 px-6 py-2 border border-[#191919] rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-[#191919] hover:text-white transition">
+        {/* Sync / Edit Button Trigger */}
+        <button 
+          onClick={() => setIsEditingProfile(!isEditingProfile)} 
+          className="mt-6 px-6 py-2 border border-[#191919] rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-[#191919] hover:text-white transition"
+        >
           {isEditingProfile ? 'Finish Profile Sync' : 'Edit Profile Options'}
         </button>
 
@@ -237,7 +307,7 @@ export default function StudioWorkspace() {
             </div>
           </div>
 
-          {/* HIDDEN SUBTLE ACTION ROW (Exactly where circled in image_f31fc0.png) */}
+          {/* Hidden Subtle Upload Link (Tucked cleanly inside the whitespace) */}
           <div className="flex justify-end h-9 items-center px-2 mt-2 mb-1">
             {activeTab === 'Loops / Tracks' && (
               <button 
