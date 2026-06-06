@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/utils/supabase';
+import { supabase } from '../utils/supabase';
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -83,8 +83,8 @@ export default function OnboardingModal({ isOpen, onClose }: OnboardingModalProp
         <button onClick={onClose} className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors">✕</button>
 
         <div className="w-12 h-12 bg-[#C5A880]/20 rounded-2xl flex items-center justify-center mb-4">
-          <svg className="w-6 h-6 text-[#C5A880]" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 3v18M17 7v10M7 9v6M22 10v4M2 11v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          <svg className="w-6 h-6 text-[#C5A880]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path d="M12 3v18M17 7v10M7 9v6M22 10v4M2 11v2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
 
@@ -106,7 +106,7 @@ export default function OnboardingModal({ isOpen, onClose }: OnboardingModalProp
                 placeholder="Producer name / alias"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-[#F5F5F7] text-[#111111] text-[13px] px-4 py-3 rounded-xl outline-none border border-transparent focus:border-gray-300 transition-all text-black"
+                className="w-full bg-[#F5F5F5] text-[#111111] text-[13px] px-4 py-3 rounded-xl outline-none border border-transparent focus:border-gray-300 transition-all text-black"
               />
               {formErrors.name && <p className="text-red-500 text-[10px] mt-1 ml-1">{formErrors.name}</p>}
             </div>
@@ -118,7 +118,7 @@ export default function OnboardingModal({ isOpen, onClose }: OnboardingModalProp
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-[#F5F5F7] text-[#111111] text-[13px] px-4 py-3 rounded-xl outline-none border border-transparent focus:border-gray-300 transition-all text-black"
+              className="w-full bg-[#F5F5F5] text-[#111111] text-[13px] px-4 py-3 rounded-xl outline-none border border-transparent focus:border-gray-300 transition-all text-black"
             />
             {formErrors.email && <p className="text-red-500 text-[10px] mt-1 ml-1">{formErrors.email}</p>}
           </div>
@@ -129,7 +129,7 @@ export default function OnboardingModal({ isOpen, onClose }: OnboardingModalProp
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[#F5F5F7] text-[#111111] text-[13px] px-4 py-3 rounded-xl outline-none border border-transparent focus:border-gray-300 transition-all pr-10 text-black"
+              className="w-full bg-[#F5F5F5] text-[#111111] text-[13px] px-4 py-3 rounded-xl outline-none border border-transparent focus:border-gray-300 transition-all pr-10 text-black"
             />
             <button
               type="button"
