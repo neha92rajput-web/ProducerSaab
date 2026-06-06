@@ -201,12 +201,11 @@ export default function StudioWorkspace() {
       console.error("Submission failed:", err);
       alert("Error: " + err.message);
     } finally {
-      // 🔒 REPAIRED TRANSLATION HANDLER HERE
       setIsSubmitting(false);
     }
   };
 
-  const saveProfileField = async (field: string, value: string) => {
+  const saveProfileField = async (field: string, value: any) => {
     setProfile((prev: any) => ({ ...prev, [field]: value }));
     await database.from('profiles').update({ [field]: value }).eq('id', profile.id);
   };
@@ -226,7 +225,7 @@ export default function StudioWorkspace() {
           <button onClick={() => { database.auth.signOut(); router.push('/'); }} className="text-[#A4927A] hover:text-[#191919]">Leave Studio</button>
         </div>
 
-        {/* Studio Profile Card Banner */}
+        {/* Dynamic Studio Profile Card Banner Layout */}
         <div className="bg-[#D7C9B7] rounded-[2rem] p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-8 min-h-[250px]">
           <div className="w-24 h-24 sm:w-28 sm:h-28 bg-[#191919] rounded-full flex items-center justify-center text-white text-4xl italic font-serif flex-shrink-0">
             {String(profile.username || 'N').charAt(0).toUpperCase()}
@@ -262,7 +261,7 @@ export default function StudioWorkspace() {
                     type="text"
                     defaultValue={profile.software || 'logic, fl'} 
                     onBlur={(e) => saveProfileField('software', e.target.value)} 
-                    className="text-xs font-semibold bg-white/60 p-2.5 rounded-xl focus:outline-none text-black placeholder-gray-500"
+                    className="text-xs font-semibold bg-white/60 p-2.5 rounded-xl focus:outline-none text-black"
                     placeholder="DAW (logic, fl)"
                   />
 
@@ -284,9 +283,22 @@ export default function StudioWorkspace() {
                     type="text"
                     defaultValue={profile.country || 'India'} 
                     onBlur={(e) => saveProfileField('country', e.target.value)} 
-                    className="text-xs font-semibold bg-white/60 p-2.5 rounded-xl focus:outline-none text-black placeholder-gray-500"
+                    className="text-xs font-semibold bg-white/60 p-2.5 rounded-xl focus:outline-none text-black"
                     placeholder="Location"
                   />
+                </div>
+
+                {/* Edit Availability Toggles Layout */}
+                <div className="flex items-center gap-2 pt-1">
+                  <label className="text-[10px] font-black uppercase tracking-wider text-gray-700">Accepting Collaboration Inquiries:</label>
+                  <select
+                    value={profile.is_open_to_collab !== false ? 'true' : 'false'}
+                    onChange={(e) => saveProfileField('is_open_to_collab', e.target.value === 'true')}
+                    className="text-[10px] font-bold bg-white/60 px-3 py-1 rounded-lg border-none focus:outline-none text-black"
+                  >
+                    <option value="true">🟢 Open To Collaborate</option>
+                    <option value="false">🔴 Not Taking Requests</option>
+                  </select>
                 </div>
 
                 <textarea 
@@ -303,9 +315,13 @@ export default function StudioWorkspace() {
                   <h1 className="text-3xl sm:text-4xl font-serif font-normal italic tracking-tight text-[#191919]">
                     {profile.username || 'nthakur'}
                   </h1>
-                  <div className="pt-0.5">
+                  <div className="pt-0.5 flex flex-wrap items-center gap-2">
                     <span className="bg-[#191919] text-white text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider">
                       {profile.account_type || '🎹 Producer'}
+                    </span>
+                    {/* 🟢/🔴 VISIBILITY STATUS METADATA BADGE DISPLAY SLOT */}
+                    <span className={`text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider ${profile.is_open_to_collab !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                      {profile.is_open_to_collab !== false ? '🟢 Open To Collaborate' : '🔴 Not Taking Requests'}
                     </span>
                   </div>
                 </div>
@@ -326,7 +342,7 @@ export default function StudioWorkspace() {
           </div>
         </div>
 
-        {/* Sync Toggle Button */}
+        {/* Sync Toggles */}
         <button 
           onClick={() => setIsEditingProfile(!isEditingProfile)} 
           className="mt-6 px-6 py-2 border border-[#191919] rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-[#191919] hover:text-white transition"
@@ -334,7 +350,7 @@ export default function StudioWorkspace() {
           {isEditingProfile ? 'Finish Profile Sync' : 'Edit Profile Options'}
         </button>
 
-        {/* Dynamic Nav Tabs Row */}
+        {/* Core Architecture Tab Engine Row */}
         <div className="mt-12">
           <div className="flex justify-between items-center border-b border-[#E3DEC1] pb-1">
             <div className="flex gap-8">
@@ -346,7 +362,7 @@ export default function StudioWorkspace() {
             </div>
           </div>
 
-          {/* Hidden Subtle Upload Button Link */}
+          {/* Subtle hidden upload context */}
           <div className="flex justify-end h-9 items-center px-2 mt-2 mb-1">
             {activeTab === 'Loops / Tracks' && (
               <button 
@@ -358,7 +374,6 @@ export default function StudioWorkspace() {
             )}
           </div>
 
-          {/* Core App Display Filter Router Box */}
           <div className="grid gap-4">
             {activeTab === 'Collaboration' ? (
               <CollaborationHub profileId={profile.id} />
@@ -398,18 +413,16 @@ export default function StudioWorkspace() {
         </div>
       </div>
 
-      {/* 📥 DYNAMIC INPUT METADATA DIALOG OVERLAY */}
+      {/* Modal Dialog Overlay Form Elements */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-[#E3DEC1] rounded-[2rem] w-full max-w-md p-8 shadow-2xl relative animate-fadeIn max-h-[90vh] overflow-y-auto text-black">
             <button onClick={() => setIsModalOpen(false)} className="absolute right-6 top-6 text-gray-400 hover:text-black font-bold">✕</button>
-            
             <h3 className="text-lg font-black tracking-tight mb-4 text-[#191919]">
               {isEditingTrack ? "📝 Edit Audio Details" : "📤 Setup Publication Details"}
             </h3>
 
             <form onSubmit={handleFormSubmit} className="space-y-4 text-xs font-bold text-gray-600">
-              
               {!isEditingTrack && (
                 <div className="space-y-1.5">
                   <label className="block uppercase tracking-wider text-[10px]">Select Audio File (*)</label>
