@@ -114,7 +114,7 @@ export default function StudioWorkspace() {
         const fileExt = selectedFile.name.split('.').pop();
         const fileName = `${Date.now()}.${fileExt}`;
         
-        const { error: uploadError } = await database.storage
+        const { error: uploadError = null } = await database.storage
           .from('audio') 
           .upload(fileName, selectedFile);
 
@@ -212,12 +212,12 @@ export default function StudioWorkspace() {
           <div className="flex-grow space-y-3 w-full">
             {isEditingProfile ? (
               <div className="space-y-3 max-w-xl">
-                {/* Username */}
+                {/* Classy Serif Font Stack Inside Editor Input */}
                 <input 
                   type="text"
                   defaultValue={profile.username} 
                   onBlur={(e) => saveProfileField('username', e.target.value)} 
-                  className="text-2xl sm:text-3xl font-black italic tracking-tight bg-white/60 px-3 py-1 rounded-xl w-full focus:outline-none text-black" 
+                  className="text-2xl sm:text-3xl font-serif font-normal italic tracking-tight bg-white/60 px-3 py-1 rounded-xl w-full focus:outline-none text-black" 
                   placeholder="Username"
                 />
                 
@@ -264,14 +264,19 @@ export default function StudioWorkspace() {
               </div>
             ) : (
               <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                  <h1 className="text-3xl font-black italic tracking-tight">{profile.username || 'nthakur'}</h1>
-                  <span className="bg-[#191919] text-white text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider">
-                    {profile.account_type || '🎹 Producer'}
-                  </span>
+                {/* REPOSITIONED LAYOUT: Toggled Classy Font and Stacked Badge Directly Below Name */}
+                <div className="space-y-1">
+                  <h1 className="text-3xl sm:text-4xl font-serif font-normal italic tracking-tight text-[#191919]">
+                    {profile.username || 'nthakur'}
+                  </h1>
+                  <div className="pt-0.5">
+                    <span className="bg-[#191919] text-white text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider">
+                      {profile.account_type || '🎹 Producer'}
+                    </span>
+                  </div>
                 </div>
                 
-                <div className="space-y-1 text-xs text-[#4B3B2F] font-bold">
+                <div className="space-y-1 text-xs text-[#4B3B2F] font-bold pt-1">
                   <div>🎹 DAW/Style: {profile.software || 'logic, fl'}</div>
                   <div>🌍 Location: {profile.country || 'india'}</div>
                 </div>
