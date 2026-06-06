@@ -18,9 +18,7 @@ export default function CommunityFeedPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [myProfileId, setMyProfileId] = useState<string>('');
   
-  // Follow State Tracker Array
   const [followedArtists, setFollowedArtists] = useState<{ [key: string]: boolean }>({});
-
   const [globalSounds, setGlobalSounds] = useState<any[]>([]);
   const [globalBriefs, setGlobalBriefs] = useState<any[]>([]);
 
@@ -41,6 +39,7 @@ export default function CommunityFeedPage() {
         .not('audio_url', 'is', null)
         .order('created_at', { ascending: false });
 
+      // Fetch Global Requests launched via Studio
       const { data: briefs } = await database
         .from('collaboration_opportunities')
         .select('*, profiles(id, username, account_type, primary_genre)')
@@ -84,26 +83,20 @@ export default function CommunityFeedPage() {
     }
   };
 
-  // 👤 EXTENDED ACTION: FOLLOWS LIVE WITH DATABASE NOTIFICATION RECORD DATA
   const handleFollowArtist = async (artistId: string, artistUsername: string) => {
     if (!myProfileId) {
       alert("Please sign in to follow creators.");
       router.push('/signin');
       return;
     }
+    if (myProfileId === artistId) return alert("This is your own profile view column!");
 
-    if (myProfileId === artistId) {
-      return alert("This is your own profile view column!");
-    }
-
-    // Toggle follow text state locally
     if (followedArtists[artistId]) {
       setFollowedArtists(prev => ({ ...prev, [artistId]: false }));
       return;
     }
 
     try {
-      // Record a new activity entry event inside database table
       await database.from('notifications').insert({
         receiver_id: artistId,
         sender_id: myProfileId,
@@ -111,9 +104,8 @@ export default function CommunityFeedPage() {
         message: 'started following your studio profile portfolio.',
         is_read: false
       });
-
       setFollowedArtists(prev => ({ ...prev, [artistId]: true }));
-      alert(`👤 Following @${artistUsername}! Notification log generated.`);
+      alert(`👤 Following @${artistUsername}!`);
     } catch (err) {
       console.error(err);
     }
@@ -125,10 +117,7 @@ export default function CommunityFeedPage() {
       router.push('/signin');
       return;
     }
-
-    if (myProfileId === sound.profile_id) {
-      return alert("This track belongs to your profile workspace session!");
-    }
+    if (myProfileId === sound.profile_id) return alert("This track belongs to your profile workspace!");
 
     const messagePitch = prompt(`Send a request note to @${sound.profiles?.username} for collaborating on "${sound.title}":`);
     if (messagePitch === null) return;
@@ -145,7 +134,6 @@ export default function CommunityFeedPage() {
 
       if (error) throw error;
 
-      // Log a collaboration inquiry notice to notifications table as well
       await database.from('notifications').insert({
         receiver_id: sound.profile_id,
         sender_id: myProfileId,
@@ -167,7 +155,6 @@ export default function CommunityFeedPage() {
       router.push('/signin');
       return;
     }
-
     if (myProfileId === brief.creator_id) return alert("This is your own project brief!");
 
     const applicationPitch = prompt(`Write a message note pitching to @${brief.profiles?.username}:`);
@@ -201,31 +188,27 @@ export default function CommunityFeedPage() {
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-black font-sans antialiased">
       
-      {/* HEADER NAV HEADER BUTTON ACTIONS ROWS LINKS */}
       <header className="sticky top-0 z-50 bg-[#FDFBF7]/80 backdrop-blur-md border-b border-[#E3DEC1] px-8 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <Link href="/" className="font-sans font-black tracking-[0.2em] text-sm uppercase">🎵 Producer Saab</Link>
-          
+          <Link href="/" className="font-sans font-black tracking-[0.2em] text-sm uppercase">🎵 PRODUCER SAAB</Link>
           <div className="flex items-center gap-6 text-[13px] font-bold text-[#191919]">
             <Link href="/studio" className="hover:opacity-70">My Studio</Link>
             <Link href="/feed" className="opacity-40 pointer-events-none">Community Feed</Link>
-            
-            {/* 🔔 THE NAVIGATION LINK NOTIFICATION COMPONENT OVERLAY */}
             {myProfileId && <NotificationCenter profileId={myProfileId} />}
           </div>
         </div>
       </header>
 
-      {/* JUMBOTRON HEADER */}
       <main className="max-w-4xl mx-auto px-6 pt-12 pb-24 space-y-10">
         <div className="space-y-2 border-b border-[#E3DEC1] pb-6 text-left">
           <h1 className="text-4xl font-serif font-normal italic tracking-tight text-[#191919]">The Creator Ecosystem</h1>
-          <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Explore variables, download master audio structures, or follow creators instantly.</p>
+          <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Explore variables, download master audio structures, or connect directly on specific tracks.</p>
         </div>
 
+        {/* 🎯 HEADER FIX: Renamed tab cleanly to 'Collaboration Requests' */}
         <div className="flex gap-8 border-b border-[#E3DEC1] pb-px text-[11px] font-black uppercase tracking-widest">
           <button onClick={() => setActiveFeedTab('tracks')} className={`pb-3 border-b-2 transition-all ${activeFeedTab === 'tracks' ? 'text-[#191919] border-[#191919]' : 'text-[#A4927A] border-transparent'}`}>🎵 Fresh Sounds Library ({globalSounds.length})</button>
-          <button onClick={() => setActiveFeedTab('briefs')} className={`pb-3 border-b-2 transition-all ${activeFeedTab === 'briefs' ? 'text-[#191919] border-[#191919]' : 'text-[#A4927A] border-transparent'}`}>🎯 Open Project Briefs ({globalBriefs.length})</button>
+          <button onClick={() => setActiveFeedTab('briefs')} className={`pb-3 border-b-2 transition-all ${activeFeedTab === 'briefs' ? 'text-[#191919] border-[#191919]' : 'text-[#A4927A] border-transparent'}`}>🎯 Collaboration Requests ({globalBriefs.length})</button>
         </div>
 
         <div className="pt-2">
@@ -241,7 +224,6 @@ export default function CommunityFeedPage() {
                           <span className="bg-[#E3DEC1] text-[#4B3B2F] text-[9px] px-2 py-0.5 rounded-full font-bold uppercase font-mono">{sound.instrument || 'Synth'}</span>
                           <span className="bg-gray-100 text-gray-600 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase font-mono">{sound.genre || 'Trap'}</span>
                         </div>
-                        
                         <div className="text-xs font-medium text-gray-500 flex flex-wrap items-center gap-2 pt-0.5">
                           <span className="text-black font-bold">@{sound.profiles?.username || 'producer'}</span>
                           <span>•</span>
@@ -251,7 +233,6 @@ export default function CommunityFeedPage() {
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        {/* FOLLOW ACTION SWITCHES FROM FOLLOWING -> FOLLOWS BASED ON STATE MAP */}
                         <button 
                           onClick={() => handleFollowArtist(sound.profiles?.id, sound.profiles?.username)}
                           className={`px-3 py-1.5 border border-[#E3DEC1] rounded-xl text-[10px] font-black uppercase tracking-wider transition ${followedArtists[sound.profiles?.id] ? 'bg-black text-white border-black' : 'text-gray-600 hover:text-black hover:border-black'}`}
@@ -264,38 +245,45 @@ export default function CommunityFeedPage() {
 
                     <div className="flex items-center justify-between gap-4 border-t border-gray-50 pt-3 mt-1">
                       <audio controls src={sound.audio_url} className="h-8 flex-grow max-w-xl" ref={(el) => { audioRefs.current[sound.id] = el; }} onPlay={() => handleAudioPlay(sound.id)} />
-                      <button onClick={() => handleDownloadAudio(sound.audio_url, sound.title)} className="p-2 border border-[#E3DEC1] rounded-xl text-xs hover:bg-gray-50 font-bold text-[#4B3B2F] transition shrink-0">
-                        📥 Download
-                      </button>
+                      <button onClick={() => handleDownloadAudio(sound.audio_url, sound.title)} className="p-2 border border-[#E3DEC1] rounded-xl text-xs hover:bg-gray-50 font-bold text-[#4B3B2F] transition shrink-0">📥 Download</button>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center p-12 border border-dashed border-[#E3DEC1] rounded-2xl text-xs text-gray-400 font-semibold bg-white/40">No public tracks or loops found.</div>
+                <div className="text-center p-12 border border-dashed border-[#E3DEC1] rounded-2xl text-xs text-gray-400 font-semibold bg-white/40">No public tracks found.</div>
               )}
             </div>
           )}
 
           {activeFeedTab === 'briefs' && (
             <div className="grid md:grid-cols-2 gap-4">
-              {globalBriefs.map((brief) => (
-                <div key={brief.id} className="p-5 border border-[#E3DEC1] rounded-3xl bg-white shadow-sm flex flex-col justify-between space-y-4 text-left animate-fadeIn">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-                      <span className="text-[9px] bg-[#191919] text-white font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">Looking For: {brief.role_needed}</span>
-                      <div className="flex items-center gap-1.5 text-[10px] text-[#A4927A] font-bold">
-                        @{brief.profiles?.username}
-                        <button onClick={() => handleFollowArtist(brief.profiles?.id, brief.profiles?.username)} className="text-[9px] font-black uppercase tracking-wider text-gray-400 hover:text-black">
-                          {followedArtists[brief.profiles?.id] ? '(✓)' : '(Follow)'}
-                        </button>
+              {globalBriefs.length > 0 ? (
+                globalBriefs.map((brief) => (
+                  <div key={brief.id} className="p-5 border border-[#E3DEC1] rounded-3xl bg-white shadow-sm flex flex-col justify-between space-y-4 text-left animate-fadeIn">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                        <span className="text-[9px] bg-[#191919] text-white font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">Looking For: {brief.role_needed}</span>
+                        <div className="flex items-center gap-1.5 text-[10px] text-[#A4927A] font-bold">
+                          @{brief.profiles?.username}
+                          <button onClick={() => handleFollowArtist(brief.profiles?.id, brief.profiles?.username)} className="text-[9px] font-black uppercase tracking-wider text-gray-400 hover:text-black">
+                            {followedArtists[brief.profiles?.id] ? '(✓)' : '(Follow)'}
+                          </button>
+                        </div>
                       </div>
+                      <h3 className="text-sm font-black text-black tracking-tight leading-tight">{brief.title}</h3>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[9px] font-mono text-gray-400 font-bold uppercase">
+                        <div>Genre: {brief.genre}</div>
+                        <div>Tempo: {brief.bpm} BPM</div>
+                        <div>Key: {brief.musical_key}</div>
+                      </div>
+                      {brief.message && <p className="text-xs text-gray-500 font-medium bg-gray-50 p-3 rounded-xl italic">"{brief.message}"</p>}
                     </div>
-                    <h3 className="text-sm font-black text-black tracking-tight">{brief.title}</h3>
-                    {brief.message && <p className="text-xs text-gray-500 font-medium bg-gray-50 p-3 rounded-xl italic">"{brief.message}"</p>}
+                    <button onClick={() => submitApplicationRequest(brief)} className="w-full py-2.5 bg-[#191919] hover:bg-[#4B3B2F] text-white transition rounded-xl text-[10px] font-black uppercase tracking-widest">Apply for Session Room →</button>
                   </div>
-                  <button onClick={() => submitApplicationRequest(brief)} className="w-full py-2.5 bg-[#191919] hover:bg-[#4B3B2F] text-white transition rounded-xl text-[10px] font-black uppercase tracking-widest">Apply for Session Room →</button>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="text-center p-12 border border-dashed border-[#E3DEC1] rounded-2xl text-xs text-gray-400 font-semibold bg-white/40 col-span-2">No active collaboration posts distributed yet.</div>
+              )}
             </div>
           )}
         </div>
