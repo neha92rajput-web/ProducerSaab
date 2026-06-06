@@ -206,13 +206,18 @@ export default function StudioWorkspace() {
   };
 
   const saveProfileField = async (field: string, value: any) => {
-    setProfile((prev: any) => ({ ...prev, [field]: value }));
-    await database.from('profiles').update({ [field]: value }).eq('id', profile.id);
+    // If user picks the empty hidden option, turn it to null in database
+    const finalValue = value === 'none' ? null : value;
+    setProfile((prev: any) => ({ ...prev, [field]: finalValue }));
+    await database.from('profiles').update({ [field]: finalValue }).eq('id', profile.id);
   };
 
   if (loading) {
     return <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center text-sm text-gray-500">Loading Studio Workspace...</div>;
   }
+
+  // Helper variable to evaluate status text string conversions
+  const currentStatusString = profile.is_open_to_collab === true ? 'true' : profile.is_open_to_collab === false ? 'false' : 'none';
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] p-6 text-black relative">
@@ -288,14 +293,15 @@ export default function StudioWorkspace() {
                   />
                 </div>
 
-                {/* Edit Availability Toggles Layout */}
+                {/* Edit Availability Toggles Layout with the requested 3rd option */}
                 <div className="flex items-center gap-2 pt-1">
                   <label className="text-[10px] font-black uppercase tracking-wider text-gray-700">Accepting Collaboration Inquiries:</label>
                   <select
-                    value={profile.is_open_to_collab !== false ? 'true' : 'false'}
-                    onChange={(e) => saveProfileField('is_open_to_collab', e.target.value === 'true')}
+                    value={currentStatusString}
+                    onChange={(e) => saveProfileField('is_open_to_collab', e.target.value)}
                     className="text-[10px] font-bold bg-white/60 px-3 py-1 rounded-lg border-none focus:outline-none text-black"
                   >
+                    <option value="none">— Leave Empty / Hidden —</option>
                     <option value="true">🟢 Open To Collaborate</option>
                     <option value="false">🔴 Not Taking Requests</option>
                   </select>
@@ -319,10 +325,13 @@ export default function StudioWorkspace() {
                     <span className="bg-[#191919] text-white text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider">
                       {profile.account_type || '🎹 Producer'}
                     </span>
-                    {/* 🟢/🔴 VISIBILITY STATUS METADATA BADGE DISPLAY SLOT */}
-                    <span className={`text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider ${profile.is_open_to_collab !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
-                      {profile.is_open_to_collab !== false ? '🟢 Open To Collaborate' : '🔴 Not Taking Requests'}
-                    </span>
+                    
+                    {/* 🔥 CONDITIONAL DISPLAY: Only renders badge if value is explicitly true or false (hides if null) */}
+                    {profile.is_open_to_collab !== null && profile.is_open_to_collab !== undefined && (
+                      <span className={`text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider ${profile.is_open_to_collab === true ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                        {profile.is_open_to_collab === true ? '🟢 Open To Collaborate' : '🔴 Not Taking Requests'}
+                      </span>
+                    )}
                   </div>
                 </div>
                 
@@ -350,7 +359,7 @@ export default function StudioWorkspace() {
           {isEditingProfile ? 'Finish Profile Sync' : 'Edit Profile Options'}
         </button>
 
-        {/* Core Architecture Tab Engine Row */}
+        {/* Dynamic Nav Tabs Row */}
         <div className="mt-12">
           <div className="flex justify-between items-center border-b border-[#E3DEC1] pb-1">
             <div className="flex gap-8">
@@ -362,7 +371,7 @@ export default function StudioWorkspace() {
             </div>
           </div>
 
-          {/* Subtle hidden upload context */}
+          {/* Hidden Subtle Upload Button Link */}
           <div className="flex justify-end h-9 items-center px-2 mt-2 mb-1">
             {activeTab === 'Loops / Tracks' && (
               <button 
