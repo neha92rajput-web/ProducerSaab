@@ -22,6 +22,9 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [filteredCreators, setFilteredCreators] = useState<any[]>([]);
 
+  // Track active context menu open states
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
   // Search Filters State
   const [filterRole, setFilterRole] = useState('🎤 Vocalist');
   const [filterLocation, setFilterLocation] = useState('Any');
@@ -48,7 +51,7 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
         .select('id, status, message, sounds(title), profiles!collaboration_requests_receiver_id_fkey(username, account_type)')
         .eq('sender_id', profileId);
 
-      // Fetch opportunities that either belong to you OR are open across the network
+      // Fetch all opportunities matching your ID or open across the network
       const { data: opps } = await database
         .from('collaboration_opportunities')
         .select('*, profiles(username, account_type)')
@@ -67,6 +70,11 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
 
   useEffect(() => {
     syncCollaborationData();
+    
+    // Close context menus automatically if clicking anywhere else
+    const closeAllMenus = () => setActiveMenuId(null);
+    window.addEventListener('click', closeAllMenus);
+    return () => window.removeEventListener('click', closeAllMenus);
   }, [profileId]);
 
   // Handle live creators directory filtering
@@ -87,7 +95,6 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
     if (!oppTitle.trim() || !oppBpm.trim()) return alert("Please fill out mandatory project info slots.");
 
     try {
-      // 🔥 EXPLICIT VALUE FORCED: Guaranteed to write 'open' string values to database
       const { error } = await database.from('collaboration_opportunities').insert({
         creator_id: profileId,
         role_needed: oppRole,
@@ -112,9 +119,6 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
   };
 
   const handleCloseOpportunity = async (oppId: string) => {
-    const doubleCheck = window.confirm("Are you sure you want to close this collaboration request? It will immediately stop appearing on the public community feed.");
-    if (!doubleCheck) return;
-
     try {
       const { error } = await database
         .from('collaboration_opportunities')
@@ -123,6 +127,25 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
 
       if (error) throw error;
       alert("🔒 Request marked as Closed successfully.");
+      syncCollaborationData();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  // 🔥 NEW API ACTION WORKFLOW: Hard-delete a post from database
+  const handleDeleteOpportunity = async (oppId: string) => {
+    const checkAgain = window.confirm("Are you sure you want to permanently delete this collaboration post? This action cannot be undone.");
+    if (!checkAgain) return;
+
+    try {
+      const { error } = await database
+        .from('collaboration_opportunities')
+        .delete()
+        .eq('id', oppId);
+
+      if (error) throw error;
+      alert("🗑️ Post was permanently deleted from the ecosystem.");
       syncCollaborationData();
     } catch (err: any) {
       alert(err.message);
@@ -235,7 +258,7 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
         </div>
       )}
 
-      {/* 🎯 COLLABORATION POST PANEL */}
+      {/* 🎯 COLLABORATION POST TAB VIEW PANEL */}
       {subTab === 'opportunities' && (
         <div className="space-y-4 w-full">
           <div className="flex justify-between items-center">
@@ -292,7 +315,7 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
             </form>
           )}
 
-          {/* Cards Grid */}
+          {/* Cards Render Grid Container */}
           <div className="grid md:grid-cols-2 gap-4">
             {opportunities.length === 0 ? (
               <p className="text-xs text-gray-400 font-medium italic py-6">No active project briefs found.</p>
@@ -300,13 +323,50 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
               opportunities.map((opp) => {
                 const isMyPost = opp.creator_id === profileId;
                 const formattedDate = opp.created_at ? new Date(opp.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+                const isMenuOpen = activeMenuId === opp.id;
 
                 return (
-                  <div key={opp.id} className={`p-5 border rounded-3xl bg-white shadow-sm flex flex-col justify-between space-y-4 text-left ${opp.status === 'closed' ? 'border-gray-200 opacity-60 bg-gray-50/50' : 'border-[#E3DEC1]'}`}>
+                  <div key={opp.id} className={`p-5 border rounded-3xl bg-white shadow-sm flex flex-col justify-between space-y-4 text-left relative ${opp.status === 'closed' ? 'border-gray-200 opacity-60 bg-gray-50/50' : 'border-[#E3DEC1]'}`}>
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-                        <span className="text-[10px] bg-black text-white font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">{opp.role_needed}</span>
-                        <span className="text-[9px] text-gray-400 font-bold font-mono">{formattedDate}</span>
+                      <div className="flex items-center justify-between border-b border-gray-100 pb-2 relative pr-8">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] bg-black text-white font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">{opp.role_needed}</span>
+                          <span className="text-[9px] text-gray-400 font-bold font-mono">{formattedDate}</span>
+                        </div>
+
+                        {/* 🎯 Sleek 3-Dots Dropdown Trigger Area */}
+                        {isMyPost && (
+                          <div className="absolute right-0 top-0" onClick={(e) => e.stopPropagation()}>
+                            <button 
+                              onClick={() => setActiveMenuId(isMenuOpen ? null : opp.id)}
+                              className="text-gray-400 hover:text-black font-black text-sm px-2 tracking-widest focus:outline-none h-6 flex items-center cursor-pointer"
+                            >
+                              •••
+                            </button>
+
+                            {/* 🛠️ Dropdown Menu Box */}
+                            {isMenuOpen && (
+                              <div className="absolute right-0 top-6 bg-white border border-[#E3DEC1] rounded-xl shadow-xl py-1.5 z-30 w-32 animate-fadeIn font-sans">
+                                {opp.status !== 'closed' ? (
+                                  <button 
+                                    onClick={() => { handleCloseOpportunity(opp.id); setActiveMenuId(null); }}
+                                    className="w-full text-left px-4 py-2 text-[11px] font-bold text-gray-700 hover:bg-gray-50 hover:text-black transition"
+                                  >
+                                    🔒 Close Request
+                                  </button>
+                                ) : (
+                                  <div className="px-4 py-2 text-[10px] font-bold text-gray-400 italic">🔒 Already Closed</div>
+                                )}
+                                <button 
+                                  onClick={() => { handleDeleteOpportunity(opp.id); setActiveMenuId(null); }}
+                                  className="w-full text-left px-4 py-2 text-[11px] font-bold text-red-600 hover:bg-red-50 transition border-t border-gray-50 mt-1"
+                                >
+                                  🗑️ Delete Post
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                       
                       <h5 className="text-sm font-black text-black tracking-tight leading-tight flex items-center justify-between gap-2">
@@ -322,20 +382,8 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
                       {opp.message && <p className="text-xs text-gray-400 font-medium bg-gray-50/70 p-3 rounded-xl italic">"{opp.message}"</p>}
                     </div>
 
-                    {isMyPost ? (
-                      opp.status !== 'closed' ? (
-                        <button 
-                          onClick={() => handleCloseOpportunity(opp.id)}
-                          className="w-full py-2.5 bg-transparent border border-red-200 text-red-600 hover:bg-red-50 transition rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer"
-                        >
-                          Close Request Inquiries
-                        </button>
-                      ) : (
-                        <button disabled className="w-full py-2.5 bg-gray-100 text-gray-400 border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-not-allowed">
-                          🔒 This Position Has Been Closed
-                        </button>
-                      )
-                    ) : (
+                    {/* Footer displays public session triggers if viewing someone else's request card */}
+                    {!isMyPost && (
                       <button 
                         onClick={() => alert(`Applying to @${opp.profiles?.username}'s request brief...`)}
                         className="w-full py-2.5 border border-black hover:bg-black hover:text-white transition rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer"
