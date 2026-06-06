@@ -42,13 +42,19 @@ export default function StudioWorkspace() {
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
 
   const fetchSounds = async (userId: string) => {
-    const { data } = await database
-      .from('sounds')
-      .select('*')
-      .eq('profile_id', userId)
-      .eq('category', activeTab)
-      .order('created_at', { ascending: false });
-    setSounds(data || []);
+    try {
+      const { data, error } = await database
+        .from('sounds')
+        .select('*')
+        .eq('profile_id', userId)
+        .eq('category', activeTab)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setSounds(data || []);
+    } catch (err) {
+      console.error("Error refreshing sounds array ledger:", err);
+    }
   };
 
   useEffect(() => {
@@ -85,11 +91,13 @@ export default function StudioWorkspace() {
     });
   };
 
+  // 🔥 CRITICAL FIXED PURGE ROUTINE: Clears storage, handles relational limits, then updates view
   const handleDeleteTrack = async (soundId: string, audioUrl: string) => {
     const confirmDestruction = window.confirm("⚠️ Are you sure you want to permanently delete this track from your studio and the public feed? This action cannot be undone.");
     if (!confirmDestruction) return;
 
     try {
+      // 1. Wipe raw audio binary file from storage buckets first
       if (audioUrl) {
         const urlParts = audioUrl.split('/storage/v1/object/public/audio/');
         if (urlParts.length === 2) {
@@ -98,16 +106,22 @@ export default function StudioWorkspace() {
         }
       }
 
+      // 2. Unlink any pending collab requests pointing to this broken asset ID
       await database.from('collaboration_requests').delete().eq('sound_id', soundId);
 
+      // 3. Fire real database row removal command
       const { error } = await database.from('sounds').delete().eq('id', soundId);
       if (error) throw error;
 
-      alert("💥 Track successfully deleted from ProducerSaab network rows.");
+      // 4. Close menu block and trigger immediate database sync fetch
       setActiveMenuId(null);
-      await fetchSounds(profile.id);
+      alert("💥 Track successfully deleted from ProducerSaab network rows.");
+      
+      if (profile.id) {
+        await fetchSounds(profile.id);
+      }
     } catch (err: any) {
-      alert("Asset destruction fault: " + err.message);
+      alert("Asset destruction failed: " + err.message);
     }
   };
 
@@ -245,7 +259,7 @@ export default function StudioWorkspace() {
       }
 
       setIsModalOpen(false);
-      await fetchSounds(profile.id);
+      if (profile.id) await fetchSounds(profile.id);
 
     } catch (err: any) {
       console.error("Submission failed:", err);
@@ -271,7 +285,7 @@ export default function StudioWorkspace() {
     <div className="min-h-screen bg-[#FDFBF7] p-6 text-black relative">
       <div className="max-w-4xl mx-auto">
         
-        {/* Navigation actions header layout columns */}
+        {/* Navigation bar */}
         <div className="flex justify-end items-center gap-6 mb-4 text-[13px] font-bold text-[#191919]">
           <button onClick={() => router.push('/studio')} className="hover:opacity-70">My Studio</button>
           <button onClick={() => router.push('/feed')} className="hover:opacity-70">Community Feed</button>
@@ -282,7 +296,7 @@ export default function StudioWorkspace() {
           <button onClick={() => { database.auth.signOut(); router.push('/'); }} className="text-[#A4927A] hover:text-[#191919]">Leave Studio</button>
         </div>
 
-        {/* Dynamic Studio Profile Card Banner Layout */}
+        {/* Studio Profile Card Banner Layout */}
         <div className="bg-[#D7C9B7] rounded-[2rem] p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-8 min-h-[250px]">
           <div className="w-24 h-24 sm:w-28 sm:h-28 bg-[#191919] rounded-full flex items-center justify-center text-white text-4xl italic font-serif flex-shrink-0">
             {String(profile.username || 'N').charAt(0).toUpperCase()}
@@ -430,7 +444,7 @@ export default function StudioWorkspace() {
             </div>
           </div>
 
-          {/* Upload Action Button */}
+          {/* Upload Button */}
           <div className="flex justify-end h-9 items-center px-2 mt-2 mb-1">
             {activeTab === 'Loops / Tracks' && (
               <button 
@@ -467,7 +481,7 @@ export default function StudioWorkspace() {
                       onPlay={() => handleAudioPlay(sound.id)}
                     />
                     
-                    {/* Minimal 3-Dot Dropdown Actions */}
+                    {/* Minimal 3-Dot Dropdown Actions Menu */}
                     <div className="relative" onClick={(e) => e.stopPropagation()}>
                       <button 
                         onClick={() => setActiveMenuId(activeMenuId === sound.id ? null : sound.id)}
@@ -486,7 +500,6 @@ export default function StudioWorkspace() {
                             Edit info
                           </button>
                           
-                          {/* Minimal black text option with no extra trash/bin icons */}
                           <button 
                             onClick={() => handleDeleteTrack(sound.id, sound.audio_url)}
                             className="w-full text-left px-4 py-1.5 text-xs text-black font-bold hover:bg-gray-50 flex items-center gap-1.5 cursor-pointer"
