@@ -32,11 +32,10 @@ export default function CommunityFeedPage() {
         setMyProfileId(user.id);
       }
 
-      // Query standard track rows safely
+      // Query standard track rows safely - Fetching all public tracks
       const { data: sounds } = await database
         .from('sounds')
         .select('*, profiles(id, username, account_type, country)')
-        .in('category', ['Loops / Tracks', 'Collaboration'])
         .not('audio_url', 'is', null)
         .order('created_at', { ascending: false });
       setGlobalSounds(sounds || []);
