@@ -13,7 +13,6 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
   );
 
-  // Tabs routing matching your structure design plan perfectly
   const [subTab, setSubTab] = useState<'active' | 'messages' | 'find' | 'opportunities'>('active');
   const [loading, setLoading] = useState(true);
 
@@ -25,7 +24,6 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
 
   // Search Filters State
   const [filterRole, setFilterRole] = useState('🎤 Vocalist');
-  const [filterGenre, setFilterGenre] = useState('Any');
   const [filterLocation, setFilterLocation] = useState('Any');
 
   // Opportunity Posting Form State
@@ -40,7 +38,6 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
   const syncCollaborationData = async () => {
     if (!profileId) return;
     try {
-      // Fetch incoming/outgoing requests
       const { data: incoming } = await database
         .from('collaboration_requests')
         .select('id, status, message, sender_id, sounds(title), profiles!collaboration_requests_sender_id_fkey(username, account_type)')
@@ -51,10 +48,11 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
         .select('id, status, message, sounds(title), profiles!collaboration_requests_receiver_id_fkey(username, account_type)')
         .eq('sender_id', profileId);
 
-      // Fetch all global project opportunities briefs
+      // Fetch all opportunities (both your open/closed ones, and others' open ones)
       const { data: opps } = await database
         .from('collaboration_opportunities')
         .select('*, profiles(username, account_type)')
+        .or(`creator_id.eq.${profileId},status.eq.open`)
         .order('created_at', { ascending: false });
 
       setIncomingRequests(incoming || []);
@@ -96,12 +94,35 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
         genre: oppGenre,
         bpm: Number(oppBpm),
         musical_key: oppKey,
-        message: oppMessage
+        message: oppMessage,
+        status: 'open' // Explicitly starts open
       });
 
       if (error) throw error;
       alert("🎯 Collaboration Request Broadcasted Successfully!");
       setIsPostingOpportunity(false);
+      setOppTitle('');
+      setOppBpm('');
+      setOppMessage('');
+      syncCollaborationData();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  // 🔥 WORKFLOW HOOK: Toggle an opportunity status to closed
+  const handleCloseOpportunity = async (oppId: string) => {
+    const doubleCheck = window.confirm("Are you sure you want to close this collaboration request? It will immediately stop appearing on the public community feed.");
+    if (!doubleCheck) return;
+
+    try {
+      const { error } = await database
+        .from('collaboration_opportunities')
+        .update({ status: 'closed' })
+        .eq('id', oppId);
+
+      if (error) throw error;
+      alert("🔒 Request marked as Closed successfully.");
       syncCollaborationData();
     } catch (err: any) {
       alert(err.message);
@@ -116,10 +137,10 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
         .eq('id', requestId);
 
       if (error) throw error;
-      alert(`Pipeline request record marked as ${nextStatus}!`);
+      alert(`Request marked as ${nextStatus}!`);
       syncCollaborationData();
     } catch (err: any) {
-      alert("Transaction processing timeout: " + err.message);
+      alert(err.message);
     }
   };
 
@@ -127,24 +148,18 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
     return <div className="text-center py-6 text-xs text-gray-400 font-mono tracking-widest uppercase">Syncing Collaboration Engine Network...</div>;
   }
 
-  // Count active accepted collaborations safely
-  const acceptedCollabsCount = incomingRequests.filter(r => r.status === 'accepted').length + 
-                               sentRequests.filter(r => r.status === 'accepted').length;
-
   return (
     <div className="space-y-6 text-black w-full text-left animate-fadeIn">
       
-      {/* 🧭 NAVIGATION TABS ARRAY HEADER STRUCTURE */}
+      {/* NAVIGATION TABS ARRAYS */}
       <div className="flex flex-wrap border-b border-[#E3DEC1] gap-6 text-[10px] font-black uppercase tracking-widest pb-px">
         <button onClick={() => setSubTab('active')} className={`pb-2 border-b-2 ${subTab === 'active' ? 'text-black border-black' : 'text-[#A4927A] border-transparent'}`}>🤝 Active Projects</button>
         <button onClick={() => setSubTab('messages')} className={`pb-2 border-b-2 ${subTab === 'messages' ? 'text-black border-black' : 'text-[#A4927A] border-transparent'}`}>📨 Messages</button>
         <button onClick={() => setSubTab('find')} className={`pb-2 border-b-2 ${subTab === 'find' ? 'text-black border-black' : 'text-[#A4927A] border-transparent'}`}>🔎 Find Creators</button>
-        
-        {/* 🎯 RENAMED TAB: Synchronized exactly to say "Collaboration Requests" */}
         <button onClick={() => setSubTab('opportunities')} className={`pb-2 border-b-2 ${subTab === 'opportunities' ? 'text-black border-black' : 'text-[#A4927A] border-transparent'}`}>🎯 Collaboration Requests</button>
       </div>
 
-      {/* 🤝 ACTIVE WORKSPACES PANEL */}
+      {/* ACTIVE WORKSPACES PANEL */}
       {subTab === 'active' && (
         <div className="p-8 border border-[#E3DEC1] rounded-2xl bg-white/50 text-center space-y-4">
           <h4 className="text-xs font-black uppercase tracking-wider text-gray-400">No active collaborations yet.</h4>
@@ -153,7 +168,7 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
         </div>
       )}
 
-      {/* 📨 MESSAGES INBOX PANEL */}
+      {/* MESSAGES INBOX */}
       {subTab === 'messages' && (
         <div className="space-y-6">
           <div className="space-y-3">
@@ -187,28 +202,10 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
               )}
             </div>
           </div>
-
-          <div className="space-y-3 pt-2">
-            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Sent Outgoing Ledger Proposals</h4>
-            <div className="grid gap-3">
-              {sentRequests.length > 0 ? (
-                sentRequests.map((req) => (
-                  <div key={req.id} className="p-4 border border-[#E3DEC1] rounded-2xl bg-white/50 text-xs flex justify-between items-center gap-4">
-                    <div className="truncate font-medium text-gray-500">
-                      Proposal tracking note sent to <span className="font-bold text-black">@{req.profiles?.username}</span> for track <span className="italic font-bold text-black">"{req.sounds?.title || 'Asset'}"</span>
-                    </div>
-                    <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full shrink-0 ${req.status === 'pending' ? 'bg-amber-50 text-amber-600 border border-amber-200' : req.status === 'accepted' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-400'}`}>{req.status}</span>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center p-6 border border-dashed border-[#E3DEC1] rounded-2xl text-xs text-gray-400 font-medium">You haven't dispatched any outgoing requests yet.</div>
-              )}
-            </div>
-          </div>
         </div>
       )}
 
-      {/* 🔎 BROWSE CREATORS SECTION */}
+      {/* BROWSE TALENTS LINKEDIN SEARCH TAB */}
       {subTab === 'find' && (
         <div className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-white/50 p-4 border border-[#E3DEC1] rounded-2xl text-xs font-bold text-gray-500">
@@ -221,43 +218,28 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
                 <option value="🎚️ Engineer">🎚️ Mixing Engineer</option>
               </select>
             </div>
-            <div className="space-y-1">
-              <label className="text-[9px] uppercase tracking-wider">Genre</label>
-              <select value={filterGenre} onChange={(e) => setFilterGenre(e.target.value)} className="w-full bg-white border border-[#E3DEC1] p-2 rounded-xl text-black">
-                <option value="Any">Pop / All Genres</option>
-                <option value="Trap">Trap</option>
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[9px] uppercase tracking-wider">Location</label>
-              <select value={filterLocation} onChange={(e) => setFilterLocation(e.target.value)} className="w-full bg-white border border-[#E3DEC1] p-2 rounded-xl text-black">
-                <option value="Any">Any Location</option>
-                <option value="India">India</option>
-              </select>
-            </div>
           </div>
 
-          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest pt-1">{filteredCreators.length} Creators Found Matching Specifications</div>
+          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest pt-1">{filteredCreators.length} Creators Found</div>
           <div className="grid sm:grid-cols-2 gap-4">
             {filteredCreators.map(c => (
               <div key={c.id} className="p-5 border border-[#E3DEC1] rounded-2xl bg-white shadow-sm flex justify-between items-center">
                 <div className="space-y-1">
                   <h5 className="font-serif italic font-normal text-lg text-black">@{c.username}</h5>
-                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{c.account_type} • {c.country || 'Global'}</div>
+                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{c.account_type}</div>
                 </div>
-                <button onClick={() => alert(`Opening tracking layout profile route for @${c.username}...`)} className="bg-black text-white text-[9px] uppercase font-black tracking-widest px-4 py-2 rounded-xl">View Profile</button>
+                <button onClick={() => alert(`Opening profile for @${c.username}...`)} className="bg-black text-white text-[9px] uppercase font-black tracking-widest px-4 py-2 rounded-xl">View Profile</button>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* 🎯 OPPORTUNITIES WORK BRIEF DISPATCH BOARD */}
+      {/* 🎯 COLLABORATION REQUESTS INNER WORKBOARD PANEL VIEW */}
       {subTab === 'opportunities' && (
         <div className="space-y-4 w-full">
           <div className="flex justify-between items-center">
             <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Live Co-Creation Briefs</h4>
-            {/* Form deployment switcher toggle button button element */}
             <button 
               onClick={() => setIsPostingOpportunity(!isPostingOpportunity)}
               className="bg-black text-white text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl transition duration-150 active:scale-95 cursor-pointer"
@@ -266,7 +248,6 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
             </button>
           </div>
 
-          {/* Form Overlay Area Input Fields */}
           {isPostingOpportunity && (
             <form onSubmit={handlePostOpportunity} className="p-6 border border-black rounded-3xl bg-white space-y-4 text-xs font-bold text-gray-500 max-w-md animate-fadeIn shadow-xl">
               <div className="space-y-1">
@@ -307,39 +288,66 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
                 <textarea rows={2} value={oppMessage} onChange={(e) => setOppMessage(e.target.value)} placeholder="Looking for clean melodic hooks..." className="w-full p-2.5 border border-[#E3DEC1] text-black rounded-xl focus:outline-none resize-none font-medium" />
               </div>
 
-              <button type="submit" className="w-full py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition hover:bg-[#4B3B2F] cursor-pointer">Publish Request Brief</button>
+              <button type="submit" className="w-full py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-xl">Publish Request Brief</button>
             </form>
           )}
 
-          {/* Project List Rendering Row Grid */}
+          {/* Cards Loops Rendering Grid layout container */}
           <div className="grid md:grid-cols-2 gap-4">
             {opportunities.length === 0 ? (
-              <p className="text-xs text-gray-400 font-medium italic py-6">No studio active project briefs have been distributed yet.</p>
+              <p className="text-xs text-gray-400 font-medium italic py-6">No active project briefs found.</p>
             ) : (
-              opportunities.map((opp) => (
-                <div key={opp.id} className="p-5 border border-[#E3DEC1] rounded-3xl bg-white shadow-sm flex flex-col justify-between space-y-4 animate-fadeIn">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-                      <span className="text-[10px] bg-black text-white font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">{opp.role_needed}</span>
-                      <span className="text-[10px] text-gray-400 font-bold font-mono">By @{opp.profiles?.username}</span>
-                    </div>
-                    <h5 className="text-sm font-black text-black tracking-tight text-left leading-tight">{opp.title}</h5>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-mono text-gray-400 font-bold uppercase">
-                      <div>Genre: {opp.genre}</div>
-                      <div>BPM: {opp.bpm}</div>
-                      <div>Key: {opp.musical_key}</div>
-                    </div>
-                    {opp.message && <p className="text-xs text-gray-400 font-medium bg-gray-50/70 p-3 rounded-xl italic text-left">"{opp.message}"</p>}
-                  </div>
+              opportunities.map((opp) => {
+                const isMyPost = opp.creator_id === profileId;
+                const formattedDate = opp.created_at ? new Date(opp.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
 
-                  <button 
-                    onClick={() => alert(`Opening collaboration pipeline route options details...`)}
-                    className="w-full py-2.5 border border-black hover:bg-black hover:text-white transition rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer"
-                  >
-                    Apply for Session
-                  </button>
-                </div>
-              ))
+                return (
+                  <div key={opp.id} className={`p-5 border rounded-3xl bg-white shadow-sm flex flex-col justify-between space-y-4 animate-fadeIn text-left ${opp.status === 'closed' ? 'border-gray-200 opacity-60 bg-gray-50/50' : 'border-[#E3DEC1]'}`}>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                        <span className="text-[10px] bg-black text-white font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">{opp.role_needed}</span>
+                        {/* 📅 DYNAMIC DISPLAY UPGRADE: Renders creation date timestamp details */}
+                        <span className="text-[9px] text-gray-400 font-bold font-mono">{formattedDate}</span>
+                      </div>
+                      
+                      <h5 className="text-sm font-black text-black tracking-tight leading-tight flex items-center justify-between gap-2">
+                        {opp.title}
+                        {opp.status === 'closed' && <span className="bg-gray-200 text-gray-600 text-[8px] px-2 py-0.5 rounded uppercase font-mono tracking-wider">Closed</span>}
+                      </h5>
+                      
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-mono text-gray-400 font-bold uppercase">
+                        <div>Genre: {opp.genre}</div>
+                        <div>BPM: {opp.bpm}</div>
+                        <div>Key: {opp.musical_key}</div>
+                      </div>
+                      {opp.message && <p className="text-xs text-gray-400 font-medium bg-gray-50/70 p-3 rounded-xl italic">"{opp.message}"</p>}
+                    </div>
+
+                    {/* 🔥 CONDITIONAL FOOTER: Shows a Close Request action link only if you created it */}
+                    {isMyPost ? (
+                      opp.status !== 'closed' ? (
+                        <button 
+                          onClick={() => handleCloseOpportunity(opp.id)}
+                          className="w-full py-2.5 bg-transparent border border-red-200 text-red-600 hover:bg-red-50 transition rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer"
+                        >
+                          Close Request Inquiries
+                        </button>
+                      ) : (
+                        <button disabled className="w-full py-2.5 bg-gray-100 text-gray-400 border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-not-allowed">
+                          🔒 This Position Has Been Closed
+                        </button>
+                      )
+                    ) : (
+                      <button 
+                        onClick={() => alert(`Applying to @${opp.profiles?.username}'s request loop brief parameters...`)}
+                        className="w-full py-2.5 border border-black hover:bg-black hover:text-white transition rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer"
+                      >
+                        Apply for Session
+                      </button>
+                    )}
+                  </div>
+                );
+              })
             )}
           </div>
         </div>
