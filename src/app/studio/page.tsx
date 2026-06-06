@@ -78,7 +78,11 @@ export default function StudioWorkspace() {
   }, [router, activeTab]);
 
   useEffect(() => {
-    const handleOutsideClick = () => setActiveMenuId(null);
+    const handleOutsideClick = (e: MouseEvent) => {
+      // Prevent outside click handler from clashing with native audio interface controls
+      if ((e.target as HTMLElement).closest('audio')) return;
+      setActiveMenuId(null);
+    };
     window.addEventListener('click', handleOutsideClick);
     return () => window.removeEventListener('click', handleOutsideClick);
   }, []);
@@ -260,7 +264,6 @@ export default function StudioWorkspace() {
       console.error("Submission failed:", err);
       alert("Error: " + err.message);
     } finally {
-      // 🔥 SYNTAX ERROR FIXED: Changed from 'disable' to valid block closure
       setIsSubmitting(false);
     }
   };
@@ -455,9 +458,9 @@ export default function StudioWorkspace() {
                   </div>
                   
                   <div className="flex items-center gap-4 relative">
+                    {/* 🔥 EDITED: Removed crossOrigin="anonymous" to let browser natively buffer the audio stream cleanly */}
                     <audio 
                       controls 
-                      crossOrigin="anonymous"
                       src={sound.audio_url} 
                       className="h-8" 
                       ref={(el) => { audioRefs.current[sound.id] = el; }}
