@@ -59,7 +59,7 @@ export default function Home() {
 
           <nav className="hidden md:flex items-center gap-10 text-[11px] font-bold uppercase tracking-widest text-[#5A5550]">
             <Link href="/library" className="hover:text-[#1C1B1A] transition-colors duration-200">Sound Library</Link>
-            <Link href="/signin" className="hover:text-[#1C1B1A] transition-colors duration-200">Producer Community</Link>
+            <Link href="/onboarding" className="hover:text-[#1C1B1A] transition-colors duration-200">Producer Community</Link>
           </nav>
 
           <div className="flex items-center gap-6">
@@ -68,7 +68,7 @@ export default function Home() {
             </Link>
             <div className="h-3 w-[1px] bg-[#D8CBBE] hidden sm:block" />
             <Link 
-              href="/signin?view=signup" 
+              href="/onboarding" 
               className="px-5 py-2 bg-[#111111] hover:bg-[#2B2A27] text-[#FFFFFF] text-xs font-semibold rounded-full transition-all duration-300 transform active:scale-95 shadow-sm"
             >
               Join the Community
@@ -137,7 +137,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* 6. FEATURED CREATORS MODULE (FIXED) */}
+      {/* 6. FEATURED CREATORS MODULE */}
       <section className="max-w-4xl mx-auto py-10 px-8 space-y-4">
         <h3 className="text-xs font-bold uppercase tracking-widest text-[#1C1B1A] flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-[#3F5A3A]" /> Featured Producers
@@ -157,7 +157,6 @@ export default function Home() {
                     <p className="text-[10px] text-[#5A5550] uppercase tracking-wider font-semibold">{userCard.account_type || 'Producer'}</p>
                   </div>
                 </div>
-                {/* 🔥 FIXED LINK: Using encodeURIComponent prevents space-crashes */}
                 <Link 
                   href={`/${encodeURIComponent(userCard.username || '')}`} 
                   className="px-4 py-1.5 bg-[#FFFFFF] hover:bg-[#E7DED3] text-[#111111] border border-[#E7DED3] rounded-xl text-[11px] font-bold transition-all shadow-sm"
