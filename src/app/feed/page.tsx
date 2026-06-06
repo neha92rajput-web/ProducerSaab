@@ -32,6 +32,7 @@ export default function CommunityFeedPage() {
         setMyProfileId(user.id);
       }
 
+      // Query standard track rows
       const { data: sounds } = await database
         .from('sounds')
         .select('*, profiles(id, username, account_type, country)')
@@ -39,7 +40,7 @@ export default function CommunityFeedPage() {
         .not('audio_url', 'is', null)
         .order('created_at', { ascending: false });
 
-      // Fetch active, open collaboration posts globally
+      // Query live open collaboration posts globally from table database 
       const { data: briefs } = await database
         .from('collaboration_opportunities')
         .select('*, profiles(id, username, account_type, primary_genre)')
@@ -189,6 +190,7 @@ export default function CommunityFeedPage() {
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-black font-sans antialiased">
       
+      {/* HEADER NAVIGATION */}
       <header className="sticky top-0 z-50 bg-[#FDFBF7]/80 backdrop-blur-md border-b border-[#E3DEC1] px-8 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <Link href="/" className="font-sans font-black tracking-[0.2em] text-sm uppercase">🎵 PRODUCER SAAB</Link>
@@ -200,19 +202,32 @@ export default function CommunityFeedPage() {
         </div>
       </header>
 
+      {/* JUMBOTRON LAYOUT BLOCK */}
       <main className="max-w-4xl mx-auto px-6 pt-12 pb-24 space-y-10">
         <div className="space-y-2 border-b border-[#E3DEC1] pb-6 text-left">
           <h1 className="text-4xl font-serif font-normal italic tracking-tight text-[#191919]">The Creator Ecosystem</h1>
           <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Explore variables, download master audio structures, or connect directly on specific tracks.</p>
         </div>
 
-        {/* 🎯 HEADER TAB RENAMED: Set to "Collaboration Post" */}
+        {/* 🎯 FIXED TAB SELECTORS: Fully re-named to Collaboration Post */}
         <div className="flex gap-8 border-b border-[#E3DEC1] pb-px text-[11px] font-black uppercase tracking-widest">
-          <button onClick={() => setActiveFeedTab('tracks')} className={`pb-3 border-b-2 transition-all ${activeFeedTab === 'tracks' ? 'text-[#191919] border-[#191919]' : 'text-[#A4927A] border-transparent'}`}>🎵 Fresh Sounds Library ({globalSounds.length})</button>
-          <button onClick={() => setActiveFeedTab('briefs')} className={`pb-3 border-b-2 transition-all ${activeFeedTab === 'briefs' ? 'text-[#191919] border-[#191919]' : 'text-[#A4927A] border-transparent'}`}>🎯 Collaboration Post ({globalBriefs.length})</button>
+          <button 
+            onClick={() => setActiveFeedTab('tracks')} 
+            className={`pb-3 border-b-2 transition-all ${activeFeedTab === 'tracks' ? 'text-[#191919] border-[#191919]' : 'text-[#A4927A] border-transparent'}`}
+          >
+            🎵 Fresh Sounds Library ({globalSounds.length})
+          </button>
+          
+          <button 
+            onClick={() => setActiveFeedTab('briefs')} 
+            className={`pb-3 border-b-2 transition-all ${activeFeedTab === 'briefs' ? 'text-[#191919] border-[#191919]' : 'text-[#A4927A] border-transparent'}`}
+          >
+            🎯 Collaboration Post ({globalBriefs.length})
+          </button>
         </div>
 
         <div className="pt-2">
+          {/* TRACKS LIST TAB */}
           {activeFeedTab === 'tracks' && (
             <div className="grid gap-4">
               {globalSounds.length > 0 ? (
@@ -256,6 +271,7 @@ export default function CommunityFeedPage() {
             </div>
           )}
 
+          {/* COLLABORATION POSTS TAB */}
           {activeFeedTab === 'briefs' && (
             <div className="grid md:grid-cols-2 gap-4">
               {globalBriefs.length > 0 ? (
