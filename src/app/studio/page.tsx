@@ -1,13 +1,63 @@
-const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { createBrowserClient } from '@supabase/ssr';
+
+export default function StudioWorkspace() {
+  const router = useRouter();
+  const database = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  );
+
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<any>({});
+  const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState('Loops');
+  const [sounds, setSounds] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function init() {
+      try {
+        const { data: { user } } = await database.auth.getUser();
+        if (!user) { 
+          router.replace('/signin'); 
+          return; 
+        }
+        const { data: p } = await database.from('profiles').select('*').eq('id', user.id).single();
+        setProfile(p || {});
+      } catch (err) {
+        console.error("Initialization failed:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    init();
+  }, [router]);
+
+  useEffect(() => {
+    async function fetchSounds() {
+      if (!profile.id) return;
+      const { data } = await database
+        .from('sounds')
+        .select('*')
+        .eq('profile_id', profile.id)
+        .eq('category', activeTab);
+      setSounds(data || []);
+    }
+    fetchSounds();
+  }, [activeTab, profile.id]);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {
-      alert("No file was selected.");
+      alert("No file selected.");
       return;
     }
 
-    // Safety check: verify profile session id is fully loaded before continuing
     if (!profile || !profile.id) {
-      alert("Auth error: Producer profile data has not fully loaded yet. Please wait a moment or try refreshing the studio workspace.");
+      alert("Profile session not fully loaded. Please wait a moment and try again.");
       return;
     }
 
@@ -15,57 +65,140 @@ const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
       
-      console.log("Starting asset upload to Supabase bucket 'audio'...", fileName);
-
-      // 1. Upload asset binary directly to public bucket store
+      // 1. Upload to Supabase Storage
       const { error: uploadError } = await database.storage
         .from('audio') 
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+        .upload(fileName, file);
 
-      if (uploadError) {
-        throw new Error("Supabase Storage Error: " + uploadError.message);
-      }
+      if (uploadError) throw uploadError;
 
-      // 2. Fetch the resolved asset distribution address
+      // 2. Get Public URL
       const { data: urlData } = database.storage.from('audio').getPublicUrl(fileName);
-      if (!urlData || !urlData.publicUrl) {
-        throw new Error("Could not resolve asset delivery path address from bucket.");
-      }
 
-      console.log("Asset stored successfully. Delivery URL:", urlData.publicUrl);
-
-      // 3. Mount the record properties into your sounds schema table
-      const { error: insertError } = await database.from('sounds').insert({
+      // 3. Insert into database
+      const { error: dbError } = await database.from('sounds').insert({
         profile_id: profile.id,
         title: file.name,
         category: activeTab,
         audio_url: urlData.publicUrl
       });
 
-      if (insertError) {
-        throw new Error("Database Table Entry Error: " + insertError.message);
-      }
+      if (dbError) throw dbError;
 
-      // 4. Force state update to instantly refresh your component lists row template
-      const { data: newSounds, error: fetchError } = await database
+      // 4. Refresh List State
+      const { data: newSounds } = await database
         .from('sounds')
         .select('*')
         .eq('profile_id', profile.id)
         .eq('category', activeTab);
         
-      if (fetchError) throw fetchError;
-
       setSounds(newSounds || []);
-      alert("🎉 Sound file upload successfully distributed to the library feed!");
-
+      alert("🎉 Track uploaded and distributed successfully!");
     } catch (error: any) {
-      console.error("Studio audio upload pipeline critical error:", error);
-      alert("❌ Upload Process Failed:\n" + (error.message || "Unknown database error connection timeout. Check your schema constraints."));
+      console.error("Upload error:", error);
+      alert("❌ Upload failed: " + (error.message || "Unknown database error. Ensure your Supabase storage rules allow public access."));
     } finally {
-      // Clear target file value input track slot so the user can cleanly upload back-to-back entries
       e.target.value = '';
     }
   };
+
+  const saveProfile = async (field: string, value: string) => {
+    setProfile((prev: any) => ({ ...prev, [field]: value }));
+    await database.from('profiles').update({ [field]: value }).eq('id', profile.id);
+  };
+
+  const fields = [
+    { key: 'networks', label: 'Add networks...', icon: '🔗' },
+    { key: 'instruments', label: 'Add instruments...', icon: '🎹' },
+    { key: 'software', label: 'Add software...', icon: '💻' },
+    { key: 'country', label: 'Add country...', icon: '🌍' },
+    { key: 'city', label: 'Add city...', icon: '📍' },
+  ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center text-sm font-semibold text-gray-500">
+        Loading Studio Session...
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#FDFBF7] p-6 text-black">
+      <div className="max-w-4xl mx-auto">
+        
+        {/* Navigation */}
+        <div className="flex justify-end gap-6 mb-4 text-[13px] font-bold text-[#191919]">
+          <button onClick={() => router.push('/studio')} className="hover:opacity-70">My Studio</button>
+          <button onClick={() => router.push('/')} className="hover:opacity-70">Community</button>
+          <button onClick={() => { database.auth.signOut(); router.push('/'); }} className="text-[#A4927A] hover:text-[#191919]">Leave Studio</button>
+        </div>
+
+        {/* Profile Banner */}
+        <div className="bg-[#D7C9B7] rounded-[2rem] p-8 shadow-sm flex items-center gap-8 min-h-[250px]">
+          <div className="w-28 h-28 bg-[#191919] rounded-full flex items-center justify-center text-white text-4xl italic font-serif flex-shrink-0">
+            {String(profile.username || 'N').charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-grow space-y-4">
+            {isEditing ? (
+              <input defaultValue={profile.username} onBlur={(e) => saveProfile('username', e.target.value)} className="text-3xl font-black italic bg-white/50 p-2 rounded w-full focus:outline-none" />
+            ) : (
+              <h1 className="text-3xl font-black italic">{profile.username || 'Anonymous Producer'}</h1>
+            )}
+            <div className="space-y-2">
+              {fields.map((f) => (
+                <div key={f.key} className="flex items-center gap-2 text-sm text-[#4B3B2F]">
+                  <span>{f.icon}</span>
+                  {isEditing ? (
+                    <input defaultValue={profile[f.key] || ''} placeholder={f.label} onBlur={(e) => saveProfile(f.key, e.target.value)} className="bg-white/50 p-1 rounded w-full focus:outline-none" />
+                  ) : (
+                    <span>{profile[f.key] || f.label}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <button onClick={() => setIsEditing(!isEditing)} className="mt-6 px-6 py-2 border border-[#191919] rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-[#191919] hover:text-white transition">
+          {isEditing ? 'Finish Editing' : 'Edit Profile Options'}
+        </button>
+
+        {/* Tabbed Library & Upload */}
+        <div className="mt-12">
+          <div className="flex justify-between items-center border-b border-[#E3DEC1] mb-8 pb-1">
+            <div className="flex gap-8">
+              {['Loops', 'Tracks', 'Collaboration'].map((tab) => (
+                <button key={tab} onClick={() => setActiveTab(tab)} className={`pb-3 text-[11px] font-black uppercase tracking-widest border-b-2 ${activeTab === tab ? 'text-[#191919] border-[#191919]' : 'text-[#A4927A] border-transparent'}`}>
+                  {tab}
+                </button>
+              ))}
+            </div>
+            {(activeTab === 'Loops' || activeTab === 'Tracks') && (
+              <label className="cursor-pointer bg-[#191919] text-white px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-[#4B3B2F] transition-all">
+                + Upload Audio
+                <input type="file" accept="audio/*" onChange={handleUpload} className="hidden" />
+              </label>
+            )}
+          </div>
+
+          {/* Sound List */}
+          <div className="grid gap-3">
+            {sounds.length > 0 ? (
+              sounds.map((sound) => (
+                <div key={sound.id} className="p-4 border border-[#E3DEC1] rounded-2xl flex justify-between items-center bg-white/50">
+                  <span className="text-xs font-bold text-[#191919]">{sound.title}</span>
+                  <audio controls src={sound.audio_url} className="h-8" />
+                </div>
+              ))
+            ) : (
+              <div className="text-center p-12 border border-dashed border-[#E3DEC1] rounded-2xl text-xs text-gray-400 font-medium">
+                No audio items found inside your '{activeTab}' library cluster slot yet.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
