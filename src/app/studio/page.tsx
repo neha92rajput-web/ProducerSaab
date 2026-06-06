@@ -206,7 +206,6 @@ export default function StudioWorkspace() {
   };
 
   const saveProfileField = async (field: string, value: any) => {
-    // If user picks the empty hidden option, turn it to null in database
     const finalValue = value === 'none' ? null : value;
     setProfile((prev: any) => ({ ...prev, [field]: finalValue }));
     await database.from('profiles').update({ [field]: finalValue }).eq('id', profile.id);
@@ -216,17 +215,16 @@ export default function StudioWorkspace() {
     return <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center text-sm text-gray-500">Loading Studio Workspace...</div>;
   }
 
-  // Helper variable to evaluate status text string conversions
   const currentStatusString = profile.is_open_to_collab === true ? 'true' : profile.is_open_to_collab === false ? 'false' : 'none';
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] p-6 text-black relative">
       <div className="max-w-4xl mx-auto">
         
-        {/* Navigation Headbars */}
+        {/* Navigation Headbars - FIXED LINK TO ROUTE TO /feed */}
         <div className="flex justify-end gap-6 mb-4 text-[13px] font-bold text-[#191919]">
           <button onClick={() => router.push('/studio')} className="hover:opacity-70">My Studio</button>
-          <button onClick={() => router.push('/')} className="hover:opacity-70">Community Feed</button>
+          <button onClick={() => router.push('/feed')} className="hover:opacity-70">Community Feed</button>
           <button onClick={() => { database.auth.signOut(); router.push('/'); }} className="text-[#A4927A] hover:text-[#191919]">Leave Studio</button>
         </div>
 
@@ -293,7 +291,6 @@ export default function StudioWorkspace() {
                   />
                 </div>
 
-                {/* Edit Availability Toggles Layout with the requested 3rd option */}
                 <div className="flex items-center gap-2 pt-1">
                   <label className="text-[10px] font-black uppercase tracking-wider text-gray-700">Accepting Collaboration Inquiries:</label>
                   <select
@@ -325,8 +322,6 @@ export default function StudioWorkspace() {
                     <span className="bg-[#191919] text-white text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider">
                       {profile.account_type || '🎹 Producer'}
                     </span>
-                    
-                    {/* 🔥 CONDITIONAL DISPLAY: Only renders badge if value is explicitly true or false (hides if null) */}
                     {profile.is_open_to_collab !== null && profile.is_open_to_collab !== undefined && (
                       <span className={`text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider ${profile.is_open_to_collab === true ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
                         {profile.is_open_to_collab === true ? '🟢 Open To Collaborate' : '🔴 Not Taking Requests'}
