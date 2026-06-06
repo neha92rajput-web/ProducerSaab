@@ -39,10 +39,11 @@ export default function CommunityFeedPage() {
         .not('audio_url', 'is', null)
         .order('created_at', { ascending: false });
 
-      // Fetch Global Requests launched via Studio
+      // 🔥 DATABASE FILTER FIX: Explicitly queries records where status is 'open'
       const { data: briefs } = await database
         .from('collaboration_opportunities')
         .select('*, profiles(id, username, account_type, primary_genre)')
+        .eq('status', 'open')
         .order('created_at', { ascending: false });
 
       setGlobalSounds(sounds || []);
@@ -89,7 +90,7 @@ export default function CommunityFeedPage() {
       router.push('/signin');
       return;
     }
-    if (myProfileId === artistId) return alert("This is your own profile view column!");
+    if (myProfileId === artistId) return alert("This is your own profile!");
 
     if (followedArtists[artistId]) {
       setFollowedArtists(prev => ({ ...prev, [artistId]: false }));
@@ -205,7 +206,6 @@ export default function CommunityFeedPage() {
           <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Explore variables, download master audio structures, or connect directly on specific tracks.</p>
         </div>
 
-        {/* 🎯 HEADER FIX: Renamed tab cleanly to 'Collaboration Requests' */}
         <div className="flex gap-8 border-b border-[#E3DEC1] pb-px text-[11px] font-black uppercase tracking-widest">
           <button onClick={() => setActiveFeedTab('tracks')} className={`pb-3 border-b-2 transition-all ${activeFeedTab === 'tracks' ? 'text-[#191919] border-[#191919]' : 'text-[#A4927A] border-transparent'}`}>🎵 Fresh Sounds Library ({globalSounds.length})</button>
           <button onClick={() => setActiveFeedTab('briefs')} className={`pb-3 border-b-2 transition-all ${activeFeedTab === 'briefs' ? 'text-[#191919] border-[#191919]' : 'text-[#A4927A] border-transparent'}`}>🎯 Collaboration Requests ({globalBriefs.length})</button>
@@ -258,29 +258,34 @@ export default function CommunityFeedPage() {
           {activeFeedTab === 'briefs' && (
             <div className="grid md:grid-cols-2 gap-4">
               {globalBriefs.length > 0 ? (
-                globalBriefs.map((brief) => (
-                  <div key={brief.id} className="p-5 border border-[#E3DEC1] rounded-3xl bg-white shadow-sm flex flex-col justify-between space-y-4 text-left animate-fadeIn">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-                        <span className="text-[9px] bg-[#191919] text-white font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">Looking For: {brief.role_needed}</span>
-                        <div className="flex items-center gap-1.5 text-[10px] text-[#A4927A] font-bold">
-                          @{brief.profiles?.username}
-                          <button onClick={() => handleFollowArtist(brief.profiles?.id, brief.profiles?.username)} className="text-[9px] font-black uppercase tracking-wider text-gray-400 hover:text-black">
-                            {followedArtists[brief.profiles?.id] ? '(✓)' : '(Follow)'}
-                          </button>
+                globalBriefs.map((brief) => {
+                  const formattedDate = brief.created_at ? new Date(brief.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+                  
+                  return (
+                    <div key={brief.id} className="p-5 border border-[#E3DEC1] rounded-3xl bg-white shadow-sm flex flex-col justify-between space-y-4 text-left animate-fadeIn">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                          <span className="text-[9px] bg-[#191919] text-white font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">Looking For: {brief.role_needed}</span>
+                          {/* 📅 PUBLIC TIMESTAMP BADGE UPGRADE: Displays calendar formatting */}
+                          <span className="text-[9px] text-gray-400 font-bold font-mono">{formattedDate}</span>
                         </div>
+                        
+                        <div className="space-y-1">
+                          <h3 className="text-sm font-black text-black tracking-tight leading-tight">{brief.title}</h3>
+                          <div className="text-[10px] text-[#A4927A] font-bold">Posted by @{brief.profiles?.username}</div>
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[9px] font-mono text-gray-400 font-bold uppercase pt-1">
+                            <div>Genre: {brief.genre}</div>
+                            <div>Tempo: {brief.bpm} BPM</div>
+                            <div>Key: {brief.musical_key}</div>
+                          </div>
+                        </div>
+
+                        {brief.message && <p className="text-xs text-gray-500 font-medium bg-gray-50 p-3 rounded-xl border border-gray-100 italic">"{brief.message}"</p>}
                       </div>
-                      <h3 className="text-sm font-black text-black tracking-tight leading-tight">{brief.title}</h3>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[9px] font-mono text-gray-400 font-bold uppercase">
-                        <div>Genre: {brief.genre}</div>
-                        <div>Tempo: {brief.bpm} BPM</div>
-                        <div>Key: {brief.musical_key}</div>
-                      </div>
-                      {brief.message && <p className="text-xs text-gray-500 font-medium bg-gray-50 p-3 rounded-xl italic">"{brief.message}"</p>}
+                      <button onClick={() => submitApplicationRequest(brief)} className="w-full py-2.5 bg-[#191919] hover:bg-[#4B3B2F] text-white transition rounded-xl text-[10px] font-black uppercase tracking-widest">Apply for Session Room →</button>
                     </div>
-                    <button onClick={() => submitApplicationRequest(brief)} className="w-full py-2.5 bg-[#191919] hover:bg-[#4B3B2F] text-white transition rounded-xl text-[10px] font-black uppercase tracking-widest">Apply for Session Room →</button>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="text-center p-12 border border-dashed border-[#E3DEC1] rounded-2xl text-xs text-gray-400 font-semibold bg-white/40 col-span-2">No active collaboration posts distributed yet.</div>
               )}
