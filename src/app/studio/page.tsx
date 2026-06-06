@@ -15,7 +15,7 @@ export default function StudioWorkspace() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>({});
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [activeTab, setActiveTab] = useState('Loops / Tracks'); // Refined down to 2 option slots
+  const [activeTab, setActiveTab] = useState('Loops / Tracks');
   const [sounds, setSounds] = useState<any[]>([]);
 
   // Form Modal Management States
@@ -67,7 +67,6 @@ export default function StudioWorkspace() {
     fetchSounds();
   }, [activeTab, profile.id]);
 
-  // Open modal for a fresh upload
   const openUploadModal = () => {
     setIsEditingTrack(false);
     setSelectedTrackId(null);
@@ -80,7 +79,6 @@ export default function StudioWorkspace() {
     setIsModalOpen(true);
   };
 
-  // Open modal to edit an existing track entry
   const openEditModal = (track: any) => {
     setIsEditingTrack(true);
     setSelectedTrackId(track.id);
@@ -129,7 +127,7 @@ export default function StudioWorkspace() {
       if (isEditingTrack && selectedTrackId) {
         const updateData: any = {
           title: formTitle,
-          category: activeTab, // Synchronized cleanly to track/loop category context
+          category: activeTab,
           instrument: formInstrument,
           bpm: formBpm ? Number(formBpm) : null,
           key_signature: formKey,
@@ -229,7 +227,7 @@ export default function StudioWorkspace() {
 
         {/* Dynamic Nav Tabs Row */}
         <div className="mt-12">
-          <div className="flex justify-between items-center border-b border-[#E3DEC1] mb-8 pb-1">
+          <div className="flex justify-between items-center border-b border-[#E3DEC1] pb-1">
             <div className="flex gap-8">
               {['Loops / Tracks', 'Collaboration'].map((tab) => (
                 <button key={tab} onClick={() => setActiveTab(tab)} className={`pb-3 text-[11px] font-black uppercase tracking-widest border-b-2 ${activeTab === tab ? 'text-[#191919] border-[#191919]' : 'text-[#A4927A] border-transparent'}`}>
@@ -237,10 +235,15 @@ export default function StudioWorkspace() {
                 </button>
               ))}
             </div>
-            
-            {/* Conditional Check: Upload only renders when Loops / Tracks is actively selected */}
+          </div>
+
+          {/* HIDDEN SUBTLE ACTION ROW (Exactly where circled in image_f31fc0.png) */}
+          <div className="flex justify-end h-9 items-center px-2 mt-2 mb-1">
             {activeTab === 'Loops / Tracks' && (
-              <button onClick={openUploadModal} className="bg-[#191919] text-white px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-[#4B3B2F] transition-all">
+              <button 
+                onClick={openUploadModal} 
+                className="text-[10px] font-black uppercase tracking-widest text-[#A4927A] hover:text-black transition-colors duration-200 bg-transparent border-none p-0 cursor-pointer"
+              >
                 + Upload Audio
               </button>
             )}
@@ -251,7 +254,7 @@ export default function StudioWorkspace() {
             {activeTab === 'Collaboration' ? (
               <div className="text-center p-12 border border-dashed border-[#E3DEC1] rounded-2xl bg-white/40">
                 <div className="text-2xl mb-2">💬</div>
-                <h4 className="text-sm font-bold text-gray-700 mb-1">Collaboration Hub Hub Active</h4>
+                <h4 className="text-sm font-bold text-gray-700 mb-1">Collaboration Hub Active</h4>
                 <p className="text-xs text-gray-400 font-medium max-w-sm mx-auto">This area holds your collective project workspace tracking rows. Direct mix audio uploads are disabled inside this tab view channel.</p>
               </div>
             ) : sounds.length > 0 ? (
