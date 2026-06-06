@@ -1,31 +1,72 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-// ... (keep all your existing imports)
+import { Play, Pause, Music, Volume2, VolumeX, Upload, Globe, Sliders, User, Download, Lock, X } from 'lucide-react';
 
-// ... (keep your interfaces and helpers: IDB, defaultPills, etc.)
+interface SampleTrack {
+  id: string;
+  filename: string;
+  url: string;
+  audioUrl?: string;
+  genre: string;
+  artworkColor: string;
+  creator: string;
+  bpm: number;
+  key: string;
+  duration: string;
+}
 
 export function AudioDashboard() {
-  // ... (keep all your existing state declarations)
-  
-  // 🔥 UNIFIED PLAYBACK ENGINE: Both the Dashboard and ArtistProfile will call this
-  const playTrackGlobal = useCallback((track: SampleTrack) => {
-    if (!audioRef.current) return;
+  const [tracks, setTracks] = useState<SampleTrack[]>([]);
+  const [activePlayingId, setActivePlayingId] = useState<string | null>(null);
+  const [progress, setProgress] = useState<number>(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    if (currentPlayingId === track.id) {
-      audioRef.current.pause();
-      setCurrentPlayingId(null);
+  // Initialize the audio element once on mount
+  useEffect(() => {
+    audioRef.current = new Audio();
+    audioRef.current.addEventListener('timeupdate', () => {
+      if (audioRef.current?.duration) {
+        setProgress((audioRef.current.currentTime / audioRef.current.duration) * 100);
+      }
+    });
+    audioRef.current.addEventListener('ended', () => {
+      setActivePlayingId(null);
+      setProgress(0);
+    });
+  }, []);
+
+  // UNIFIED PLAYBACK ENGINE
+  const handleTogglePlay = (track: SampleTrack) => {
+    const urlToPlay = track.audioUrl || track.url;
+    if (!urlToPlay || urlToPlay === '#') return alert("Invalid audio source.");
+
+    if (activePlayingId === track.id) {
+      audioRef.current?.paused ? audioRef.current.play() : audioRef.current?.pause();
       return;
     }
 
-    // Force load the new source into the single global element
-    audioRef.current.src = track.audioUrl || track.url || '';
-    audioRef.current.play().catch(e => console.error("Playback stalled:", e));
-    setCurrentPlayingId(track.id);
-  }, [currentPlayingId]);
+    if (audioRef.current) {
+      audioRef.current.src = urlToPlay;
+      audioRef.current.load();
+      audioRef.current.play().catch(e => console.error(e));
+    }
+    setActivePlayingId(track.id);
+  };
 
-  // Pass this function down as a prop to ArtistProfile
-  // handleTogglePlay={playTrackGlobal}
-  
-  // ... (rest of your component)
+  return (
+    <div className="p-8">
+      {/* Track List */}
+      <div className="grid gap-4 mt-6">
+        {tracks.map((track) => (
+          <div key={track.id} className="border p-4 flex justify-between items-center">
+            <span>{track.filename}</span>
+            <button onClick={() => handleTogglePlay(track)}>
+              {activePlayingId === track.id ? <Pause /> : <Play />}
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
