@@ -91,13 +91,11 @@ export default function StudioWorkspace() {
     });
   };
 
-  // 🔥 CRITICAL FIXED PURGE ROUTINE: Clears storage, handles relational limits, then updates view
   const handleDeleteTrack = async (soundId: string, audioUrl: string) => {
     const confirmDestruction = window.confirm("⚠️ Are you sure you want to permanently delete this track from your studio and the public feed? This action cannot be undone.");
     if (!confirmDestruction) return;
 
     try {
-      // 1. Wipe raw audio binary file from storage buckets first
       if (audioUrl) {
         const urlParts = audioUrl.split('/storage/v1/object/public/audio/');
         if (urlParts.length === 2) {
@@ -106,14 +104,11 @@ export default function StudioWorkspace() {
         }
       }
 
-      // 2. Unlink any pending collab requests pointing to this broken asset ID
       await database.from('collaboration_requests').delete().eq('sound_id', soundId);
 
-      // 3. Fire real database row removal command
       const { error } = await database.from('sounds').delete().eq('id', soundId);
       if (error) throw error;
 
-      // 4. Close menu block and trigger immediate database sync fetch
       setActiveMenuId(null);
       alert("💥 Track successfully deleted from ProducerSaab network rows.");
       
@@ -264,7 +259,7 @@ export default function StudioWorkspace() {
     } catch (err: any) {
       console.error("Submission failed:", err);
       alert("Error: " + err.message);
-    } finally {
+    } disable {
       setIsSubmitting(false);
     }
   };
@@ -285,18 +280,15 @@ export default function StudioWorkspace() {
     <div className="min-h-screen bg-[#FDFBF7] p-6 text-black relative">
       <div className="max-w-4xl mx-auto">
         
-        {/* Navigation bar */}
+        {/* Navigation Actions */}
         <div className="flex justify-end items-center gap-6 mb-4 text-[13px] font-bold text-[#191919]">
           <button onClick={() => router.push('/studio')} className="hover:opacity-70">My Studio</button>
           <button onClick={() => router.push('/feed')} className="hover:opacity-70">Community Feed</button>
-          
-          {/* Real-time Notification Bell */}
           {profile.id && <NotificationCenter profileId={profile.id} />}
-          
           <button onClick={() => { database.auth.signOut(); router.push('/'); }} className="text-[#A4927A] hover:text-[#191919]">Leave Studio</button>
         </div>
 
-        {/* Studio Profile Card Banner Layout */}
+        {/* Profile Details Layout Banner */}
         <div className="bg-[#D7C9B7] rounded-[2rem] p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-8 min-h-[250px]">
           <div className="w-24 h-24 sm:w-28 sm:h-28 bg-[#191919] rounded-full flex items-center justify-center text-white text-4xl italic font-serif flex-shrink-0">
             {String(profile.username || 'N').charAt(0).toUpperCase()}
@@ -312,49 +304,39 @@ export default function StudioWorkspace() {
                   className="text-2xl sm:text-3xl font-serif font-normal italic tracking-tight bg-white/60 px-3 py-1 rounded-xl w-full focus:outline-none text-black" 
                   placeholder="Username"
                 />
-                
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                   <select 
                     value={profile.account_type || '🎹 Producer'} 
                     onChange={(e) => saveProfileField('account_type', e.target.value)}
-                    className="text-xs font-bold bg-white/60 p-2.5 rounded-xl focus:outline-none text-black border-none"
+                    className="text-xs font-bold bg-white/60 p-2.5 rounded-xl focus:outline-none text-black"
                   >
                     <option value="🎹 Producer">🎹 Producer</option>
                     <option value="🎤 Artist / Singer">🎤 Artist / Singer</option>
                     <option value="✍️ Songwriter">✍️ Songwriter</option>
                     <option value="🎚️ Engineer">🎚️ Engineer</option>
                     <option value="🎸 Musician">🎸 Musician</option>
-                    <option value="🎧 DJ">🎧 DJ</option>
-                    <option value="🎬 Fan / Listener">🎬 Fan / Listener</option>
                   </select>
-
                   <input 
                     type="text"
                     defaultValue={profile.software || 'logic, fl'} 
                     onBlur={(e) => saveProfileField('software', e.target.value)} 
-                    className="text-xs font-semibold bg-white/60 p-2.5 rounded-xl focus:outline-none text-black"
+                    className="text-xs font-semibold bg-white/60 p-2.5 rounded-xl text-black"
                     placeholder="DAW (logic, fl)"
                   />
-
                   <select
                     value={profile.primary_genre || '🎵 Trap'}
                     onChange={(e) => saveProfileField('primary_genre', e.target.value)}
-                    className="text-xs font-bold bg-white/60 p-2.5 rounded-xl focus:outline-none text-black border-none"
+                    className="text-xs font-bold bg-white/60 p-2.5 rounded-xl text-black"
                   >
                     <option value="🎵 Trap">🎵 Trap</option>
                     <option value="🎹 Hip Hop">🎹 Hip Hop</option>
                     <option value="✨ Lo-Fi">✨ Lo-Fi</option>
-                    <option value="🎸 Rock / Alternative">🎸 Rock / Alternative</option>
-                    <option value="⚡ EDM / Electronic">⚡ EDM / Electronic</option>
-                    <option value="🎤 Pop / R&B">🎤 Pop / R&B</option>
-                    <option value="🎻 Cinematic / Classical">🎻 Cinematic</option>
                   </select>
-
                   <input 
                     type="text"
                     defaultValue={profile.country || 'India'} 
                     onBlur={(e) => saveProfileField('country', e.target.value)} 
-                    className="text-xs font-semibold bg-white/60 p-2.5 rounded-xl focus:outline-none text-black"
+                    className="text-xs font-semibold bg-white/60 p-2.5 rounded-xl text-black"
                     placeholder="Location"
                   />
                 </div>
@@ -365,14 +347,13 @@ export default function StudioWorkspace() {
                     <select
                       value={currentStatusString}
                       onChange={(e) => saveProfileField('is_open_to_collab', e.target.value)}
-                      className="text-[10px] font-bold bg-white/60 px-3 py-1 rounded-lg border-none focus:outline-none text-black"
+                      className="text-[10px] font-bold bg-white/60 px-3 py-1 rounded-lg text-black"
                     >
                       <option value="none">— Leave Empty / Hidden —</option>
                       <option value="true">🟢 Open To Collaborate</option>
                       <option value="false">🔴 Not Taking Requests</option>
                     </select>
                   </div>
-
                   <button 
                     type="button"
                     onClick={handleDeleteAccount}
@@ -386,7 +367,7 @@ export default function StudioWorkspace() {
                   defaultValue={profile.bio || ''} 
                   onBlur={(e) => saveProfileField('bio', e.target.value)} 
                   placeholder="Tell the community about your style..."
-                  className="w-full text-xs font-medium p-3 rounded-xl bg-white/60 border-none focus:outline-none text-black resize-none"
+                  className="w-full text-xs font-medium p-3 rounded-xl bg-white/60 text-black resize-none"
                   rows={2}
                 />
               </div>
@@ -444,7 +425,7 @@ export default function StudioWorkspace() {
             </div>
           </div>
 
-          {/* Upload Button */}
+          {/* Upload Action Button */}
           <div className="flex justify-end h-9 items-center px-2 mt-2 mb-1">
             {activeTab === 'Loops / Tracks' && (
               <button 
@@ -461,8 +442,8 @@ export default function StudioWorkspace() {
               <CollaborationHub profileId={profile.id} />
             ) : sounds.length > 0 ? (
               sounds.map((sound) => (
-                <div key={sound.id} className="p-5 border border-[#E3DEC1] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/70 shadow-sm relative group animate-fadeIn">
-                  <div className="space-y-1 text-left">
+                <div key={sound.id} className="p-5 border border-[#E3DEC1] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/70 shadow-sm relative group animate-fadeIn text-left">
+                  <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-black text-[#191919]">{sound.title}</span>
                       <span className="bg-[#E3DEC1] text-[#4B3B2F] text-[9px] px-2 py-0.5 rounded-full font-bold uppercase font-mono">{sound.instrument || 'Synth'}</span>
@@ -473,15 +454,17 @@ export default function StudioWorkspace() {
                   </div>
                   
                   <div className="flex items-center gap-4 relative">
+                    {/* ⚙️ CROSS-ORIGIN ATTRIBUTE ATTACHED BELOW FOR ASSET STREAM FIX */}
                     <audio 
                       controls 
+                      crossOrigin="anonymous"
                       src={sound.audio_url} 
                       className="h-8" 
                       ref={(el) => { audioRefs.current[sound.id] = el; }}
                       onPlay={() => handleAudioPlay(sound.id)}
                     />
                     
-                    {/* Minimal 3-Dot Dropdown Actions Menu */}
+                    {/* Options Menu Dropdown */}
                     <div className="relative" onClick={(e) => e.stopPropagation()}>
                       <button 
                         onClick={() => setActiveMenuId(activeMenuId === sound.id ? null : sound.id)}
@@ -499,7 +482,6 @@ export default function StudioWorkspace() {
                           >
                             Edit info
                           </button>
-                          
                           <button 
                             onClick={() => handleDeleteTrack(sound.id, sound.audio_url)}
                             className="w-full text-left px-4 py-1.5 text-xs text-black font-bold hover:bg-gray-50 flex items-center gap-1.5 cursor-pointer"
@@ -509,7 +491,6 @@ export default function StudioWorkspace() {
                         </div>
                       )}
                     </div>
-
                   </div>
                 </div>
               ))
@@ -522,7 +503,7 @@ export default function StudioWorkspace() {
         </div>
       </div>
 
-      {/* Input Metadata Dialog Overlay */}
+      {/* Upload Metadata Modal Overlay Dialog */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-[#E3DEC1] rounded-[2rem] w-full max-w-md p-8 shadow-2xl relative animate-fadeIn max-h-[90vh] overflow-y-auto text-black">
@@ -544,13 +525,13 @@ export default function StudioWorkspace() {
 
               <div className="space-y-1.5 text-left">
                 <label className="block uppercase tracking-wider text-[10px]">Track / Loop Name (*)</label>
-                <input type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="e.g., Logic_Synth_Pluck" className="w-full border border-[#E3DEC1] p-3 rounded-xl focus:outline-none text-black font-semibold text-sm" />
+                <input type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="e.g., Logic_Synth_Pluck" className="w-full border border-[#E3DEC1] p-3 rounded-xl text-black font-semibold text-sm" />
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-left">
                 <div className="space-y-1.5">
                   <label className="block uppercase tracking-wider text-[10px]">Core Instrument (*)</label>
-                  <select value={formInstrument} onChange={(e) => setFormInstrument(e.target.value)} className="w-full border border-[#E3DEC1] p-3 rounded-xl bg-white focus:outline-none text-black font-semibold">
+                  <select value={formInstrument} onChange={(e) => setFormInstrument(e.target.value)} className="w-full border border-[#E3DEC1] p-3 rounded-xl bg-white text-black font-semibold">
                     <option value="Drums">Drums / Percussion</option>
                     <option value="Guitar">Guitar / String Layers</option>
                     <option value="Piano">Piano / Rhyp Keys</option>
@@ -562,7 +543,7 @@ export default function StudioWorkspace() {
 
                 <div className="space-y-1.5">
                   <label className="block uppercase tracking-wider text-[10px]">Track Genre (*)</label>
-                  <select value={formGenre} onChange={(e) => setFormGenre(e.target.value)} className="w-full border border-[#E3DEC1] p-3 rounded-xl bg-white focus:outline-none text-black font-semibold">
+                  <select value={formGenre} onChange={(e) => setFormGenre(e.target.value)} className="w-full border border-[#E3DEC1] p-3 rounded-xl bg-white text-black font-semibold">
                     <option value="Trap">Trap</option>
                     <option value="Hip Hop">Hip Hop</option>
                     <option value="Lo-Fi">Lo-Fi</option>
@@ -576,12 +557,11 @@ export default function StudioWorkspace() {
               <div className="grid grid-cols-2 gap-4 text-left">
                 <div className="space-y-1.5">
                   <label className="block uppercase tracking-wider text-[10px]">Tempo (BPM) (*)</label>
-                  <input type="number" value={formBpm} onChange={(e) => setFormBpm(e.target.value)} placeholder="e.g., 140" className="w-full border border-[#E3DEC1] p-3 rounded-xl focus:outline-none text-black font-semibold" />
+                  <input type="number" value={formBpm} onChange={(e) => setFormBpm(e.target.value)} placeholder="e.g., 140" className="w-full border border-[#E3DEC1] p-3 rounded-xl text-black font-semibold" />
                 </div>
-
                 <div className="space-y-1.5">
                   <label className="block uppercase tracking-wider text-[10px]">Musical Key (*)</label>
-                  <select value={formKey} onChange={(e) => setFormKey(e.target.value)} className="w-full border border-[#E3DEC1] p-3 rounded-xl bg-white focus:outline-none text-black font-semibold">
+                  <select value={formKey} onChange={(e) => setFormKey(e.target.value)} className="w-full border border-[#E3DEC1] p-3 rounded-xl bg-white text-black font-semibold">
                     <option value="C Maj">C Maj</option><option value="C Min">C Min</option>
                     <option value="D Maj">D Maj</option><option value="D Min">D Min</option>
                     <option value="E Maj">E Maj</option><option value="E Min">E Min</option>
@@ -595,7 +575,7 @@ export default function StudioWorkspace() {
 
               <div className="space-y-1.5 text-left">
                 <label className="block uppercase tracking-wider text-[10px]">Track Summary / Vibe</label>
-                <textarea rows={2} value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder="Describe the sample style layers used..." className="w-full border border-[#E3DEC1] p-3 rounded-xl focus:outline-none text-black font-medium resize-none" />
+                <textarea rows={2} value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder="Describe the sample style layers used..." className="w-full border border-[#E3DEC1] p-3 rounded-xl text-black font-medium resize-none" />
               </div>
 
               <button type="submit" disabled={isSubmitting} className="w-full bg-[#111111] text-white py-3.5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#4B3B2F] transition-all disabled:opacity-50 mt-2 cursor-pointer">
