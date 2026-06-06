@@ -12,16 +12,19 @@ export default function StudioWorkspace() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
   );
 
+  // Core Session States
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>({});
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [activeTab, setActiveTab] = useState('Loops / Tracks');
   const [sounds, setSounds] = useState<any[]>([]);
 
+  // Form Modal Management States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditingTrack, setIsEditingTrack] = useState(false);
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
   
+  // Form Field Input States
   const [formTitle, setFormTitle] = useState('');
   const [formInstrument, setFormInstrument] = useState('Drums');
   const [formBpm, setFormBpm] = useState('');
@@ -198,7 +201,7 @@ export default function StudioWorkspace() {
       console.error("Submission failed:", err);
       alert("Error: " + err.message);
     } finally {
-      // FIXED PARSE FAULT HERE: Changed 'filter' back to 'finally' to heal Vercel pipeline builds
+      // 🔒 REPAIRED TRANSLATION HANDLER HERE
       setIsSubmitting(false);
     }
   };
@@ -216,12 +219,14 @@ export default function StudioWorkspace() {
     <div className="min-h-screen bg-[#FDFBF7] p-6 text-black relative">
       <div className="max-w-4xl mx-auto">
         
+        {/* Navigation Headbars */}
         <div className="flex justify-end gap-6 mb-4 text-[13px] font-bold text-[#191919]">
           <button onClick={() => router.push('/studio')} className="hover:opacity-70">My Studio</button>
           <button onClick={() => router.push('/')} className="hover:opacity-70">Community Feed</button>
           <button onClick={() => { database.auth.signOut(); router.push('/'); }} className="text-[#A4927A] hover:text-[#191919]">Leave Studio</button>
         </div>
 
+        {/* Studio Profile Card Banner */}
         <div className="bg-[#D7C9B7] rounded-[2rem] p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-8 min-h-[250px]">
           <div className="w-24 h-24 sm:w-28 sm:h-28 bg-[#191919] rounded-full flex items-center justify-center text-white text-4xl italic font-serif flex-shrink-0">
             {String(profile.username || 'N').charAt(0).toUpperCase()}
@@ -321,6 +326,7 @@ export default function StudioWorkspace() {
           </div>
         </div>
 
+        {/* Sync Toggle Button */}
         <button 
           onClick={() => setIsEditingProfile(!isEditingProfile)} 
           className="mt-6 px-6 py-2 border border-[#191919] rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-[#191919] hover:text-white transition"
@@ -328,6 +334,7 @@ export default function StudioWorkspace() {
           {isEditingProfile ? 'Finish Profile Sync' : 'Edit Profile Options'}
         </button>
 
+        {/* Dynamic Nav Tabs Row */}
         <div className="mt-12">
           <div className="flex justify-between items-center border-b border-[#E3DEC1] pb-1">
             <div className="flex gap-8">
@@ -339,6 +346,7 @@ export default function StudioWorkspace() {
             </div>
           </div>
 
+          {/* Hidden Subtle Upload Button Link */}
           <div className="flex justify-end h-9 items-center px-2 mt-2 mb-1">
             {activeTab === 'Loops / Tracks' && (
               <button 
@@ -350,6 +358,7 @@ export default function StudioWorkspace() {
             )}
           </div>
 
+          {/* Core App Display Filter Router Box */}
           <div className="grid gap-4">
             {activeTab === 'Collaboration' ? (
               <CollaborationHub profileId={profile.id} />
@@ -389,6 +398,7 @@ export default function StudioWorkspace() {
         </div>
       </div>
 
+      {/* 📥 DYNAMIC INPUT METADATA DIALOG OVERLAY */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-[#E3DEC1] rounded-[2rem] w-full max-w-md p-8 shadow-2xl relative animate-fadeIn max-h-[90vh] overflow-y-auto text-black">
