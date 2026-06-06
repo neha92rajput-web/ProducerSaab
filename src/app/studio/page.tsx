@@ -23,16 +23,20 @@ export default function StudioWorkspace() {
   const [isEditingTrack, setIsEditingTrack] = useState(false);
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
   
-  // Form Field Input States
+  // Form Field Input States (With new mandatory form fields)
   const [formTitle, setFormTitle] = useState('');
   const [formInstrument, setFormInstrument] = useState('Drums');
   const [formBpm, setFormBpm] = useState('');
   const [formKey, setFormKey] = useState('C Min');
+  const [formGenre, setFormGenre] = useState('Trap');
   const [formDescription, setFormDescription] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Ref map to store all active audio elements on the screen for mutual exclusion
+  const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
 
   useEffect(() => {
     async function init() {
@@ -67,6 +71,15 @@ export default function StudioWorkspace() {
     fetchSounds();
   }, [activeTab, profile.id]);
 
+  // Stops all other audio players when a new track begins playing
+  const handleAudioPlay = (currentSoundId: string) => {
+    Object.keys(audioRefs.current).forEach((id) => {
+      if (id !== currentSoundId && audioRefs.current[id]) {
+        audioRefs.current[id]?.pause();
+      }
+    });
+  };
+
   const openUploadModal = () => {
     setIsEditingTrack(false);
     setSelectedTrackId(null);
@@ -74,6 +87,7 @@ export default function StudioWorkspace() {
     setFormInstrument('Drums');
     setFormBpm('');
     setFormKey('C Min');
+    setFormGenre('Trap');
     setFormDescription('');
     setSelectedFile(null);
     setIsModalOpen(true);
@@ -86,6 +100,7 @@ export default function StudioWorkspace() {
     setFormInstrument(track.instrument || 'Drums');
     setFormBpm(track.bpm || '');
     setFormKey(track.key_signature || 'C Min');
+    setFormGenre(track.genre || 'Trap');
     setFormDescription(track.description || '');
     setSelectedFile(null);
     setIsModalOpen(true);
@@ -103,7 +118,15 @@ export default function StudioWorkspace() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formTitle.trim()) return alert("Please enter a track name.");
+    
+    // MANDATORY STRIP VALIDATIONS
+    if (!formTitle.trim()) return alert("Track Name is required.");
+    if (!formInstrument) return alert("Please specify a Core Instrument Source.");
+    if (!formBpm.trim() || isNaN(Number(formBpm)) || Number(formBpm) <= 0) {
+      return alert("Please enter a valid mandatory BPM/Tempo number.");
+    }
+    if (!formKey) return alert("Please specify a mandatory Musical Key.");
+    if (!formGenre) return alert("Please specify a mandatory Track Genre.");
     
     setIsSubmitting(true);
 
@@ -129,8 +152,9 @@ export default function StudioWorkspace() {
           title: formTitle,
           category: activeTab,
           instrument: formInstrument,
-          bpm: formBpm ? Number(formBpm) : null,
+          bpm: Number(formBpm),
           key_signature: formKey,
+          genre: formGenre,
           description: formDescription,
         };
 
@@ -156,8 +180,9 @@ export default function StudioWorkspace() {
           title: formTitle,
           category: activeTab,
           instrument: formInstrument,
-          bpm: formBpm ? Number(formBpm) : null,
+          bpm: Number(formBpm),
           key_signature: formKey,
+          genre: formGenre,
           description: formDescription,
           audio_url: finalAudioUrl
         });
@@ -203,7 +228,7 @@ export default function StudioWorkspace() {
           <button onClick={() => { database.auth.signOut(); router.push('/'); }} className="text-[#A4927A] hover:text-[#191919]">Leave Studio</button>
         </div>
 
-        {/* Dynamic Studio Profile Card Banner */}
+        {/* Studio Profile Card Banner */}
         <div className="bg-[#D7C9B7] rounded-[2rem] p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-8 min-h-[250px]">
           <div className="w-24 h-24 sm:w-28 sm:h-28 bg-[#191919] rounded-full flex items-center justify-center text-white text-4xl italic font-serif flex-shrink-0">
             {String(profile.username || 'N').charAt(0).toUpperCase()}
@@ -212,7 +237,6 @@ export default function StudioWorkspace() {
           <div className="flex-grow space-y-3 w-full">
             {isEditingProfile ? (
               <div className="space-y-3 max-w-xl">
-                {/* Elegant Font Stack for Name Input Field */}
                 <input 
                   type="text"
                   defaultValue={profile.username} 
@@ -221,7 +245,6 @@ export default function StudioWorkspace() {
                   placeholder="Username"
                 />
                 
-                {/* Dropdowns & Setup Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                   <select 
                     value={profile.account_type || '🎹 Producer'} 
@@ -245,7 +268,6 @@ export default function StudioWorkspace() {
                     placeholder="DAW (logic, fl)"
                   />
 
-                  {/* Primary Genre Dropdown Picker Input */}
                   <select
                     value={profile.primary_genre || '🎵 Trap'}
                     onChange={(e) => saveProfileField('primary_genre', e.target.value)}
@@ -269,18 +291,16 @@ export default function StudioWorkspace() {
                   />
                 </div>
 
-                {/* Bio Field */}
                 <textarea 
                   defaultValue={profile.bio || ''} 
                   onBlur={(e) => saveProfileField('bio', e.target.value)} 
-                  placeholder="Tell the community about your style, gear, or background vibe..."
+                  placeholder="Tell the community about your style, release stats, or gear setup..."
                   className="w-full text-xs font-medium p-3 rounded-xl bg-white/60 border-none focus:outline-none text-black resize-none"
                   rows={2}
                 />
               </div>
             ) : (
               <div className="space-y-3">
-                {/* 👑 CLASSY SERIF FONTS & UNDERNAME ROLE BADGES */}
                 <div className="space-y-1">
                   <h1 className="text-3xl sm:text-4xl font-serif font-normal italic tracking-tight text-[#191919]">
                     {profile.username || 'nthakur'}
@@ -292,14 +312,12 @@ export default function StudioWorkspace() {
                   </div>
                 </div>
                 
-                {/* Metadata details including software & primary genre */}
                 <div className="space-y-1 text-xs text-[#4B3B2F] font-bold pt-0.5">
                   <div>🎹 DAW/Style: {profile.software || 'logic, fl'}</div>
                   <div>🎵 Primary Genre: {profile.primary_genre || 'Trap'}</div>
                   <div>🌍 Location: {profile.country || 'India'}</div>
                 </div>
 
-                {/* Bio Block */}
                 {profile.bio && (
                   <p className="text-xs text-[#3E3227] font-medium leading-relaxed bg-white/20 p-3 rounded-xl max-w-xl italic mt-1">
                     {profile.bio}
@@ -348,7 +366,7 @@ export default function StudioWorkspace() {
               <div className="text-center p-12 border border-dashed border-[#E3DEC1] rounded-2xl bg-white/40">
                 <div className="text-2xl mb-2">💬</div>
                 <h4 className="text-sm font-bold text-gray-700 mb-1">Collaboration Hub Active</h4>
-                <p className="text-xs text-gray-400 font-medium max-w-sm mx-auto">This area holds your collective project workspace tracking rows. Direct mix audio uploads are disabled inside this tab view channel.</p>
+                <p className="text-xs text-gray-400 font-medium max-w-sm mx-auto">This area holds your collective project workspace tracking rows.</p>
               </div>
             ) : sounds.length > 0 ? (
               sounds.map((sound) => (
@@ -357,13 +375,21 @@ export default function StudioWorkspace() {
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-black text-[#191919]">{sound.title}</span>
                       <span className="bg-[#E3DEC1] text-[#4B3B2F] text-[9px] px-2 py-0.5 rounded-full font-bold uppercase font-mono">{sound.instrument || 'Synth'}</span>
+                      <span className="bg-gray-100 text-gray-600 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase font-mono">{sound.genre || 'Trap'}</span>
                     </div>
-                    {sound.bpm && <div className="text-[10px] text-gray-500 font-medium font-mono">BPM: {sound.bpm}  •  Key: {sound.key_signature || 'N/A'}</div>}
+                    <div className="text-[10px] text-gray-500 font-medium font-mono">BPM: {sound.bpm}  •  Key: {sound.key_signature || 'N/A'}</div>
                     {sound.description && <p className="text-xs text-gray-400 font-medium italic max-w-md">{sound.description}</p>}
                   </div>
                   
                   <div className="flex items-center gap-4">
-                    <audio controls src={sound.audio_url} className="h-8" />
+                    {/* AUDIO INTERLOCK: Wired onPlay hook tracking references to clear overlapping layers */}
+                    <audio 
+                      controls 
+                      src={sound.audio_url} 
+                      className="h-8" 
+                      ref={(el) => { audioRefs.current[sound.id] = el; }}
+                      onPlay={() => handleAudioPlay(sound.id)}
+                    />
                     <button onClick={() => openEditModal(sound)} className="p-2 border border-[#E3DEC1] rounded-xl hover:bg-[#191919] hover:text-white text-gray-500 transition text-xs font-bold">
                       ✏️ Edit
                     </button>
@@ -403,33 +429,48 @@ export default function StudioWorkspace() {
 
               {/* Track Name */}
               <div className="space-y-1.5">
-                <label className="block uppercase tracking-wider text-[10px]">Track / Loop Name</label>
+                <label className="block uppercase tracking-wider text-[10px]">Track / Loop Name (*)</label>
                 <input type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="e.g., Logic_Synth_Pluck" className="w-full border border-[#E3DEC1] p-3 rounded-xl focus:outline-none text-black font-semibold text-sm" />
               </div>
 
-              {/* Instrument Selection Row */}
-              <div className="space-y-1.5">
-                <label className="block uppercase tracking-wider text-[10px]">Core Instrument Source</label>
-                <select value={formInstrument} onChange={(e) => setFormInstrument(e.target.value)} className="w-full border border-[#E3DEC1] p-3 rounded-xl bg-white focus:outline-none text-black font-semibold">
-                  <option value="Drums">Drums / Percussion</option>
-                  <option value="Guitar">Guitar / String Layers</option>
-                  <option value="Piano">Piano / Rhyp Keys</option>
-                  <option value="Synth">Synth / Lead FX</option>
-                  <option value="Bass">Sub / 808 Basslines</option>
-                  <option value="Vocal">Vocals / Chop Hooks</option>
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                {/* Core Instrument Selection (Mandatory) */}
+                <div className="space-y-1.5">
+                  <label className="block uppercase tracking-wider text-[10px]">Core Instrument (*)</label>
+                  <select value={formInstrument} onChange={(e) => setFormInstrument(e.target.value)} className="w-full border border-[#E3DEC1] p-3 rounded-xl bg-white focus:outline-none text-black font-semibold">
+                    <option value="Drums">Drums / Percussion</option>
+                    <option value="Guitar">Guitar / String Layers</option>
+                    <option value="Piano">Piano / Rhyp Keys</option>
+                    <option value="Synth">Synth / Lead FX</option>
+                    <option value="Bass">Sub / 808 Basslines</option>
+                    <option value="Vocal">Vocals / Chop Hooks</option>
+                  </select>
+                </div>
+
+                {/* Track Genre Picker (Mandatory) */}
+                <div className="space-y-1.5">
+                  <label className="block uppercase tracking-wider text-[10px]">Track Genre (*)</label>
+                  <select value={formGenre} onChange={(e) => setFormGenre(e.target.value)} className="w-full border border-[#E3DEC1] p-3 rounded-xl bg-white focus:outline-none text-black font-semibold">
+                    <option value="Trap">Trap</option>
+                    <option value="Hip Hop">Hip Hop</option>
+                    <option value="Lo-Fi">Lo-Fi</option>
+                    <option value="R&B">R&B</option>
+                    <option value="Electronic">Electronic</option>
+                    <option value="Pop">Pop</option>
+                  </select>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                {/* Tempo (BPM) */}
+                {/* Tempo BPM Input (Mandatory) */}
                 <div className="space-y-1.5">
-                  <label className="block uppercase tracking-wider text-[10px]">Tempo (BPM)</label>
+                  <label className="block uppercase tracking-wider text-[10px]">Tempo (BPM) (*)</label>
                   <input type="number" value={formBpm} onChange={(e) => setFormBpm(e.target.value)} placeholder="e.g., 140" className="w-full border border-[#E3DEC1] p-3 rounded-xl focus:outline-none text-black font-semibold" />
                 </div>
 
-                {/* Key Scale */}
+                {/* Key Scale Selection (Mandatory) */}
                 <div className="space-y-1.5">
-                  <label className="block uppercase tracking-wider text-[10px]">Musical Key</label>
+                  <label className="block uppercase tracking-wider text-[10px]">Musical Key (*)</label>
                   <select value={formKey} onChange={(e) => setFormKey(e.target.value)} className="w-full border border-[#E3DEC1] p-3 rounded-xl bg-white focus:outline-none text-black font-semibold">
                     <option value="C Maj">C Maj</option><option value="C Min">C Min</option>
                     <option value="D Maj">D Maj</option><option value="D Min">D Min</option>
@@ -442,7 +483,7 @@ export default function StudioWorkspace() {
                 </div>
               </div>
 
-              {/* Summary */}
+              {/* Summary Description */}
               <div className="space-y-1.5">
                 <label className="block uppercase tracking-wider text-[10px]">Track Summary / Vibe</label>
                 <textarea rows={2} value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder="Describe the sample style layers or plugins used..." className="w-full border border-[#E3DEC1] p-3 rounded-xl focus:outline-none text-black font-medium resize-none" />
