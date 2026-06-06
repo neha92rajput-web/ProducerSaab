@@ -200,7 +200,6 @@ export default function StudioWorkspace() {
 
       if (selectedFile) {
         const fileExt = selectedFile.name.split('.').pop();
-        // Generates a completely clean numeric file name string pattern
         const fileName = `${Date.now()}.${fileExt}`;
         
         const { error: uploadError } = await database.storage
@@ -245,7 +244,6 @@ export default function StudioWorkspace() {
           return alert("Please select an audio file to upload.");
         }
 
-        // 🔥 CRITICAL SYNC FIX: Explicitly binds finalAudioUrl structure to your new database row entry 
         const { error: insertError } = await database.from('sounds').insert({
           profile_id: profile.id,
           title: formTitle,
@@ -463,13 +461,19 @@ export default function StudioWorkspace() {
                   </div>
                   
                   <div className="flex items-center gap-4 relative">
-                    <audio 
-                      controls 
-                      src={sound.audio_url} 
-                      className="h-8" 
-                      ref={(el) => { audioRefs.current[sound.id] = el; }}
-                      onPlay={() => handleAudioPlay(sound.id)}
-                    />
+                    <>
+                      <p className="text-[10px] break-all">
+                        {sound.audio_url}
+                      </p>
+
+                      <audio
+                        controls
+                        src={sound.audio_url}
+                        className="h-8"
+                        ref={(el) => { audioRefs.current[sound.id] = el; }}
+                        onPlay={() => handleAudioPlay(sound.id)}
+                      />
+                    </>
                     
                     {/* Options Menu Dropdown */}
                     <div className="relative" onClick={(e) => e.stopPropagation()}>
