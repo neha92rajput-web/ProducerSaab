@@ -37,6 +37,16 @@ export default function StudioWorkspace() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
 
+  const fetchSounds = async (userId: string) => {
+    const { data } = await database
+      .from('sounds')
+      .select('*')
+      .eq('profile_id', userId)
+      .eq('category', activeTab)
+      .order('created_at', { ascending: false });
+    setSounds(data || []);
+  };
+
   useEffect(() => {
     async function init() {
       try {
@@ -47,6 +57,7 @@ export default function StudioWorkspace() {
         }
         const { data: p } = await database.from('profiles').select('*').eq('id', user.id).single();
         setProfile(p || {});
+        if (p?.id) await fetchSounds(p.id);
       } catch (err) {
         console.error("Initialization failed:", err);
       } finally {
@@ -54,21 +65,7 @@ export default function StudioWorkspace() {
       }
     }
     init();
-  }, [router]);
-
-  useEffect(() => {
-    async function fetchSounds() {
-      if (!profile.id) return;
-      const { data } = await database
-        .from('sounds')
-        .select('*')
-        .eq('profile_id', profile.id)
-        .eq('category', activeTab)
-        .order('created_at', { ascending: false });
-      setSounds(data || []);
-    }
-    fetchSounds();
-  }, [activeTab, profile.id]);
+  }, [router, activeTab]);
 
   const handleAudioPlay = (currentSoundId: string) => {
     Object.keys(audioRefs.current).forEach((id) => {
@@ -76,6 +73,59 @@ export default function StudioWorkspace() {
         audioRefs.current[id]?.pause();
       }
     });
+  };
+
+  // 🗑️ WORKFLOW ACTION 1: SECURE AUDIO FILE DELETION
+  const handleDeleteTrack = async (soundId: string, audioUrl: string) => {
+    const confirmDestruction = window.confirm("⚠️ Are you sure you want to permanently delete this track from your studio and the public feed? This action cannot be undone.");
+    if (!confirmDestruction) return;
+
+    try {
+      // 1. If an audio url exists, attempt storage file extraction cleanup
+      if (audioUrl) {
+        const urlParts = audioUrl.split('/storage/v1/object/public/audio/');
+        if (urlParts.length === 2) {
+          const storageFileName = urlParts[1];
+          await database.storage.from('audio').remove([storageFileName]);
+        }
+      }
+
+      // 2. Erase the database record row row context
+      const { error } = await database.from('sounds').delete().eq('id', soundId);
+      if (error) throw error;
+
+      alert("💥 Track successfully deleted from ProducerSaab network rows.");
+      await fetchSounds(profile.id);
+    } catch (err: any) {
+      alert("Asset destruction fault: " + err.message);
+    }
+  };
+
+  // 🚨 WORKFLOW ACTION 2: PERMANENT ACCOUNT ERASURE
+  const handleDeleteAccount = async () => {
+    const doubleCheck = window.confirm("🛑 CRITICAL ACTION!\nAre you absolutely sure you want to wipe out your production profile? This will permanently delete your username, tracks, open opportunities, and project credits. This action is irreversible.");
+    if (!doubleCheck) return;
+
+    const finalPassphrase = prompt("Type 'DELETE MY STUDIO' below to finalize the data purge sequence:");
+    if (finalPassphrase !== 'DELETE MY STUDIO') {
+      return alert("Passphrase confirmation mismatched. Purge sequence aborted.");
+    }
+
+    try {
+      setLoading(true);
+      
+      // Clear personal profile metadata row (cascade rules handle standard audio rows)
+      const { error } = await database.from('profiles').delete().eq('id', profile.id);
+      if (error) throw error;
+
+      // Log out current session authentication cookies tracking
+      await database.auth.signOut();
+      alert("✅ Your account and assets have been permanently erased from the network server maps.");
+      router.replace('/');
+    } catch (err: any) {
+      setLoading(false);
+      alert("Account deletion system exception: " + err.message);
+    }
   };
 
   const openUploadModal = () => {
@@ -189,13 +239,7 @@ export default function StudioWorkspace() {
       }
 
       setIsModalOpen(false);
-      const { data: refreshedSounds } = await database
-        .from('sounds')
-        .select('*')
-        .eq('profile_id', profile.id)
-        .eq('category', activeTab)
-        .order('created_at', { ascending: false });
-      setSounds(refreshedSounds || []);
+      await fetchSounds(profile.id);
 
     } catch (err: any) {
       console.error("Submission failed:", err);
@@ -221,7 +265,7 @@ export default function StudioWorkspace() {
     <div className="min-h-screen bg-[#FDFBF7] p-6 text-black relative">
       <div className="max-w-4xl mx-auto">
         
-        {/* Navigation Headbars - FIXED LINK TO ROUTE TO /feed */}
+        {/* Navigation Headbars */}
         <div className="flex justify-end gap-6 mb-4 text-[13px] font-bold text-[#191919]">
           <button onClick={() => router.push('/studio')} className="hover:opacity-70">My Studio</button>
           <button onClick={() => router.push('/feed')} className="hover:opacity-70">Community Feed</button>
@@ -291,17 +335,28 @@ export default function StudioWorkspace() {
                   />
                 </div>
 
-                <div className="flex items-center gap-2 pt-1">
-                  <label className="text-[10px] font-black uppercase tracking-wider text-gray-700">Accepting Collaboration Inquiries:</label>
-                  <select
-                    value={currentStatusString}
-                    onChange={(e) => saveProfileField('is_open_to_collab', e.target.value)}
-                    className="text-[10px] font-bold bg-white/60 px-3 py-1 rounded-lg border-none focus:outline-none text-black"
+                <div className="flex flex-wrap items-center justify-between gap-4 pt-1">
+                  <div className="flex items-center gap-2">
+                    <label className="text-[10px] font-black uppercase tracking-wider text-gray-700">Accepting Collaboration Inquiries:</label>
+                    <select
+                      value={currentStatusString}
+                      onChange={(e) => saveProfileField('is_open_to_collab', e.target.value)}
+                      className="text-[10px] font-bold bg-white/60 px-3 py-1 rounded-lg border-none focus:outline-none text-black"
+                    >
+                      <option value="none">— Leave Empty / Hidden —</option>
+                      <option value="true">🟢 Open To Collaborate</option>
+                      <option value="false">🔴 Not Taking Requests</option>
+                    </select>
+                  </div>
+
+                  {/* 🚨 RED DANGER ACTION LOGOUT TRIGGER BUTTON */}
+                  <button 
+                    type="button"
+                    onClick={handleDeleteAccount}
+                    className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition"
                   >
-                    <option value="none">— Leave Empty / Hidden —</option>
-                    <option value="true">🟢 Open To Collaborate</option>
-                    <option value="false">🔴 Not Taking Requests</option>
-                  </select>
+                    🔴 Erase My Entire Studio Account
+                  </button>
                 </div>
 
                 <textarea 
@@ -366,7 +421,7 @@ export default function StudioWorkspace() {
             </div>
           </div>
 
-          {/* Hidden Subtle Upload Button Link */}
+          {/* Hidden Upload Button link slot */}
           <div className="flex justify-end h-9 items-center px-2 mt-2 mb-1">
             {activeTab === 'Loops / Tracks' && (
               <button 
@@ -384,7 +439,7 @@ export default function StudioWorkspace() {
             ) : sounds.length > 0 ? (
               sounds.map((sound) => (
                 <div key={sound.id} className="p-5 border border-[#E3DEC1] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/70 shadow-sm relative group animate-fadeIn">
-                  <div className="space-y-1">
+                  <div className="space-y-1 text-left">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-black text-[#191919]">{sound.title}</span>
                       <span className="bg-[#E3DEC1] text-[#4B3B2F] text-[9px] px-2 py-0.5 rounded-full font-bold uppercase font-mono">{sound.instrument || 'Synth'}</span>
@@ -394,7 +449,7 @@ export default function StudioWorkspace() {
                     {sound.description && <p className="text-xs text-gray-400 font-medium italic max-w-md">{sound.description}</p>}
                   </div>
                   
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2.5 sm:gap-4">
                     <audio 
                       controls 
                       src={sound.audio_url} 
@@ -402,8 +457,18 @@ export default function StudioWorkspace() {
                       ref={(el) => { audioRefs.current[sound.id] = el; }}
                       onPlay={() => handleAudioPlay(sound.id)}
                     />
-                    <button onClick={() => openEditModal(sound)} className="p-2 border border-[#E3DEC1] rounded-xl hover:bg-[#191919] hover:text-white text-gray-500 transition text-xs font-bold">
-                      ✏️ Edit
+                    
+                    <button onClick={() => openEditModal(sound)} className="p-2 border border-[#E3DEC1] rounded-xl hover:bg-gray-50 text-gray-500 transition text-xs font-bold" title="Edit Parameters">
+                      ✏️
+                    </button>
+
+                    {/* 🗑️ NEW SUBTLE DELETION CROSS BUTTON ENTRY */}
+                    <button 
+                      onClick={() => handleDeleteTrack(sound.id, sound.audio_url)} 
+                      className="p-2 border border-red-200 text-red-500 rounded-xl hover:bg-red-50 transition text-xs font-bold"
+                      title="Delete Track Permanently"
+                    >
+                      🗑️
                     </button>
                   </div>
                 </div>
@@ -417,7 +482,7 @@ export default function StudioWorkspace() {
         </div>
       </div>
 
-      {/* Modal Dialog Overlay Form Elements */}
+      {/* Modal Dialog Overlay Overlay Form Elements */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-[#E3DEC1] rounded-[2rem] w-full max-w-md p-8 shadow-2xl relative animate-fadeIn max-h-[90vh] overflow-y-auto text-black">
