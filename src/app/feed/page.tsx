@@ -40,15 +40,27 @@ export default function CommunityFeedPage() {
         .not('audio_url', 'is', null)
         .order('created_at', { ascending: false });
 
-      // Query live open collaboration posts globally from table database 
-      const { data: briefs } = await database
+      // 🔍 FIXED RELATION: Explicitly bind the relationship join through creator_id mapping
+      const { data: briefs, error: briefError } = await database
         .from('collaboration_opportunities')
-        .select('*, profiles(id, username, account_type, primary_genre)')
+        .select('*, profiles!collaboration_opportunities_creator_id_fkey(id, username, account_type, primary_genre)')
         .eq('status', 'open')
         .order('created_at', { ascending: false });
 
+      if (briefError) {
+        // Fallback catch if your foreign key relation is named via profile_id instead
+        const { data: fallbackBriefs } = await database
+          .from('collaboration_opportunities')
+          .select('*, profiles(id, username, account_type, primary_genre)')
+          .eq('status', 'open')
+          .order('created_at', { ascending: false });
+        
+        setGlobalBriefs(fallbackBriefs || []);
+      } else {
+        setGlobalBriefs(briefs || []);
+      }
+
       setGlobalSounds(sounds || []);
-      setGlobalBriefs(briefs || []);
     } catch (err) {
       console.error("Failed to load global community data streams:", err);
     } finally {
@@ -159,7 +171,7 @@ export default function CommunityFeedPage() {
     }
     if (myProfileId === brief.creator_id) return alert("This is your own project brief!");
 
-    const applicationPitch = prompt(`Write a message note pitching to @${brief.profiles?.username}:`);
+    const applicationPitch = prompt(`Write a message note pitching to @${brief.profiles?.username || brief.profiles?.[0]?.username || 'creator'}:`);
     if (applicationPitch === null) return;
     if (!applicationPitch.trim()) return alert("A short message pitch is required.");
 
@@ -209,7 +221,7 @@ export default function CommunityFeedPage() {
           <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Explore variables, download master audio structures, or connect directly on specific tracks.</p>
         </div>
 
-        {/* 🎯 FIXED TAB SELECTORS: Fully re-named to Collaboration Post */}
+        {/* TAB SELECTORS */}
         <div className="flex gap-8 border-b border-[#E3DEC1] pb-px text-[11px] font-black uppercase tracking-widest">
           <button 
             onClick={() => setActiveFeedTab('tracks')} 
@@ -277,6 +289,7 @@ export default function CommunityFeedPage() {
               {globalBriefs.length > 0 ? (
                 globalBriefs.map((brief) => {
                   const formattedDate = brief.created_at ? new Date(brief.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+                  const profileData = brief.profiles || brief.profiles?.[0];
                   
                   return (
                     <div key={brief.id} className="p-5 border border-[#E3DEC1] rounded-3xl bg-white shadow-sm flex flex-col justify-between space-y-4 text-left animate-fadeIn">
@@ -288,7 +301,7 @@ export default function CommunityFeedPage() {
                         
                         <div className="space-y-1">
                           <h3 className="text-sm font-black text-black tracking-tight leading-tight">{brief.title}</h3>
-                          <div className="text-[10px] text-[#A4927A] font-bold">Posted by @{brief.profiles?.username}</div>
+                          <div className="text-[10px] text-[#A4927A] font-bold">Posted by @{profileData?.username || 'creator'}</div>
                           <div className="flex flex-wrap gap-x-4 gap-y-1 text-[9px] font-mono text-gray-400 font-bold uppercase pt-1">
                             <div>Genre: {brief.genre}</div>
                             <div>Tempo: {brief.bpm} BPM</div>
