@@ -259,7 +259,8 @@ export default function StudioWorkspace() {
     } catch (err: any) {
       console.error("Submission failed:", err);
       alert("Error: " + err.message);
-    } disable {
+    } finally {
+      // 🔥 SYNTAX ERROR FIXED: Changed from 'disable' to valid block closure
       setIsSubmitting(false);
     }
   };
@@ -442,7 +443,7 @@ export default function StudioWorkspace() {
               <CollaborationHub profileId={profile.id} />
             ) : sounds.length > 0 ? (
               sounds.map((sound) => (
-                <div key={sound.id} className="p-5 border border-[#E3DEC1] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/70 shadow-sm relative group animate-fadeIn text-left">
+                <div key={sound.id} className="p-6 border border-[#E3DEC1] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/70 shadow-sm relative group animate-fadeIn text-left">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-black text-[#191919]">{sound.title}</span>
@@ -454,7 +455,6 @@ export default function StudioWorkspace() {
                   </div>
                   
                   <div className="flex items-center gap-4 relative">
-                    {/* ⚙️ CROSS-ORIGIN ATTRIBUTE ATTACHED BELOW FOR ASSET STREAM FIX */}
                     <audio 
                       controls 
                       crossOrigin="anonymous"
