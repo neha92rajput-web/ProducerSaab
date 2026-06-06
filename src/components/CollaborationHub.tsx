@@ -48,7 +48,7 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
         .select('id, status, message, sounds(title), profiles!collaboration_requests_receiver_id_fkey(username, account_type)')
         .eq('sender_id', profileId);
 
-      // Fetch all opportunities (both your open/closed ones, and others' open ones)
+      // Fetch opportunities matching your personal ID or are open across the ecosystem
       const { data: opps } = await database
         .from('collaboration_opportunities')
         .select('*, profiles(username, account_type)')
@@ -95,11 +95,11 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
         bpm: Number(oppBpm),
         musical_key: oppKey,
         message: oppMessage,
-        status: 'open' // Explicitly starts open
+        status: 'open'
       });
 
       if (error) throw error;
-      alert("🎯 Collaboration Request Broadcasted Successfully!");
+      alert("🎯 Collaboration Post Created Successfully!");
       setIsPostingOpportunity(false);
       setOppTitle('');
       setOppBpm('');
@@ -110,7 +110,6 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
     }
   };
 
-  // 🔥 WORKFLOW HOOK: Toggle an opportunity status to closed
   const handleCloseOpportunity = async (oppId: string) => {
     const doubleCheck = window.confirm("Are you sure you want to close this collaboration request? It will immediately stop appearing on the public community feed.");
     if (!doubleCheck) return;
@@ -151,12 +150,14 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
   return (
     <div className="space-y-6 text-black w-full text-left animate-fadeIn">
       
-      {/* NAVIGATION TABS ARRAYS */}
+      {/* 🧭 RENAMED TAB HEADER */}
       <div className="flex flex-wrap border-b border-[#E3DEC1] gap-6 text-[10px] font-black uppercase tracking-widest pb-px">
         <button onClick={() => setSubTab('active')} className={`pb-2 border-b-2 ${subTab === 'active' ? 'text-black border-black' : 'text-[#A4927A] border-transparent'}`}>🤝 Active Projects</button>
         <button onClick={() => setSubTab('messages')} className={`pb-2 border-b-2 ${subTab === 'messages' ? 'text-black border-black' : 'text-[#A4927A] border-transparent'}`}>📨 Messages</button>
         <button onClick={() => setSubTab('find')} className={`pb-2 border-b-2 ${subTab === 'find' ? 'text-black border-black' : 'text-[#A4927A] border-transparent'}`}>🔎 Find Creators</button>
-        <button onClick={() => setSubTab('opportunities')} className={`pb-2 border-b-2 ${subTab === 'opportunities' ? 'text-black border-black' : 'text-[#A4927A] border-transparent'}`}>🎯 Collaboration Requests</button>
+        
+        {/* Updated label below to display: Collaboration Post */}
+        <button onClick={() => setSubTab('opportunities')} className={`pb-2 border-b-2 ${subTab === 'opportunities' ? 'text-black border-black' : 'text-[#A4927A] border-transparent'}`}>🎯 Collaboration Post</button>
       </div>
 
       {/* ACTIVE WORKSPACES PANEL */}
@@ -205,7 +206,7 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
         </div>
       )}
 
-      {/* BROWSE TALENTS LINKEDIN SEARCH TAB */}
+      {/* BROWSE TALENTS */}
       {subTab === 'find' && (
         <div className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-white/50 p-4 border border-[#E3DEC1] rounded-2xl text-xs font-bold text-gray-500">
@@ -235,7 +236,7 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
         </div>
       )}
 
-      {/* 🎯 COLLABORATION REQUESTS INNER WORKBOARD PANEL VIEW */}
+      {/* 🎯 COLLABORATION POST PANEL VIEW */}
       {subTab === 'opportunities' && (
         <div className="space-y-4 w-full">
           <div className="flex justify-between items-center">
@@ -244,7 +245,7 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
               onClick={() => setIsPostingOpportunity(!isPostingOpportunity)}
               className="bg-black text-white text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl transition duration-150 active:scale-95 cursor-pointer"
             >
-              {isPostingOpportunity ? '✕ Close Form' : '+ Create Collaboration Request'}
+              {isPostingOpportunity ? '✕ Close Form' : '+ Create Collaboration Post'}
             </button>
           </div>
 
@@ -288,11 +289,11 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
                 <textarea rows={2} value={oppMessage} onChange={(e) => setOppMessage(e.target.value)} placeholder="Looking for clean melodic hooks..." className="w-full p-2.5 border border-[#E3DEC1] text-black rounded-xl focus:outline-none resize-none font-medium" />
               </div>
 
-              <button type="submit" className="w-full py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-xl">Publish Request Brief</button>
+              <button type="submit" className="w-full py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-xl">Publish Post Brief</button>
             </form>
           )}
 
-          {/* Cards Loops Rendering Grid layout container */}
+          {/* Cards Render Row Grid */}
           <div className="grid md:grid-cols-2 gap-4">
             {opportunities.length === 0 ? (
               <p className="text-xs text-gray-400 font-medium italic py-6">No active project briefs found.</p>
@@ -302,11 +303,10 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
                 const formattedDate = opp.created_at ? new Date(opp.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
 
                 return (
-                  <div key={opp.id} className={`p-5 border rounded-3xl bg-white shadow-sm flex flex-col justify-between space-y-4 animate-fadeIn text-left ${opp.status === 'closed' ? 'border-gray-200 opacity-60 bg-gray-50/50' : 'border-[#E3DEC1]'}`}>
+                  <div key={opp.id} className={`p-5 border rounded-3xl bg-white shadow-sm flex flex-col justify-between space-y-4 text-left ${opp.status === 'closed' ? 'border-gray-200 opacity-60 bg-gray-50/50' : 'border-[#E3DEC1]'}`}>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between border-b border-gray-100 pb-2">
                         <span className="text-[10px] bg-black text-white font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">{opp.role_needed}</span>
-                        {/* 📅 DYNAMIC DISPLAY UPGRADE: Renders creation date timestamp details */}
                         <span className="text-[9px] text-gray-400 font-bold font-mono">{formattedDate}</span>
                       </div>
                       
@@ -323,7 +323,6 @@ export default function CollaborationHub({ profileId }: CollabHubProps) {
                       {opp.message && <p className="text-xs text-gray-400 font-medium bg-gray-50/70 p-3 rounded-xl italic">"{opp.message}"</p>}
                     </div>
 
-                    {/* 🔥 CONDITIONAL FOOTER: Shows a Close Request action link only if you created it */}
                     {isMyPost ? (
                       opp.status !== 'closed' ? (
                         <button 
