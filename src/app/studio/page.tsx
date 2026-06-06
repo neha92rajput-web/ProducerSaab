@@ -79,7 +79,6 @@ export default function StudioWorkspace() {
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
-      // Prevent outside click handler from clashing with native audio interface controls
       if ((e.target as HTMLElement).closest('audio')) return;
       setActiveMenuId(null);
     };
@@ -201,11 +200,16 @@ export default function StudioWorkspace() {
 
       if (selectedFile) {
         const fileExt = selectedFile.name.split('.').pop();
+        // Generates a completely clean numeric file name string pattern
         const fileName = `${Date.now()}.${fileExt}`;
         
         const { error: uploadError } = await database.storage
           .from('audio') 
-          .upload(fileName, selectedFile);
+          .upload(fileName, selectedFile, {
+            contentType: 'audio/mpeg',
+            cacheControl: '3600',
+            upsert: false
+          });
 
         if (uploadError) throw uploadError;
 
@@ -241,6 +245,7 @@ export default function StudioWorkspace() {
           return alert("Please select an audio file to upload.");
         }
 
+        // 🔥 CRITICAL SYNC FIX: Explicitly binds finalAudioUrl structure to your new database row entry 
         const { error: insertError } = await database.from('sounds').insert({
           profile_id: profile.id,
           title: formTitle,
@@ -458,7 +463,6 @@ export default function StudioWorkspace() {
                   </div>
                   
                   <div className="flex items-center gap-4 relative">
-                    {/* 🔥 EDITED: Removed crossOrigin="anonymous" to let browser natively buffer the audio stream cleanly */}
                     <audio 
                       controls 
                       src={sound.audio_url} 
