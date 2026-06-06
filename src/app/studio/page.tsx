@@ -35,6 +35,9 @@ export default function StudioWorkspace() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Dropdown visibility ledger for track cards
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
 
@@ -68,6 +71,12 @@ export default function StudioWorkspace() {
     init();
   }, [router, activeTab]);
 
+  useEffect(() => {
+    const handleOutsideClick = () => setActiveMenuId(null);
+    window.addEventListener('click', handleOutsideClick);
+    return () => window.removeEventListener('click', handleOutsideClick);
+  }, []);
+
   const handleAudioPlay = (currentSoundId: string) => {
     Object.keys(audioRefs.current).forEach((id) => {
       if (id !== currentSoundId && audioRefs.current[id]) {
@@ -76,12 +85,13 @@ export default function StudioWorkspace() {
     });
   };
 
-  // Secure Audio File Deletion Hook
+  // 🔥 WORKFLOW FIXED: Permanent Cascade Deletion Across Profile and Feed Channel Indexes
   const handleDeleteTrack = async (soundId: string, audioUrl: string) => {
     const confirmDestruction = window.confirm("⚠️ Are you sure you want to permanently delete this track from your studio and the public feed? This action cannot be undone.");
     if (!confirmDestruction) return;
 
     try {
+      // 1. Wipe hard storage audio item references from storage bucket channels
       if (audioUrl) {
         const urlParts = audioUrl.split('/storage/v1/object/public/audio/');
         if (urlParts.length === 2) {
@@ -90,17 +100,21 @@ export default function StudioWorkspace() {
         }
       }
 
+      // 2. Clear out relative collaboration inquiries referencing this audio file block row
+      await database.from('collaboration_requests').delete().eq('sound_id', soundId);
+
+      // 3. Execute definitive row deletion from sounds table
       const { error } = await database.from('sounds').delete().eq('id', soundId);
       if (error) throw error;
 
       alert("💥 Track successfully deleted from ProducerSaab network rows.");
+      setActiveMenuId(null);
       await fetchSounds(profile.id);
     } catch (err: any) {
       alert("Asset destruction fault: " + err.message);
     }
   };
 
-  // Permanent Account Erasure Hook
   const handleDeleteAccount = async () => {
     const doubleCheck = window.confirm("🛑 CRITICAL ACTION!\nAre you absolutely sure you want to wipe out your production profile? This will permanently delete your username, tracks, open opportunities, and project credits. This action is irreversible.");
     if (!doubleCheck) return;
@@ -112,7 +126,6 @@ export default function StudioWorkspace() {
 
     try {
       setLoading(true);
-      
       const { error } = await database.from('profiles').delete().eq('id', profile.id);
       if (error) throw error;
 
@@ -262,12 +275,12 @@ export default function StudioWorkspace() {
     <div className="min-h-screen bg-[#FDFBF7] p-6 text-black relative">
       <div className="max-w-4xl mx-auto">
         
-        {/* Navigation Action Header */}
+        {/* Navigation actions header layout columns */}
         <div className="flex justify-end items-center gap-6 mb-4 text-[13px] font-bold text-[#191919]">
           <button onClick={() => router.push('/studio')} className="hover:opacity-70">My Studio</button>
           <button onClick={() => router.push('/feed')} className="hover:opacity-70">Community Feed</button>
           
-          {/* Real-time Notification Bell Center Trigger */}
+          {/* Real-time Notification Bell icon link placement mapping */}
           {profile.id && <NotificationCenter profileId={profile.id} />}
           
           <button onClick={() => { database.auth.signOut(); router.push('/'); }} className="text-[#A4927A] hover:text-[#191919]">Leave Studio</button>
@@ -350,7 +363,6 @@ export default function StudioWorkspace() {
                     </select>
                   </div>
 
-                  {/* Absolute Data Purge Trigger Button */}
                   <button 
                     type="button"
                     onClick={handleDeleteAccount}
@@ -378,7 +390,6 @@ export default function StudioWorkspace() {
                     <span className="bg-[#191919] text-white text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider">
                       {profile.account_type || '🎹 Producer'}
                     </span>
-                    {/* Conditional Banner Badge Visibility Filter */}
                     {profile.is_open_to_collab !== null && profile.is_open_to_collab !== undefined && (
                       <span className={`text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider ${profile.is_open_to_collab === true ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
                         {profile.is_open_to_collab === true ? '🟢 Open To Collaborate' : '🔴 Not Taking Requests'}
@@ -423,7 +434,7 @@ export default function StudioWorkspace() {
             </div>
           </div>
 
-          {/* Upload Link Area */}
+          {/* Tucked Audio Upload Action Link Anchor text */}
           <div className="flex justify-end h-9 items-center px-2 mt-2 mb-1">
             {activeTab === 'Loops / Tracks' && (
               <button 
@@ -451,7 +462,7 @@ export default function StudioWorkspace() {
                     {sound.description && <p className="text-xs text-gray-400 font-medium italic max-w-md">{sound.description}</p>}
                   </div>
                   
-                  <div className="flex items-center gap-2.5 sm:gap-4">
+                  <div className="flex items-center gap-4 relative">
                     <audio 
                       controls 
                       src={sound.audio_url} 
@@ -460,18 +471,34 @@ export default function StudioWorkspace() {
                       onPlay={() => handleAudioPlay(sound.id)}
                     />
                     
-                    <button onClick={() => openEditModal(sound)} className="p-2 border border-[#E3DEC1] rounded-xl hover:bg-gray-50 text-gray-500 transition text-xs font-bold" title="Edit Parameters">
-                      ✏️
-                    </button>
+                    {/* ⚙️ INTEGRATED LAYOUT UPGRADE: Clean 3-Dot Dropdown Actions wrapper */}
+                    <div className="relative" onClick={(e) => e.stopPropagation()}>
+                      <button 
+                        onClick={() => setActiveMenuId(activeMenuId === sound.id ? null : sound.id)}
+                        className="text-gray-400 hover:text-black font-bold px-2 py-1 text-sm rounded transition cursor-pointer"
+                        title="Options Menu"
+                      >
+                        •••
+                      </button>
 
-                    {/* Trash Can Deletion Anchor */}
-                    <button 
-                      onClick={() => handleDeleteTrack(sound.id, sound.audio_url)} 
-                      className="p-2 border border-red-200 text-red-500 rounded-xl hover:bg-red-50 transition text-xs font-bold"
-                      title="Delete Track Permanently"
-                    >
-                      🗑️
-                    </button>
+                      {activeMenuId === sound.id && (
+                        <div className="absolute right-0 bottom-full mb-2 w-28 bg-white border border-[#E3DEC1] rounded-xl py-1.5 shadow-lg z-30 animate-fadeIn text-left">
+                          <button 
+                            onClick={() => openEditModal(sound)}
+                            className="w-full text-left px-4 py-1.5 text-xs text-gray-700 font-bold hover:bg-gray-50 flex items-center gap-1.5"
+                          >
+                            ✏️ Edit info
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteTrack(sound.id, sound.audio_url)}
+                            className="w-full text-left px-4 py-1.5 text-xs text-red-600 font-black hover:bg-red-50 flex items-center gap-1.5"
+                          >
+                            🗑️ Delete File
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
                   </div>
                 </div>
               ))
