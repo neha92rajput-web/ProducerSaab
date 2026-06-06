@@ -39,7 +39,7 @@ export default function CommunityFeedPage() {
         .not('audio_url', 'is', null)
         .order('created_at', { ascending: false });
 
-      // 🔥 DATABASE FILTER FIX: Explicitly queries records where status is 'open'
+      // Fetch active, open collaboration posts globally
       const { data: briefs } = await database
         .from('collaboration_opportunities')
         .select('*, profiles(id, username, account_type, primary_genre)')
@@ -206,9 +206,10 @@ export default function CommunityFeedPage() {
           <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Explore variables, download master audio structures, or connect directly on specific tracks.</p>
         </div>
 
+        {/* 🎯 HEADER TAB RENAMED: Set to "Collaboration Post" */}
         <div className="flex gap-8 border-b border-[#E3DEC1] pb-px text-[11px] font-black uppercase tracking-widest">
           <button onClick={() => setActiveFeedTab('tracks')} className={`pb-3 border-b-2 transition-all ${activeFeedTab === 'tracks' ? 'text-[#191919] border-[#191919]' : 'text-[#A4927A] border-transparent'}`}>🎵 Fresh Sounds Library ({globalSounds.length})</button>
-          <button onClick={() => setActiveFeedTab('briefs')} className={`pb-3 border-b-2 transition-all ${activeFeedTab === 'briefs' ? 'text-[#191919] border-[#191919]' : 'text-[#A4927A] border-transparent'}`}>🎯 Collaboration Requests ({globalBriefs.length})</button>
+          <button onClick={() => setActiveFeedTab('briefs')} className={`pb-3 border-b-2 transition-all ${activeFeedTab === 'briefs' ? 'text-[#191919] border-[#191919]' : 'text-[#A4927A] border-transparent'}`}>🎯 Collaboration Post ({globalBriefs.length})</button>
         </div>
 
         <div className="pt-2">
@@ -266,7 +267,6 @@ export default function CommunityFeedPage() {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between border-b border-gray-100 pb-2">
                           <span className="text-[9px] bg-[#191919] text-white font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">Looking For: {brief.role_needed}</span>
-                          {/* 📅 PUBLIC TIMESTAMP BADGE UPGRADE: Displays calendar formatting */}
                           <span className="text-[9px] text-gray-400 font-bold font-mono">{formattedDate}</span>
                         </div>
                         
