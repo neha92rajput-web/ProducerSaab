@@ -32,35 +32,54 @@ export default function CommunityFeedPage() {
         setMyProfileId(user.id);
       }
 
-      // Query standard track rows
+      // Query standard track rows safely
       const { data: sounds } = await database
         .from('sounds')
         .select('*, profiles(id, username, account_type, country)')
         .in('category', ['Loops / Tracks', 'Collaboration'])
         .not('audio_url', 'is', null)
         .order('created_at', { ascending: false });
+      setGlobalSounds(sounds || []);
 
-      // 🔍 FIXED RELATION: Explicitly bind the relationship join through creator_id mapping
-      const { data: briefs, error: briefError } = await database
+      // 🔥 BULLETPROOF SCAN LAYER: Fetch the posts directly using a safe wildcard selection
+      // This completely avoids any ambiguous relationship joins causing HTTP 400 Bad Requests
+      const { data: rawBriefs, error: briefError } = await database
         .from('collaboration_opportunities')
-        .select('*, profiles!collaboration_opportunities_creator_id_fkey(id, username, account_type, primary_genre)')
-        .eq('status', 'open')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (briefError) {
-        // Fallback catch if your foreign key relation is named via profile_id instead
-        const { data: fallbackBriefs } = await database
-          .from('collaboration_opportunities')
-          .select('*, profiles(id, username, account_type, primary_genre)')
-          .eq('status', 'open')
-          .order('created_at', { ascending: false });
-        
-        setGlobalBriefs(fallbackBriefs || []);
-      } else {
-        setGlobalBriefs(briefs || []);
+        console.error("Supabase endpoint read error:", briefError.message);
       }
 
-      setGlobalSounds(sounds || []);
+      if (rawBriefs && rawBriefs.length > 0) {
+        // Fetch all profiles to map the usernames manually without complex joining syntax
+        const { data: profilesList } = await database
+          .from('profiles')
+          .select('id, username, account_type');
+
+        const profilesMap = (profilesList || []).reduce((acc: any, p: any) => {
+          acc[p.id] = p;
+          return acc;
+        }, {});
+
+        // Attach profiles metadata manually to each brief row record cleanly
+        const unifiedBriefs = rawBriefs.map((b: any) => ({
+          ...b,
+          profiles: profilesMap[b.creator_id || b.profile_id] || { username: 'creator', account_type: 'Producer' }
+        }));
+
+        // Filter out closed listings so that only open ones remain visible to the community
+        const openBriefs = unifiedBriefs.filter((item: any) => {
+          const statusVal = String(item.status || 'open').toLowerCase().trim();
+          return statusVal === 'open' || statusVal === '';
+        });
+
+        setGlobalBriefs(openBriefs);
+      } else {
+        setGlobalBriefs([]);
+      }
+
     } catch (err) {
       console.error("Failed to load global community data streams:", err);
     } finally {
@@ -171,7 +190,7 @@ export default function CommunityFeedPage() {
     }
     if (myProfileId === brief.creator_id) return alert("This is your own project brief!");
 
-    const applicationPitch = prompt(`Write a message note pitching to @${brief.profiles?.username || brief.profiles?.[0]?.username || 'creator'}:`);
+    const applicationPitch = prompt(`Write a message note pitching to @${brief.profiles?.username || 'creator'}:`);
     if (applicationPitch === null) return;
     if (!applicationPitch.trim()) return alert("A short message pitch is required.");
 
@@ -202,7 +221,6 @@ export default function CommunityFeedPage() {
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-black font-sans antialiased">
       
-      {/* HEADER NAVIGATION */}
       <header className="sticky top-0 z-50 bg-[#FDFBF7]/80 backdrop-blur-md border-b border-[#E3DEC1] px-8 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <Link href="/" className="font-sans font-black tracking-[0.2em] text-sm uppercase">🎵 PRODUCER SAAB</Link>
@@ -214,7 +232,6 @@ export default function CommunityFeedPage() {
         </div>
       </header>
 
-      {/* JUMBOTRON LAYOUT BLOCK */}
       <main className="max-w-4xl mx-auto px-6 pt-12 pb-24 space-y-10">
         <div className="space-y-2 border-b border-[#E3DEC1] pb-6 text-left">
           <h1 className="text-4xl font-serif font-normal italic tracking-tight text-[#191919]">The Creator Ecosystem</h1>
@@ -289,7 +306,6 @@ export default function CommunityFeedPage() {
               {globalBriefs.length > 0 ? (
                 globalBriefs.map((brief) => {
                   const formattedDate = brief.created_at ? new Date(brief.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-                  const profileData = brief.profiles || brief.profiles?.[0];
                   
                   return (
                     <div key={brief.id} className="p-5 border border-[#E3DEC1] rounded-3xl bg-white shadow-sm flex flex-col justify-between space-y-4 text-left animate-fadeIn">
@@ -301,7 +317,7 @@ export default function CommunityFeedPage() {
                         
                         <div className="space-y-1">
                           <h3 className="text-sm font-black text-black tracking-tight leading-tight">{brief.title}</h3>
-                          <div className="text-[10px] text-[#A4927A] font-bold">Posted by @{profileData?.username || 'creator'}</div>
+                          <div className="text-[10px] text-[#A4927A] font-bold">Posted by @{brief.profiles?.username || 'creator'}</div>
                           <div className="flex flex-wrap gap-x-4 gap-y-1 text-[9px] font-mono text-gray-400 font-bold uppercase pt-1">
                             <div>Genre: {brief.genre}</div>
                             <div>Tempo: {brief.bpm} BPM</div>
