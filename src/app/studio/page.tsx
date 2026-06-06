@@ -114,7 +114,7 @@ export default function StudioWorkspace() {
         const fileExt = selectedFile.name.split('.').pop();
         const fileName = `${Date.now()}.${fileExt}`;
         
-        const { error: uploadError = null } = await database.storage
+        const { error: uploadError } = await database.storage
           .from('audio') 
           .upload(fileName, selectedFile);
 
@@ -212,7 +212,7 @@ export default function StudioWorkspace() {
           <div className="flex-grow space-y-3 w-full">
             {isEditingProfile ? (
               <div className="space-y-3 max-w-xl">
-                {/* Classy Serif Font Stack Inside Editor Input */}
+                {/* Elegant Font Stack for Name Input Field */}
                 <input 
                   type="text"
                   defaultValue={profile.username} 
@@ -221,8 +221,8 @@ export default function StudioWorkspace() {
                   placeholder="Username"
                 />
                 
-                {/* Creator Categories Dropdown Row */}
-                <div className="flex flex-col sm:flex-row gap-2">
+                {/* Dropdowns & Setup Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                   <select 
                     value={profile.account_type || '🎹 Producer'} 
                     onChange={(e) => saveProfileField('account_type', e.target.value)}
@@ -241,30 +241,46 @@ export default function StudioWorkspace() {
                     type="text"
                     defaultValue={profile.software || 'logic, fl'} 
                     onBlur={(e) => saveProfileField('software', e.target.value)} 
-                    className="text-xs font-semibold bg-white/60 p-2.5 rounded-xl focus:outline-none text-black placeholder-gray-500 flex-grow"
-                    placeholder="Production Software / Setup"
+                    className="text-xs font-semibold bg-white/60 p-2.5 rounded-xl focus:outline-none text-black placeholder-gray-500"
+                    placeholder="DAW (logic, fl)"
                   />
+
+                  {/* Primary Genre Dropdown Picker Input */}
+                  <select
+                    value={profile.primary_genre || '🎵 Trap'}
+                    onChange={(e) => saveProfileField('primary_genre', e.target.value)}
+                    className="text-xs font-bold bg-white/60 p-2.5 rounded-xl focus:outline-none text-black border-none"
+                  >
+                    <option value="🎵 Trap">🎵 Trap</option>
+                    <option value="🎹 Hip Hop">🎹 Hip Hop</option>
+                    <option value="✨ Lo-Fi">✨ Lo-Fi</option>
+                    <option value="🎸 Rock / Alternative">🎸 Rock / Alternative</option>
+                    <option value="⚡ EDM / Electronic">⚡ EDM / Electronic</option>
+                    <option value="🎤 Pop / R&B">🎤 Pop / R&B</option>
+                    <option value="🎻 Cinematic / Classical">🎻 Cinematic</option>
+                  </select>
+
                   <input 
                     type="text"
-                    defaultValue={profile.country || 'india'} 
+                    defaultValue={profile.country || 'India'} 
                     onBlur={(e) => saveProfileField('country', e.target.value)} 
-                    className="text-xs font-semibold bg-white/60 p-2.5 rounded-xl focus:outline-none text-black placeholder-gray-500 w-32"
+                    className="text-xs font-semibold bg-white/60 p-2.5 rounded-xl focus:outline-none text-black placeholder-gray-500"
                     placeholder="Location"
                   />
                 </div>
 
-                {/* Text and Numbers Bio Input Field */}
+                {/* Bio Field */}
                 <textarea 
                   defaultValue={profile.bio || ''} 
                   onBlur={(e) => saveProfileField('bio', e.target.value)} 
-                  placeholder="Tell the community about your style, release stats, or gear setup (Supports numbers & letters)..."
+                  placeholder="Tell the community about your style, gear, or background vibe..."
                   className="w-full text-xs font-medium p-3 rounded-xl bg-white/60 border-none focus:outline-none text-black resize-none"
                   rows={2}
                 />
               </div>
             ) : (
-              <div className="space-y-2">
-                {/* REPOSITIONED LAYOUT: Toggled Classy Font and Stacked Badge Directly Below Name */}
+              <div className="space-y-3">
+                {/* 👑 CLASSY SERIF FONTS & UNDERNAME ROLE BADGES */}
                 <div className="space-y-1">
                   <h1 className="text-3xl sm:text-4xl font-serif font-normal italic tracking-tight text-[#191919]">
                     {profile.username || 'nthakur'}
@@ -276,14 +292,16 @@ export default function StudioWorkspace() {
                   </div>
                 </div>
                 
-                <div className="space-y-1 text-xs text-[#4B3B2F] font-bold pt-1">
+                {/* Metadata details including software & primary genre */}
+                <div className="space-y-1 text-xs text-[#4B3B2F] font-bold pt-0.5">
                   <div>🎹 DAW/Style: {profile.software || 'logic, fl'}</div>
-                  <div>🌍 Location: {profile.country || 'india'}</div>
+                  <div>🎵 Primary Genre: {profile.primary_genre || 'Trap'}</div>
+                  <div>🌍 Location: {profile.country || 'India'}</div>
                 </div>
 
-                {/* Flexible Bio Display Element */}
+                {/* Bio Block */}
                 {profile.bio && (
-                  <p className="text-xs text-[#3E3227] font-medium leading-relaxed bg-white/20 p-3 rounded-xl max-w-xl italic mt-2">
+                  <p className="text-xs text-[#3E3227] font-medium leading-relaxed bg-white/20 p-3 rounded-xl max-w-xl italic mt-1">
                     {profile.bio}
                   </p>
                 )}
@@ -292,7 +310,7 @@ export default function StudioWorkspace() {
           </div>
         </div>
 
-        {/* Sync / Edit Button Trigger */}
+        {/* Sync Controls */}
         <button 
           onClick={() => setIsEditingProfile(!isEditingProfile)} 
           className="mt-6 px-6 py-2 border border-[#191919] rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-[#191919] hover:text-white transition"
@@ -312,7 +330,7 @@ export default function StudioWorkspace() {
             </div>
           </div>
 
-          {/* Hidden Subtle Upload Link (Tucked cleanly inside the whitespace) */}
+          {/* Hidden Subtle Upload Button Link */}
           <div className="flex justify-end h-9 items-center px-2 mt-2 mb-1">
             {activeTab === 'Loops / Tracks' && (
               <button 
