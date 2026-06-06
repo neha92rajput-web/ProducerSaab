@@ -60,24 +60,26 @@ export default function NotificationCenter({ profileId }: NotificationCenterProp
   };
 
   return (
-    <div className="relative z-50 text-black">
+    <div className="relative z-50 text-black flex items-center">
+      {/* 🔔 SLeek ICON-ONLY TRIGGER BUTTON */}
       <button 
         onClick={() => { setIsOpen(!isOpen); if(!isOpen) markAllAsRead(); }}
-        className="hover:opacity-70 flex items-center gap-1.5 relative text-xs font-bold font-sans uppercase tracking-widest text-[#191919]"
+        className="hover:opacity-70 flex items-center justify-center relative text-lg p-1 transition-all duration-200"
+        title="View Notifications"
       >
-        🔔 Notifications
+        <span>🔔</span>
         {unreadCount > 0 && (
-          <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-black font-mono animate-pulse">
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] h-4 w-4 rounded-full font-black flex items-center justify-center animate-pulse border border-[#FDFBF7]">
             {unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 bg-white border border-[#E3DEC1] rounded-2xl p-4 shadow-xl animate-fadeIn max-h-96 overflow-y-auto text-left">
+        <div className="absolute right-0 mt-3 top-full w-80 bg-white border border-[#E3DEC1] rounded-2xl p-4 shadow-xl animate-fadeIn max-h-96 overflow-y-auto text-left">
           <div className="flex justify-between items-center border-b border-gray-100 pb-2 mb-2">
             <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">Activity Hub</span>
-            {unreadCount > 0 && <span className="text-[8px] text-emerald-600 font-bold uppercase font-mono">Updated</span>}
+            {unreadCount > 0 && <span className="text-[8px] text-emerald-600 font-bold uppercase font-mono">New</span>}
           </div>
 
           <div className="space-y-2">
