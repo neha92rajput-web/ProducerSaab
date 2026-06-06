@@ -7,8 +7,8 @@ import { createBrowserClient } from '@supabase/ssr';
 export default function StudioWorkspace() {
   const router = useRouter();
   const database = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
   );
 
   const [loading, setLoading] = useState(true);
@@ -20,7 +20,10 @@ export default function StudioWorkspace() {
   useEffect(() => {
     async function init() {
       const { data: { user } } = await database.auth.getUser();
-      if (!user) { router.replace('/signin'); return; }
+      if (!user) { 
+        router.replace('/signin'); 
+        return; 
+      }
       const { data: p } = await database.from('profiles').select('*').eq('id', user.id).single();
       setProfile(p || {});
       setLoading(false);
@@ -87,7 +90,7 @@ export default function StudioWorkspace() {
   if (loading) return null;
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] p-6">
+    <div className="min-h-screen bg-[#FDFBF7] p-6 text-black">
       <div className="max-w-4xl mx-auto">
         
         {/* Navigation */}
